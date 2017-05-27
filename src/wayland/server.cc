@@ -4,7 +4,9 @@
 #include <wayland-server.h>
 
 #include "base/geometry.h"
+#include "base/logging.h"
 #include "compositor/buffer.h"
+#include "compositor/region.h"
 #include "compositor/surface.h"
 
 namespace naive {
@@ -84,6 +86,57 @@ void surface_frame(wl_client* client,
                    uint32_t callback) {
   // TODO: implement this optimization.
 }
+
+void surface_set_opaque_region(wl_client* client,
+                               wl_resource* resource,
+                               wl_resource* region_resource) {
+  GetUserDataAs<Surface>(resource)->SetOpaqueRegion(
+      region_resource ? *GetUserDataAs<Region>(region_resource)
+                      : Region::Empty());
+}
+
+void surface_set_input_region(wl_client* client,
+                              wl_resource* resource,
+                              wl_resource* region_resource) {
+  GetUserDataAs<Surface>(resource)->SetInputRegion(
+      region_resource ? *GetUserDataAs<Region>(region_resource)
+                      : Region::Empty());
+}
+
+void surface_commit(wl_client* client, wl_resource* resource) {
+  GetUserDataAs<Surface>(resource)->Commit();
+}
+
+void surface_set_buffer_transform(wl_client* client,
+                                  wl_resource* resource,
+                                  int transform) {
+  NOTIMPLEMENTED();
+}
+
+void surface_set_buffer_scale(wl_client* client,
+                              wl_resource* resource,
+                              int32_t scale) {
+  if (scale < 1) {
+    wl_resource_post_error(resource,
+                           WL_SURFACE_ERROR_INVALID_SCALE,
+                           "buffer scale must be one (%d specified)",
+                           scale);
+    return;
+  }
+  GetUserDataAs<Surface>(resource)->SetBufferScale(scale);
+}
+
+const struct wl_surface_interface surface_implementation = {
+    .attach = surface_attach,
+    .commit = surface_commit,
+    .damage = surface_damage,
+    .destroy = surface_destroy,
+    .frame = surface_frame,
+    .set_buffer_transform = surface_set_buffer_transform,
+    .set_buffer_scale = surface_set_buffer_scale,
+    .set_opaque_region = surface_set_opaque_region,
+    .set_input_region = surface_set_input_region
+};
 
 }  // namespace
 

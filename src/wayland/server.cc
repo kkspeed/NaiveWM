@@ -11,7 +11,6 @@
 #include "compositor/surface.h"
 #include "compositor/subsurface.h"
 #include "wayland/display.h"
-#include "wm/window.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -399,6 +398,18 @@ void shell_surface_set_toplevel(wl_client* client, wl_resource* resource) {
     return;
 
   wm::WindowManager::Get()->Manage(shell_surface->GetWindow());
+}
+
+void shell_surface_set_transient(wl_client* client,
+                                 wl_resource* resource,
+                                 wl_resource* parent_resource,
+                                 int x,
+                                 int y,
+                                 uint32_t flags) {
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
+  shell_surface->GetWindow()->SetParent(parent_surface->window());
+  // TODO: manage transient window?
 }
 
 };  // namespace

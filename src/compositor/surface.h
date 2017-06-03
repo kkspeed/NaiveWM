@@ -2,9 +2,11 @@
 #define _COMPOSITOR_SURFACE_H_
 
 #include <cstdint>
+#include <memory>
 
 #include "base/geometry.h"
 #include "compositor/region.h"
+#include "wm/window.h"
 
 namespace naive {
 
@@ -18,6 +20,10 @@ class Surface {
   void SetInputRegion(const Region& region);
   void Commit();
   void SetBufferScale(int32_t scale);
+
+  wm::Window* window() { return window_.get(); }
+ private:
+  std::unique_ptr<wm::Window> window_;
 };
 
 }  // namespace naive

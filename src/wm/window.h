@@ -6,7 +6,12 @@ namespace wm {
 
 class Window {
  public:
-  bool IsManaged() const;
+  bool IsManaged() const { return managed_; }
+  void SetParent(Window* parent);
+  Window* parent() { return parent_; }
+ private:
+  bool managed_;
+  Window* parent_;
 };
 
 }  // namespace wm

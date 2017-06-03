@@ -1,6 +1,7 @@
 #ifndef _WAYLAND_DISPLAY_H
 #define _WAYLAND_DISPLAY_H
 
+#include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/shared_memory.h"
 
@@ -12,6 +13,8 @@ class Display {
   Display();
 
   std::unique_ptr<Surface> CreateSurface();
+  std::unique_ptr<SubSurface> CreateSubSurface(
+      Surface* surface, Surface* parent);
   std::unique_ptr<SharedMemory> CreateSharedMemory(int fd, int32_t size);
 };
 

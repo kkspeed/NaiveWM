@@ -409,10 +409,73 @@ void shell_surface_set_transient(wl_client* client,
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
   shell_surface->GetWindow()->SetParent(parent_surface->window());
-  // TODO: manage transient window?
+  shell_surface->GetWindow()->SetTransient(true);
+  wm::WindowManager::Get()->Manage(shell_surface->GetWindow());
 }
 
-};  // namespace
+void shell_surface_set_fullscreen(wl_client* client,
+                                  wl_resource* resource,
+                                  uint32_t method,
+                                  uint32_t framerate,
+                                  wl_resource* output_resource) {
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  shell_surface->GetWindow()->SetFullscreen(true);
+}
+
+void shell_surface_set_popup(wl_client* client,
+                             wl_resource* resource,
+                             wl_resource* seat_resource,
+                             uint32_t serial,
+                             wl_resource* parent_resource,
+                             int32_t x,
+                             int32_t y,
+                             uint32_t flags) {
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
+  shell_surface->GetWindow()->SetParent(parent_surface->window());
+  shell_surface->GetWindow()->SetPopup(true);
+  wm::WindowManager::Get()->Manage(shell_surface->GetWindow());
+}
+
+void shell_surface_set_maximized(wl_client* client,
+                                 wl_resource* resource,
+                                 wl_resource* output_resource) {
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  shell_surface->GetWindow()->SetMaximized(true);
+}
+
+void shell_surface_set_title(wl_client* client,
+wl_resource* resource,
+const char* title) {
+  GetUserDataAs<ShellSurface>(resource)
+      ->GetWindow()->SetTitle(std::string(title));
+}
+
+void shell_surface_set_class(wl_client* client,
+                             wl_resource* resource,
+                             const char* clazz) {
+  GetUserDataAs<ShellSurface>(resource)->GetWindow()->SetClass(clazz);
+}
+
+const struct wl_shell_surface_interface shell_surface_implementation = {
+    .pong = shell_surface_pong,
+    .move = shell_surface_move,
+    .resize = shell_surface_resize,
+    .set_toplevel = shell_surface_set_toplevel,
+    .set_transient = shell_surface_set_transient,
+    .set_fullscreen = shell_surface_set_fullscreen,
+    .set_popup = shell_surface_set_popup,
+    .set_maximized = shell_surface_set_maximized,
+    .set_title = shell_surface_set_title,
+    .set_class = shell_surface_set_class
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// wl_shell_interface:
+
+
+
+}  // namespace
 
 }  // namespace wayland
 }  // namespace naive

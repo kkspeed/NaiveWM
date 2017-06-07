@@ -16,6 +16,7 @@ class Window {
   void SetMaximized(bool maximized);
   void SetTitle(std::string title);
   void SetClass(std::string clazz);
+  void SetAppId(std::string app_id);
   Window* parent() { return parent_; }
  private:
   bool managed_;

@@ -1,5 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "cquery.launch.workingDirectory": "/home/bruce/Programming/C/wayland/NaiveWayland",
-    "cquery.cacheDirectory": "/home/bruce/.config/Code/User/workspaceStorage/349ecc881ebe05787bb264da3239eff8/jacobdufault.cquery/cquerycache/"
+    "cquery.cacheDirectory": "/home/bruce/.config/Code/User/workspaceStorage/349ecc881ebe05787bb264da3239eff8/jacobdufault.cquery/cquerycache/",
+    "cquery.extraClangArguments": ["-I/usr/include"]
 }

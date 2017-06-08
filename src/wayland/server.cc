@@ -2,6 +2,8 @@
 #include "wayland/server.h"
 
 #include <wayland-server.h>
+#include <poll.h>
+
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -10,6 +12,7 @@
 
 #include "base/geometry.h"
 #include "base/logging.h"
+#include "compositor/compositor.h"
 #include "compositor/buffer.h"
 #include "compositor/region.h"
 #include "compositor/shell_surface.h"
@@ -818,6 +821,23 @@ Server::Server(Display* display)
                    display_, bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
                    bind_xdg_shell_v6);
+}
+
+void Server::AddSocket() {
+  wl_display_add_socket_auto(wl_display_);
+}
+
+void Server::Run() {
+  wl_event_loop* event_loop = wl_display_get_event_loop(wl_display_);
+  int wayland_fd = wl_event_loop_get_fd(event_loop);
+  pollfd fds[] = {{wayland_fd, POLLIN}};
+  for (;;) {
+    wl_event_loop_dispatch(event_loop, 0);  // TODO: event timeout
+    wl_display_flush_clients(wl_display_);
+    if (!compositor::Compositor::Get()->Draw()) {
+      poll(fds, 1, -1);
+    }
+  }
 }
 
 }  // namespace wayland

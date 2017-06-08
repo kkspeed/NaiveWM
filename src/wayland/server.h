@@ -14,6 +14,8 @@ namespace wayland {
 class Server {
  public:
   explicit Server(Display* display);
+  void Run();
+  void AddSocket();
 
  private:
   Display* display_;

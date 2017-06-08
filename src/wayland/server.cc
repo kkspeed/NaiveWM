@@ -1,4 +1,6 @@
 
+#include "wayland/server.h"
+
 #include <wayland-server.h>
 #include <cstdint>
 #include <functional>
@@ -16,30 +18,31 @@
 #include "wayland/display.h"
 #include "wayland/output.h"
 #include "wm/window_manager.h"
+#include "display.h"
 
 namespace naive {
 namespace wayland {
 
 namespace {
 
-template <class T>
+template<class T>
 T* GetUserDataAs(wl_resource* resource) {
   return static_cast<T*>(wl_resource_get_user_data(resource));
 }
 
-template <class T>
+template<class T>
 std::unique_ptr<T> TakeUserDataAs(wl_resource* resource) {
   std::unique_ptr<T> user_data = std::unique_ptr<T>(GetUserDataAs<T>(resource));
   wl_resource_set_user_data(resource, nullptr);
   return user_data;
 }
 
-template <class T>
+template<class T>
 void DestroyUserData(wl_resource* resource) {
   TakeUserDataAs<T>(resource);
 }
 
-template <class T>
+template<class T>
 void SetImplementation(wl_resource* resource, const void* implementation,
                        std::unique_ptr<T> user_data) {
   wl_resource_set_implementation(resource, implementation, user_data.release(),
@@ -175,6 +178,18 @@ const struct wl_compositor_interface compositor_implementation = {
     .create_surface = compositor_create_surface,
 };
 
+void bind_compositor(wl_client* client,
+                     void* data,
+                     uint32_t version,
+                     uint32_t id) {
+  wl_resource
+      * resource = wl_resource_create(client, &wl_compositor_interface, 1, id);
+  wl_resource_set_implementation(resource,
+                                 &compositor_implementation,
+                                 data,
+                                 nullptr);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shm_pool_interface
 
@@ -232,6 +247,15 @@ void shm_create_pool(wl_client* client, wl_resource* resource, uint32_t id,
 
 const struct wl_shm_interface shm_implementation = {shm_create_pool};
 
+void bind_shm(wl_client* client, void* data, uint32_t version, uint32_t id) {
+  wl_resource* resource = wl_resource_create(client, &wl_shm_interface, 1, id);
+
+  wl_resource_set_implementation(resource, &shm_implementation, data, nullptr);
+
+  wl_shm_send_format(resource, WL_SHM_FORMAT_XRGB8888);
+  wl_shm_send_format(resource, WL_SHM_FORMAT_ARGB8888);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // wl_subsurface_interface:
 
@@ -264,10 +288,10 @@ void subsurface_set_desync(wl_client* client, wl_resource* resource) {
   GetUserDataAs<SubSurface>(resource)->SetCommitBehavior(false);
 }
 
-const struct wl_subsurface_interface subsurface_implementation {
-  .destroy = subsurface_destroy, .set_position = subsurface_set_position,
-  .place_above = subsurface_place_above, .place_below = subsurface_place_below,
-  .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
+const struct wl_subsurface_interface subsurface_implementation{
+    .destroy = subsurface_destroy, .set_position = subsurface_set_position,
+    .place_above = subsurface_place_above, .place_below = subsurface_place_below,
+    .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -770,6 +794,31 @@ void bind_xdg_shell_v6(wl_client* client,
 }
 
 }  // namespace
+
+//////////////////////////////////////////////////////////////////////////////
+// Server
+Server::Server(Display* display)
+    : display_(display), wl_display_(wl_display_create()) {
+  wl_global_create(wl_display_,
+                   &wl_compositor_interface,
+                   1,
+                   display_,
+                   bind_compositor);
+
+  wl_global_create(wl_display_,
+                   &wl_shm_interface,
+                   1,
+                   display,
+                   bind_shm);
+  wl_global_create(wl_display_, &wl_subcompositor_interface, 1, display_,
+                   bind_subcompositor);
+  wl_global_create(wl_display_, &wl_shell_interface, 1, display_,
+                   bind_shell);
+  wl_global_create(wl_display_, &wl_output_interface, 1,
+                   display_, bind_output);
+  wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
+                   bind_xdg_shell_v6);
+}
 
 }  // namespace wayland
 }  // namespace naive

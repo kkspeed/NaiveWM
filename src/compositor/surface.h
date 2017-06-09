@@ -27,6 +27,7 @@ class Surface {
   wm::Window* window() { return window_.get(); }
 
   void SetParent(Surface* parent) { parent_ = parent; };
+
   void AddChild(Surface* surface);
   void RemoveChild(Surface* surface);
 

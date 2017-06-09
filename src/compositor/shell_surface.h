@@ -12,7 +12,7 @@ namespace naive {
 class ShellSurface {
  public:
   void Move();
-  wm::Window* GetWindow();
+  wm::Window* window();
   void set_close_callback(std::function<void()> callback);
   void set_destroy_callback(std::function<void()> callback);
   void set_configure_callback(std::function<uint32_t(int32_t, int32_t)> callback);

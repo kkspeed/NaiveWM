@@ -13,6 +13,9 @@ class SubSurface {
   void PlaceAbove(Surface* target);
   void PlaceBelow(Surface* target);
   void SetCommitBehavior(bool sync);
+ private:
+  Surface* parent_;
+  Surface* surface_;
 };
 
 }  // namespace naive

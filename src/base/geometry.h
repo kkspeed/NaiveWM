@@ -11,10 +11,10 @@ class Rect {
   Rect(int32_t x, int32_t y, int32_t width, int32_t height);
   ~Rect() = default;
 
-  int32_t x() { return x_; }
-  int32_t y() { return y_; }
-  int32_t width() { return width_; }
-  int32_t height() { return height_; }
+  int32_t x() const { return x_; }
+  int32_t y() const { return y_; }
+  int32_t width() const { return width_; }
+  int32_t height() const { return height_; }
 
  private:
   int32_t x_, y_, width_, height_;

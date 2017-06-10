@@ -12,8 +12,7 @@ void ShellSurface::Configure(int32_t width, int32_t height) {
 }
 
 void ShellSurface::SetGeometry(const base::geometry::Rect &rect) {
-  window_->SetPosition(rect.x(), rect.y());
-  window_->SetPosition(rect.width(), rect.height());
+  window_->SetGeometry(rect);
 }
 
 void ShellSurface::Move() {

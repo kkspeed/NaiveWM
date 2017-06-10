@@ -16,7 +16,6 @@ class Rect {
   int32_t width() const { return width_; }
   int32_t height() const { return height_; }
 
- private:
   int32_t x_, y_, width_, height_;
 };
 

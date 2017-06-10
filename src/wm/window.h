@@ -3,36 +3,49 @@
 
 #include <string>
 #include <vector>
+#include "base/geometry.h"
 #include "base/logging.h"
+#include "compositor/surface.h"
 
 namespace naive {
 
-class Surface;
 class ShellSurface;
 
 namespace wm {
 
-class Window {
+class Window : public SurfaceObserver {
  public:
   Window();
 
   bool IsManaged() const { return managed_; }
-  void SetParent(Window* parent);
-  void SetTransient(bool transient);
-  void SetPopup(bool popup);
+  void SetParent(Window* parent) { parent_ = parent; }
+  void SetTransient(bool transient) { is_transient_ = transient; }
+  void SetPopup(bool popup) { is_popup_ = popup; }
   void SetFullscreen(bool fullscreen);
   void SetMaximized(bool maximized);
-  void SetTitle(std::string title);
-  void SetClass(std::string clazz);
-  void SetAppId(std::string app_id);
+  void SetTitle(std::string title) { title_ = title; }
+  void SetClass(std::string clazz) { clazz_ = clazz; }
+  void SetAppId(std::string app_id) { app_id_ = app_id; }
 
-  void SetSurface(Surface* surface) { surface_ = surface; }
+  // SurfaceObserver overrides
+  void OnCommit() override;
+
+  void SetSurface(Surface* surface) {
+    surface_ = surface;
+    surface_->AddSurfaceObserver(this);
+  }
+
   void SetShellSurface(ShellSurface* shell_surface) {
     shell_surface_ = shell_surface;
   }
+
   void SetPosition(int32_t x, int32_t y) {
-    x_ = x;
-    y_ = y;
+    pending_state_.geometry.x_ = x;
+    pending_state_.geometry.y_ = y;
+  }
+
+  void SetGeometry(const base::geometry::Rect& rect) {
+    pending_state_.geometry = rect;
   }
 
   void Resize(int32_t width, int32_t height);
@@ -50,7 +63,14 @@ class Window {
  private:
   bool managed_;
 
-  int32_t x_, y_, width_, height_;
+  struct WindowState {
+    base::geometry::Rect geometry;
+    WindowState() : geometry({0, 0, 0, 0}) {}
+  };
+
+  bool is_popup_, is_transient_;
+  WindowState pending_state_, state_;
+  std::string title_, clazz_, app_id_;
   std::vector<Window*> children_;
   Window* parent_;
   Surface* surface_;

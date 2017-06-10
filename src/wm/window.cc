@@ -11,11 +11,7 @@ namespace wm {
 Window::Window()
     : surface_(nullptr),
       shell_surface_(nullptr),
-      parent_(nullptr),
-      x_(0),
-      y_(0),
-      width_(0),
-      height_(0) {}
+      parent_(nullptr) {}
 
 void Window::AddChild(Window* child) {
   children_.push_back(child);
@@ -71,9 +67,35 @@ void Window::Resize(int32_t width, int32_t height)  {
     LOG_ERROR << " only shell surface can be resized. " << std::endl;
     return;
   }
-  width_ = width;
-  height_ = height;
+  pending_state_.geometry.width_ = width;
+  pending_state_.geometry.height_ = height;
+  state_.geometry.width_ = width;
+  state_.geometry.height_ = height;
   shell_surface_->Configure(width, height);
+}
+
+void Window::OnCommit() {
+  state_ = pending_state_;
+}
+
+void Window::SetFullscreen(bool fullscreen) {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can call SetFullscreen. " << std::endl;
+    return;
+  }
+
+  shell_surface_->Configure(pending_state_.geometry.width(),
+                            pending_state_.geometry.height());
+}
+
+void Window::SetMaximized(bool maximized) {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can call SetMaximized. " << std::endl;
+    return;
+  }
+
+  shell_surface_->Configure(pending_state_.geometry.width(),
+                            pending_state_.geometry.height());
 }
 
 }  // namespace wm

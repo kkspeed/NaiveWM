@@ -7,9 +7,12 @@
 
 #include "base/geometry.h"
 #include "compositor/region.h"
-#include "wm/window.h"
 
 namespace naive {
+
+namespace wm {
+class Window;
+}  // namespace wm
 
 class Buffer;
 
@@ -29,6 +32,10 @@ class Surface {
   void Commit();
   void SetBufferScale(int32_t scale){/* TODO: Implement this */};
 
+  void AddSurfaceObserver(SurfaceObserver* observer) {
+    observers_.push_back(observer);
+  }
+
   wm::Window* window() { return window_.get(); }
 
  private:
@@ -42,6 +49,7 @@ class Surface {
   SurfaceState pending_state_;
   SurfaceState state_;
 
+  std::vector<SurfaceObserver*> observers_;
   std::unique_ptr<wm::Window> window_;
 };
 

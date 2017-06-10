@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "wm/window.h"
 #include "compositor/buffer.h"
 
 namespace naive {

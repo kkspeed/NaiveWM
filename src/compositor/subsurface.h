@@ -2,6 +2,9 @@
 #define COMPOSITOR_SUBSURFACE_H_
 
 #include <cstdint>
+#include <deque>
+#include <utility>
+
 #include "compositor/surface.h"
 
 namespace naive {
@@ -10,6 +13,7 @@ class SubSurface : public SurfaceObserver {
  public:
   SubSurface(Surface* parent, Surface* surface);
   void SetPosition(int32_t x, int32_t y);
+  // TODO: These 2 placement functions are double buffered.
   void PlaceAbove(Surface* target);
   void PlaceBelow(Surface* target);
   void SetCommitBehavior(bool sync);
@@ -21,6 +25,7 @@ class SubSurface : public SurfaceObserver {
   Surface* parent_;
   Surface* surface_;
 
+  std::deque<std::pair<bool, Surface*>> pending_placement_;
   bool is_synchronized_;
 };
 

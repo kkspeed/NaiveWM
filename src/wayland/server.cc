@@ -142,14 +142,14 @@ void region_destroy(wl_client* client, wl_resource* resource) {
 
 void region_add(wl_client* client, wl_resource* resource, int32_t x, int32_t y,
                 int32_t width, int32_t height) {
-  GetUserDataAs<Region>(resource)->Union(
-      Region(base::geometry::Rect(x, y, width, height)));
+  Region region(base::geometry::Rect(x, y, width, height));
+  GetUserDataAs<Region>(resource)->Union(region);
 }
 
 void region_subtract(wl_client* client, wl_resource* resource, int32_t x,
                      int32_t y, int32_t width, int32_t height) {
-  GetUserDataAs<Region>(resource)->Subtract(
-      Region(base::geometry::Rect(x, y, width, height)));
+  Region region(base::geometry::Rect(x, y, width, height));
+  GetUserDataAs<Region>(resource)->Subtract(region);
 }
 
 const struct wl_region_interface region_implementation = {
@@ -787,7 +787,6 @@ const struct zxdg_shell_v6_interface xdg_shell_v6_implementation = {
     xdg_shell_v6_get_xdg_surface, xdg_shell_v6_pong};
 
 void bind_xdg_shell_v6(wl_client* client,
-
                        void* data, uint32_t version, uint32_t id) {
   wl_resource* resource =
       wl_resource_create(client, &zxdg_shell_v6_interface, 1, id);

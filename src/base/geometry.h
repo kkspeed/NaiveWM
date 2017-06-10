@@ -8,7 +8,8 @@ namespace geometry {
 
 class Rect {
  public:
-  Rect(int32_t x, int32_t y, int32_t width, int32_t height);
+  Rect(int32_t x, int32_t y, int32_t width, int32_t height)
+      : x_(x), y_(y), width_(width), height_(height) {}
   ~Rect() = default;
 
   int32_t x() const { return x_; }

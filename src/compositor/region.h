@@ -14,11 +14,11 @@ class Region {
   explicit Region(const base::geometry::Rect& rect);
   ~Region();
 
-  void Union(const Region& region);
-  void Subtract(const Region& region);
+  void Union(Region& region);
+  void Subtract(Region& region);
 
  private:
-  pixman_region32_t pixman_region_;
+  pixman_region32 pixman_region_;
 };
 
 }  // namespace naive

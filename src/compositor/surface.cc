@@ -17,7 +17,8 @@ void Surface::Attach(Buffer* buffer) {
 }
 
 void Surface::Damage(const base::geometry::Rect& rect) {
-  pending_state_.damaged_region.Union(Region(rect));
+  Region region(rect);
+  pending_state_.damaged_region.Union(region);
 }
 
 void Surface::SetOpaqueRegion(const Region& region) {

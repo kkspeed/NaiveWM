@@ -17,17 +17,17 @@ Region::Region(const base::geometry::Rect &rect) {
                             rect.height());
 }
 
-~Region::Region() {
+Region::~Region() {
   pixman_region32_fini(&pixman_region_);
 }
 
-void Region::Union(const Region &region) {
+void Region::Union(Region &region) {
   pixman_region32_union(&pixman_region_,
                         &pixman_region_,
                         &region.pixman_region_);
 }
 
-void Region::Subtract(const Region &region) {
+void Region::Subtract(Region &region) {
   pixman_region32_subtract(&pixman_region_, &pixman_region_, &region.pixman_region_);
 }
 

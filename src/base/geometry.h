@@ -15,6 +15,7 @@ class Rect {
   int32_t y() { return y_; }
   int32_t width() { return width_; }
   int32_t height() { return height_; }
+
  private:
   int32_t x_, y_, width_, height_;
 };

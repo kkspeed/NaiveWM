@@ -16,6 +16,7 @@ class SubSurface : public SurfaceObserver {
 
   // SurfaceObserver overrides
   void OnCommit() override;
+
  private:
   Surface* parent_;
   Surface* surface_;

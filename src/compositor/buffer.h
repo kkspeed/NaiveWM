@@ -9,7 +9,6 @@ class Buffer {
  public:
   void SetOwningSurface(Surface* surface);
 };
-
 }
 
 #endif  // _COMPOSITOR_BUFFER_H_

@@ -7,7 +7,6 @@
 
 #define LOG_ERROR (std::cerr << "[Error] ")
 
-#define NOTIMPLEMENTED() \
-  std::cerr << "Not implemented: " << __PRETTY_FUNCTION__
+#define NOTIMPLEMENTED() std::cerr << "Not implemented: " << __PRETTY_FUNCTION__
 
 #endif  // __BASE_LOGGING_H_

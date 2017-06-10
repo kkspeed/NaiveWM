@@ -14,8 +14,8 @@ class Display {
   Display();
 
   std::unique_ptr<Surface> CreateSurface();
-  std::unique_ptr<SubSurface> CreateSubSurface(
-      Surface* surface, Surface* parent);
+  std::unique_ptr<SubSurface> CreateSubSurface(Surface* surface,
+                                               Surface* parent);
   std::unique_ptr<SharedMemory> CreateSharedMemory(int fd, int32_t size);
   std::unique_ptr<ShellSurface> CreateShellSurface(Surface* surface);
 };

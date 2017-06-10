@@ -35,6 +35,7 @@ class Window {
   void PlaceBelow(Window* window, Window* target);
 
   Window* parent() { return parent_; }
+
  private:
   bool managed_;
 
@@ -47,4 +48,4 @@ class Window {
 }  // namespace wm
 }  // namespace naive
 
-#endif //NAIVEWM_WINDOW_H
+#endif  // NAIVEWM_WINDOW_H

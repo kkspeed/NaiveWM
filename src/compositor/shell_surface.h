@@ -15,7 +15,8 @@ class ShellSurface {
   wm::Window* window();
   void set_close_callback(std::function<void()> callback);
   void set_destroy_callback(std::function<void()> callback);
-  void set_configure_callback(std::function<uint32_t(int32_t, int32_t)> callback);
+  void set_configure_callback(
+      std::function<uint32_t(int32_t, int32_t)> callback);
   void SetGeometry(const base::geometry::Rect& rect);
   void AcknowledgeConfigure(uint32_t serial);
 };

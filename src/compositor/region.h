@@ -16,6 +16,7 @@ class Region {
 
   void Union(const Region& region);
   void Subtract(const Region& region);
+
  private:
   pixman_region32_t pixman_region_;
 };

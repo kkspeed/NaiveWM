@@ -27,7 +27,7 @@ class Surface {
   void SetOpaqueRegion(const Region& region);
   void SetInputRegion(const Region& region);
   void Commit();
-  void SetBufferScale(int32_t scale) { /* TODO: Implement this */ };
+  void SetBufferScale(int32_t scale){/* TODO: Implement this */};
 
   wm::Window* window() { return window_.get(); }
 

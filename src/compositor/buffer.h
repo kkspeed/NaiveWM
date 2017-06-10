@@ -3,8 +3,11 @@
 
 namespace naive {
 
-class Buffer {
+class Surface;
 
+class Buffer {
+ public:
+  void SetOwningSurface(Surface* surface);
 };
 
 }

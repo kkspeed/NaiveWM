@@ -13,6 +13,11 @@ namespace naive {
 
 class Buffer;
 
+class SurfaceObserver {
+ public:
+  virtual void OnCommit() = 0;
+};
+
 class Surface {
  public:
   Surface();
@@ -26,11 +31,6 @@ class Surface {
 
   wm::Window* window() { return window_.get(); }
 
-  void SetParent(Surface* parent) { parent_ = parent; };
-
-  void AddChild(Surface* surface);
-  void RemoveChild(Surface* surface);
-
  private:
   struct SurfaceState {
     Region damaged_region = Region::Empty();
@@ -42,8 +42,6 @@ class Surface {
   SurfaceState pending_state_;
   SurfaceState state_;
 
-  Surface* parent_;
-  std::vector<Surface*> children_;
   std::unique_ptr<wm::Window> window_;
 };
 

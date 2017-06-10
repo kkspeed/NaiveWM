@@ -6,16 +6,21 @@
 
 namespace naive {
 
-class SubSurface {
+class SubSurface : public SurfaceObserver {
  public:
   SubSurface(Surface* parent, Surface* surface);
   void SetPosition(int32_t x, int32_t y);
   void PlaceAbove(Surface* target);
   void PlaceBelow(Surface* target);
   void SetCommitBehavior(bool sync);
+
+  // SurfaceObserver overrides
+  void OnCommit() override;
  private:
   Surface* parent_;
   Surface* surface_;
+
+  bool is_synchronized_;
 };
 
 }  // namespace naive

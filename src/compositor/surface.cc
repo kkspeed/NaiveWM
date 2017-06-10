@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "wayland/buffer.h"
+#include "compositor/buffer.h"
 
 namespace naive {
 
@@ -27,18 +27,8 @@ void Surface::SetInputRegion(const Region &region) {
   pending_state_.input_region = region;
 }
 
-void Commit() {
+void Surface::Commit() {
   state_ = pending_state_;
-}
-
-void Surface::AddChild(Surface* surface) {
-  children_.push_back(surface);
-}
-
-void Surface::RemoveChild(Surface* surface) {
-  auto iter = std::find(children_.begin(), children_.end(), surface);
-  if (iter != children_.end())
-    children_.erase(iter);
 }
 
 }  // namespace naive

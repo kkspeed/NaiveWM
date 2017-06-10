@@ -3,6 +3,10 @@
 namespace naive {
 namespace wayland {
 
+Display::Display() {
+  // TODO: initialize display.
+}
+
 std::unique_ptr<ShellSurface> Display::CreateShellSurface(Surface* surface) {
   return std::make_unique<ShellSurface>(surface);
 }

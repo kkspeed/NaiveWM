@@ -8,8 +8,13 @@ namespace wm {
 
 class WindowManager {
  public:
+  WindowManager();
+  static void InitializeWindowManager();
   static WindowManager* Get();
   void Manage(Window* window);
+
+ private:
+  static WindowManager* g_window_manager;
 };
 
 }  // namespace wm

@@ -6,8 +6,14 @@ namespace compositor {
 
 class Compositor {
  public:
+  static void InitializeCompoistor();
   static Compositor* Get();
+
+  Compositor() = default;
   bool Draw();
+
+ private:
+  static Compositor* g_compositor;
 };
 
 }  // namespace compositor

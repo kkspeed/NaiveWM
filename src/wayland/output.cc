@@ -1,5 +1,9 @@
-//
-// Created by bruce on 6/4/17.
-//
-
 #include "output.h"
+
+namespace naive {
+namespace wayland {
+
+void Output::OnBind() {}
+
+}  // namespace wayland
+}  // namespace naive

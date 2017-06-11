@@ -21,7 +21,7 @@
 #include "wayland/display.h"
 #include "wayland/output.h"
 #include "wm/window_manager.h"
-#include "display.h"
+#include "wayland/display.h"
 
 namespace naive {
 namespace wayland {
@@ -680,7 +680,7 @@ void xdg_surface_v6_get_toplevel(wl_client* client, wl_resource* resource,
   }
   wm::WindowManager::Get()->Manage(shell_surface->window());
   wl_resource* xdg_toplevel_resource =
-      wl_resource_create(client, &zxdg_shell_v6_interface, 1, id);
+      wl_resource_create(client, &zxdg_toplevel_v6_interface, 1, id);
   shell_surface->set_close_callback(
       std::bind(&HandleXdgToplevelV6CloseCallback, resource));
   shell_surface->set_configure_callback(std::bind(

@@ -13,7 +13,6 @@ class SubSurface : public SurfaceObserver {
  public:
   SubSurface(Surface* parent, Surface* surface);
   void SetPosition(int32_t x, int32_t y);
-  // TODO: These 2 placement functions are double buffered.
   void PlaceAbove(Surface* target);
   void PlaceBelow(Surface* target);
   void SetCommitBehavior(bool sync);

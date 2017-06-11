@@ -25,6 +25,7 @@ WindowManager::WindowManager() {
 
 void WindowManager::Manage(Window* window) {
   // TODO: window management policy
+  windows_.push_back(window);
 }
 
 }  // namespace wm

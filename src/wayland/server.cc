@@ -19,7 +19,6 @@
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/display.h"
-#include "wayland/output.h"
 #include "wm/window_manager.h"
 #include "wayland/display.h"
 
@@ -213,7 +212,8 @@ void shm_pool_create_buffer(wl_client* client, wl_resource* resource,
 
   wl_resource* buffer_resource =
       wl_resource_create(client, &wl_buffer_interface, 1, id);
-  // TODO: buffer destroy callback
+  buffer->set_release_callback(std::bind(&HandleBufferReleaseCallback,
+                                         buffer_resource));
   SetImplementation(buffer_resource, &buffer_implementation, std::move(buffer));
 }
 
@@ -470,12 +470,45 @@ void bind_shell(wl_client* client, void* data, uint32_t version, uint32_t id) {
 ///////////////////////////////////////////////////////////////////////////////
 // wl_output interfaces:
 
+class WaylandOutput {
+ public:
+  WaylandOutput(wl_resource* resource): output_resource_(resource) {
+    SendDisplayMetrics();
+  }
+
+  void SendDisplayMetrics() {
+    const float kInchInMm = 25.4f;
+    const char* kUnknownMake = "unknown";
+    const char* kUnknownModel = "unknown";
+
+    // TODO: Get real display information.
+    base::geometry::Rect bounds(0, 0, 2560, 1080);
+    wl_output_send_geometry(
+        output_resource_, bounds.x(), bounds.y(),
+        static_cast<int>(kInchInMm * bounds.width() / 100.0),
+        static_cast<int>(kInchInMm * bounds.height() / 100.0),
+        WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
+        WL_OUTPUT_TRANSFORM_NORMAL);
+
+    wl_output_send_mode(
+        output_resource_, WL_OUTPUT_MODE_CURRENT | WL_OUTPUT_MODE_PREFERRED,
+        bounds.width(), bounds.height(), static_cast<int>(60000));
+
+    if (wl_resource_get_version(output_resource_) >=
+        WL_OUTPUT_DONE_SINCE_VERSION) {
+      wl_output_send_done(output_resource_);
+    }
+  }
+ private:
+  wl_resource* output_resource_;
+};
+
 void bind_output(wl_client* client, void* data, uint32_t version, uint32_t id) {
   wl_resource* resource =
-      wl_resource_create(client, &wl_output_interface, 1, id);
-  // TODO: advertise geometries
-  static_cast<Output*>(data)->OnBind();
-  wl_resource_set_implementation(resource, nullptr, data, nullptr);
+      wl_resource_create(client, &wl_output_interface, version, id);
+  SetImplementation(resource, nullptr,
+                    std::make_unique<WaylandOutput>(resource));
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

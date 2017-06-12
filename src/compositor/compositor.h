@@ -9,8 +9,9 @@ class Compositor {
   static void InitializeCompoistor();
   static Compositor* Get();
 
-  Compositor() = default;
-  bool Draw();
+  Compositor();
+  bool NeedToDraw();
+  void Draw();
 
  private:
   static Compositor* g_compositor;

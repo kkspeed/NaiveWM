@@ -11,7 +11,6 @@ int main() {
   naive::compositor::Compositor::InitializeCompoistor();
   auto display = std::make_unique<naive::wayland::Display>();
   auto server = std::make_unique<naive::wayland::Server>(display.get());
-  server->AddSocket();
   server->Run();
   return 0;
 }

@@ -30,7 +30,9 @@ void Surface::SetInputRegion(const Region &region) {
 }
 
 void Surface::Commit() {
+  LOG_ERROR << "calling Surface::Commit" << std::endl;
   state_ = pending_state_;
+  has_commit_ = true;
 }
 
 }  // namespace naive

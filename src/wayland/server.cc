@@ -159,6 +159,7 @@ const struct wl_region_interface region_implementation = {
 
 void compositor_create_surface(wl_client* client, wl_resource* resource,
                                uint32_t id) {
+  LOG_ERROR << "compositor_create_surface" << std::endl;
   std::unique_ptr<Surface> surface =
       GetUserDataAs<Display>(resource)->CreateSurface();
   wl_resource* surface_resource = wl_resource_create(
@@ -169,9 +170,10 @@ void compositor_create_surface(wl_client* client, wl_resource* resource,
 
 void compositor_create_region(wl_client* client, wl_resource* resource,
                               uint32_t id) {
-  wl_resource* regoin_resource =
+  LOG_ERROR << "compositor_create_region" << std::endl;
+  wl_resource* region_resource =
       wl_resource_create(client, &wl_region_interface, 1, id);
-  SetImplementation(resource, &region_implementation,
+  SetImplementation(region_resource, &region_implementation,
                     std::make_unique<Region>(Region::Empty()));
 }
 
@@ -184,8 +186,9 @@ void bind_compositor(wl_client* client,
                      void* data,
                      uint32_t version,
                      uint32_t id) {
-  wl_resource
-      * resource = wl_resource_create(client, &wl_compositor_interface, 1, id);
+  LOG_ERROR << "bind_compositor" << std::endl;
+  wl_resource* resource =
+      wl_resource_create(client, &wl_compositor_interface, version, id);
   wl_resource_set_implementation(resource,
                                  &compositor_implementation,
                                  data,
@@ -198,6 +201,7 @@ void bind_compositor(wl_client* client,
 void shm_pool_create_buffer(wl_client* client, wl_resource* resource,
                             uint32_t id, int32_t offset, int32_t width,
                             int32_t height, int32_t stride, uint32_t format) {
+  LOG_ERROR << "shm_pool_create_buffer" << std::endl;
   if (format != WL_SHM_FORMAT_XRGB8888 && format != WL_SHM_FORMAT_ARGB8888) {
     std::cerr << "unsupported format " << format;
     return;
@@ -235,6 +239,7 @@ const struct wl_shm_pool_interface shm_pool_implementation = {
 
 void shm_create_pool(wl_client* client, wl_resource* resource, uint32_t id,
                      int fd, int32_t size) {
+  LOG_ERROR << "shm_create_pool" << std::endl;
   std::unique_ptr<SharedMemory> shared_memory =
       GetUserDataAs<Display>(resource)->CreateSharedMemory(fd, size);
   if (!shared_memory) {
@@ -251,6 +256,7 @@ void shm_create_pool(wl_client* client, wl_resource* resource, uint32_t id,
 const struct wl_shm_interface shm_implementation = {shm_create_pool};
 
 void bind_shm(wl_client* client, void* data, uint32_t version, uint32_t id) {
+  LOG_ERROR << "bind_shm" << std::endl;
   wl_resource* resource = wl_resource_create(client, &wl_shm_interface, 1, id);
 
   wl_resource_set_implementation(resource, &shm_implementation, data, nullptr);
@@ -461,6 +467,7 @@ const struct wl_shell_interface shell_implementation = {
     shell_get_shell_surface};
 
 void bind_shell(wl_client* client, void* data, uint32_t version, uint32_t id) {
+  LOG_ERROR << "bind shell" << std::endl;
   wl_resource* resource =
       wl_resource_create(client, &wl_shell_interface, 1, id);
   wl_resource_set_implementation(resource, &shell_implementation, data,
@@ -833,26 +840,28 @@ void bind_xdg_shell_v6(wl_client* client,
 //////////////////////////////////////////////////////////////////////////////
 // Server
 Server::Server(Display* display)
-    : display_(display), wl_display_(wl_display_create()) {
+    : display_(display) {
+  wl_display_ = wl_display_create();
+  AddSocket();
   wl_global_create(wl_display_,
                    &wl_compositor_interface,
-                   1,
+                   3,
                    display_,
-                   bind_compositor);
-
+                   &bind_compositor);
   wl_global_create(wl_display_,
                    &wl_shm_interface,
                    1,
-                   display,
-                   bind_shm);
+                   display_,
+                   &bind_shm);
   wl_global_create(wl_display_, &wl_subcompositor_interface, 1, display_,
-                   bind_subcompositor);
+                   &bind_subcompositor);
   wl_global_create(wl_display_, &wl_shell_interface, 1, display_,
-                   bind_shell);
+                   &bind_shell);
   wl_global_create(wl_display_, &wl_output_interface, 1,
-                   display_, bind_output);
+                   display_, &bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
-                   bind_xdg_shell_v6);
+                   &bind_xdg_shell_v6);
+  LOG_ERROR << "SERVER CTOR" << std::endl;
 }
 
 void Server::AddSocket() {
@@ -864,11 +873,12 @@ void Server::Run() {
   int wayland_fd = wl_event_loop_get_fd(event_loop);
   pollfd fds[] = {{wayland_fd, POLLIN}};
   for (;;) {
-    wl_event_loop_dispatch(event_loop, 0);  // TODO: event timeout
+    wl_event_loop_dispatch(event_loop, 3);  // TODO: event timeout
     wl_display_flush_clients(wl_display_);
-    if (!compositor::Compositor::Get()->Draw()) {
+    if (compositor::Compositor::Get()->NeedToDraw())
+      compositor::Compositor::Get()->Draw();
+    else
       poll(fds, 1, -1);
-    }
   }
 }
 

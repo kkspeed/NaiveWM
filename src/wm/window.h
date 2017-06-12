@@ -30,6 +30,7 @@ class Window : public SurfaceObserver {
   // SurfaceObserver overrides
   void OnCommit() override;
 
+  Surface* surface() { return surface_; }
   void SetSurface(Surface* surface) {
     surface_ = surface;
     surface_->AddSurfaceObserver(this);

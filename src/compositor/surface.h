@@ -36,6 +36,9 @@ class Surface {
     observers_.push_back(observer);
   }
 
+  bool has_commit() { return has_commit_; }
+  void clear_commit() { has_commit_ = false; }
+  Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() { return window_.get(); }
 
  private:
@@ -49,6 +52,7 @@ class Surface {
   SurfaceState pending_state_;
   SurfaceState state_;
 
+  bool has_commit_ = false;
   std::vector<SurfaceObserver*> observers_;
   std::unique_ptr<wm::Window> window_;
 };

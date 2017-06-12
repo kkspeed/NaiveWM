@@ -20,7 +20,7 @@ void Buffer::SetOwningSurface(Surface* surface) {
   owner_ = surface;
 }
 
-void* Buffer::GetData() {
+void* Buffer::data() {
   uint8_t* p = static_cast<uint8_t*>(shm_pool_->data()) + offset_;
   return static_cast<void*>(p);
 }

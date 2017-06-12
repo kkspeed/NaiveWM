@@ -41,6 +41,7 @@ struct {
   GLint modelview_matrix, modelview_projection_matrix, normal_matrix;
   GLuint vbo;
   GLuint positions_offset, colors_offset, nomral_offset;
+  int32_t display_width, display_height;
 } gl;
 
 struct {
@@ -220,6 +221,9 @@ drm_fb* drm_fb_get_from_bo(gbm_bo* bo) {
   stride = gbm_bo_get_stride(bo);
   handle = gbm_bo_get_handle(bo).u32;
 
+  // TODO: This is a dirty workaround. Move somewhere else.
+  gl.display_width = width;
+  gl.display_height = height;
   assert(!drmModeAddFB(drm.fd,
                        width,
                        height,
@@ -373,8 +377,8 @@ Compositor* Compositor::Get() {
 
 Compositor::Compositor() {
   drm_egl_init();
-  int width = 2560;
-  int height = 1440;
+  int width = gl.display_width;
+  int height = gl.display_height;
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -406,9 +410,9 @@ void Compositor::Draw() {
     // TODO: child windows needs to be handled as well!
     if (window->surface()->has_commit()) {
       auto* buffer = window->surface()->committed_buffer();
-      if (buffer->GetData()) {
+      if (buffer->data()) {
         Texture texture(buffer->width(), buffer->height(), buffer->format(),
-                        buffer->GetData());
+                        buffer->data());
         texture.Draw(0, 0);
       }
       window->surface()->clear_commit();

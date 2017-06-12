@@ -22,7 +22,7 @@ class Buffer {
          int32_t stride,
          std::shared_ptr<wayland::ShmPool> pool);
   void SetOwningSurface(Surface* surface);
-  void* GetData();
+  void* data();
 
   void set_release_callback(std::function<void()> callback) {
     buffer_release_callback_ = callback;

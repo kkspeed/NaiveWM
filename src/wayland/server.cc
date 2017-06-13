@@ -4,6 +4,7 @@
 #include <wayland-server.h>
 #include <poll.h>
 
+#include <cassert>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -871,18 +872,17 @@ void Server::AddSocket() {
   wl_display_add_socket_auto(wl_display_);
 }
 
-void Server::Run() {
+int Server::GetFileDescriptor() {
   wl_event_loop* event_loop = wl_display_get_event_loop(wl_display_);
-  int wayland_fd = wl_event_loop_get_fd(event_loop);
-  pollfd fds[] = {{wayland_fd, POLLIN}};
-  for (;;) {
-    wl_event_loop_dispatch(event_loop, 3);  // TODO: event timeout
-    wl_display_flush_clients(wl_display_);
-    if (compositor::Compositor::Get()->NeedToDraw())
-      compositor::Compositor::Get()->Draw();
-    else
-      poll(fds, 1, -1);
-  }
+  assert(event_loop);
+  return wl_event_loop_get_fd(event_loop);
+}
+
+void Server::DispatchEvents() {
+  wl_event_loop* event_loop = wl_display_get_event_loop(wl_display_);
+  assert(event_loop);
+  wl_event_loop_dispatch(event_loop, 3);
+  wl_display_flush_clients(wl_display_);
 }
 
 }  // namespace wayland

@@ -388,15 +388,10 @@ Compositor::Compositor() {
 }
 
 bool Compositor::NeedToDraw() {
-  LOG_ERROR << "windows: " << wm::WindowManager::Get()->windows().size()
-            << std::endl;
   for (auto* window : wm::WindowManager::Get()->windows()) {
-    if (window->surface()->has_commit()) {
-      LOG_ERROR << "calling NeedToDraw -> true" << std::endl;
+    if (window->surface()->has_commit())
       return true;
-    }
   }
-  LOG_ERROR << "calling NeedToDraw -> false" << std::endl;
   return false;
 }
 

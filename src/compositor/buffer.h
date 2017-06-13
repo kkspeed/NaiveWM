@@ -1,8 +1,8 @@
 #ifndef _COMPOSITOR_BUFFER_H_
 #define _COMPOSITOR_BUFFER_H_
 
-#include <memory>
 #include <functional>
+#include <memory>
 
 namespace naive {
 
@@ -15,12 +15,8 @@ class Surface;
 
 class Buffer {
  public:
-  Buffer(int32_t width,
-         int32_t height,
-         int32_t format,
-         int32_t offset,
-         int32_t stride,
-         std::shared_ptr<wayland::ShmPool> pool);
+  Buffer(int32_t width, int32_t height, int32_t format, int32_t offset,
+         int32_t stride, std::shared_ptr<wayland::ShmPool> pool);
   void SetOwningSurface(Surface* surface);
   void* data();
 

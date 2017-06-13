@@ -210,7 +210,6 @@ void drm_fb_destroy_callback(gbm_bo* bo, void* data) {
 drm_fb* drm_fb_get_from_bo(gbm_bo* bo) {
   drm_fb* fb = static_cast<drm_fb*>(gbm_bo_get_user_data(bo));
   uint32_t width, height, stride, handle;
-  int ret;
 
   if (fb) return fb;
 

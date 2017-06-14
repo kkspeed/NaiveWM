@@ -71,6 +71,10 @@ EventHub::~EventHub() {
   libinput_unref(libinput_);
 }
 
+void EventHub::AddEventObserver(EventObserver* observer) {
+  observers_.push_back(observer);
+}
+
 int EventHub::GetFileDescriptor() {
   return libinput_get_fd(libinput_);
 }
@@ -89,9 +93,15 @@ void EventHub::HandleEvents() {
       case LIBINPUT_EVENT_KEYBOARD_KEY:
         LOG_ERROR << "keyboard key" << std::endl;
         break;
-      case LIBINPUT_EVENT_POINTER_MOTION:
+      case LIBINPUT_EVENT_POINTER_MOTION: {
         LOG_ERROR << "pointer motion" << std::endl;
+      	libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
+        float x = libinput_event_pointer_get_dx(p);
+        float y = libinput_event_pointer_get_dy(p);
+        for (auto* observer: observers_)
+          observer->OnMouseMotion(x, y);
         break;
+      }
       case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
         LOG_ERROR << "pointer motion absolute" << std::endl;
         break;

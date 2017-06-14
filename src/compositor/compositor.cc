@@ -388,11 +388,17 @@ Compositor::Compositor() {
 }
 
 bool Compositor::NeedToDraw() {
+  // TODO: We redraw when pointer is moved. May be optimized later with HW
+  // composer.
+  if (wm::WindowManager::Get()->PointerMoved()) {
+    draw_forced_ = true;
+  }
+
   for (auto* window : wm::WindowManager::Get()->windows()) {
     if (window->surface()->has_commit())
       return true;
   }
-  return false;
+  return draw_forced_;
 }
 
 void Compositor::Draw() {
@@ -402,7 +408,7 @@ void Compositor::Draw() {
 
   for (auto* window : wm::WindowManager::Get()->windows()) {
     // TODO: child windows needs to be handled as well!
-    if (window->surface()->has_commit()) {
+    if (window->surface()->has_commit() || draw_forced_) {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer->data()) {
         Texture texture(buffer->width(), buffer->height(), buffer->format(),
@@ -412,7 +418,28 @@ void Compositor::Draw() {
       window->surface()->clear_commit();
     }
   }
+
+  DrawPointer();
+  draw_forced_ = false;
   finalize_draw();
+}
+
+void Compositor::DrawPointer() {
+  auto pointer = wm::WindowManager::Get()->mouse_position();
+  // TODO: This pointer is really ugly...
+  // Black under, white above
+  glColor3f(0.0, 0.0, 0.0);
+  glBegin(GL_TRIANGLES);
+  glVertex2f(pointer.x() - 2.0f, pointer.y() - 2.0f);
+  glVertex2f(pointer.x() - 2.0f, pointer.y() + 24.0f);
+  glVertex2f(pointer.x() + 24.0f, pointer.y() - 2.0f);
+  glEnd();
+  glColor3f(1.0, 1.0, 1.0);
+  glBegin(GL_TRIANGLES);
+  glVertex2f(pointer.x(), pointer.y());
+  glVertex2f(pointer.x(), pointer.y() + 20.0f);
+  glVertex2f(pointer.x() + 20.0f, pointer.y());
+  glEnd();
 }
 
 }  // namespace compositor

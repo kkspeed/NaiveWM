@@ -13,8 +13,11 @@ class Compositor {
   bool NeedToDraw();
   void Draw();
 
+  void DrawPointer();
+
  private:
   static Compositor* g_compositor;
+  bool draw_forced_ = true;
 };
 
 }  // namespace compositor

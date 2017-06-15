@@ -721,6 +721,8 @@ void xdg_toplevel_v6_set_minimized(wl_client* client, wl_resource* resource) {
 
 const struct zxdg_toplevel_v6_interface xdg_toplevel_v6_implementation = {
     .destroy = xdg_toplevel_v6_destroy,
+    .set_parent = xdg_toplevel_v6_set_parent,
+    .set_title = xdg_toplevel_v6_set_title,
     .move = xdg_toplevel_v6_move,
     .resize = xdg_toplevel_v6_resize,
     .set_app_id = xdg_toplevel_v6_set_app_id,

@@ -19,12 +19,13 @@ class Pointer:  wm::MouseObserver {
  public:
   explicit Pointer(wl_resource* resource);
 
-  bool CanReceiveEvent();
+  bool CanReceiveEvent(Surface* surface);
 
   // MouseObserver overrides:
-  void OnMouseEvent(MouseEvent* event);
+  void OnMouseEvent(wm::MouseEvent* event);
 
  private:
+  wl_resource* resource_;
   Surface* target_;
 };
 

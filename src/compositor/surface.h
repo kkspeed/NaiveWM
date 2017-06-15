@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <wayland-server.h>
 
 #include "base/geometry.h"
 #include "compositor/region.h"
@@ -36,6 +37,8 @@ class Surface {
     observers_.push_back(observer);
   }
 
+  void set_resource(wl_resource* resource) { resource_ = resource; }
+  wl_resource* resource() { return resource_; }
   bool has_commit() { return has_commit_; }
   void clear_commit() { has_commit_ = false; }
   Buffer* committed_buffer() { return state_.buffer; }
@@ -52,6 +55,7 @@ class Surface {
   SurfaceState pending_state_;
   SurfaceState state_;
 
+  wl_resource* resource_;
   bool has_commit_ = false;
   std::vector<SurfaceObserver*> observers_;
   std::unique_ptr<wm::Window> window_;

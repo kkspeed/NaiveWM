@@ -21,7 +21,7 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager() :
-  screen_width_(2560), screen_height_(1440),
+  screen_width_(2560), screen_height_(1080),
   mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f) {
   event::EventHub::Get()->AddEventObserver(this);
 }

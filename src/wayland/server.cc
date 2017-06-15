@@ -20,6 +20,7 @@
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/display.h"
+#include "wayland/pointer.h"
 #include "wm/window_manager.h"
 #include "wayland/display.h"
 
@@ -165,6 +166,7 @@ void compositor_create_surface(wl_client* client, wl_resource* resource,
       GetUserDataAs<Display>(resource)->CreateSurface();
   wl_resource* surface_resource = wl_resource_create(
       client, &wl_surface_interface, wl_resource_get_version(resource), id);
+  surface->set_resource(resource);
   SetImplementation(surface_resource, &surface_implementation,
                     std::move(surface));
 }
@@ -478,10 +480,69 @@ void bind_shell(wl_client* client, void* data, uint32_t version, uint32_t id) {
 //////////////////////////////////////////////////////////////////////////////
 // wl_pointer_interface:
 
+void pointer_set_cursor(wl_client* client,
+                        wl_resource* resource,
+                        uint32_t serial,
+                        wl_resource* surface,
+                        int32_t hotspot_x,
+                        int32_t hotspoy_y) {
+  // TODO: implement set cursor.
+  NOTIMPLEMENTED();
+}
+
+void pointer_release(wl_client* client, wl_resource* resource) {
+  wl_resource_destroy(resource);
+}
+
+const struct wl_pointer_interface pointer_implementation {
+    .release = pointer_release,
+    .set_cursor = pointer_set_cursor
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// wl_keyboard_interface:
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_seat interface:
 
+void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
+  wl_resource* pointer_resource =
+      wl_resource_create(client, &wl_pointer_interface, 1, id);
+  auto pointer = std::make_unique<Pointer>(pointer_resource);
+  SetImplementation(pointer_resource, &pointer_implementation,
+                    std::move(pointer));
+}
+
+void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
+  // TODO: implement wayland keyboard interface.
+  NOTIMPLEMENTED();
+}
+
+void seat_get_touch(wl_client* client, wl_resource* resource, uint32_t id) {
+  // TODO: no need to implement touch?
+  NOTIMPLEMENTED();
+}
+
+void seat_release(wl_client* client, wl_resource* resource) {
+  wl_resource_destroy(resource);
+}
+
+const struct wl_seat_interface seat_implementation = {
+    .get_keyboard = seat_get_keyboard,
+    .get_pointer = seat_get_pointer,
+    .get_touch = seat_get_touch,
+    .release = seat_release
+};
+
+void bind_seat(wl_client* client, void* data, uint32_t version, uint32_t id) {
+  wl_resource* resource = wl_resource_create(
+      client, &wl_seat_interface, version, id);
+  wl_resource_set_implementation(resource, &seat_implementation, data, nullptr);
+  wl_seat_send_name(resource, "seat0");
+  // TODO: add keyboard
+  uint32_t capabilities = WL_SEAT_CAPABILITY_POINTER;
+  wl_seat_send_capabilities(resource, capabilities);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_output interfaces:
@@ -870,6 +931,8 @@ Server::Server(Display* display)
                    display_, &bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
                    &bind_xdg_shell_v6);
+  wl_global_create(wl_display_, &wl_seat_interface, 1, display_,
+                   &bind_seat);
   LOG_ERROR << "SERVER CTOR" << std::endl;
 }
 

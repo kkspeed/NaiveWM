@@ -1,4 +1,6 @@
-#include "display.h"
+#include "wayland/display.h"
+
+#include "wayland/pointer.h"
 
 namespace naive {
 namespace wayland {

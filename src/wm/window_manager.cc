@@ -1,5 +1,6 @@
 #include "window_manager.h"
 
+#include <algorithm>
 #include <cassert>
 #include "base/logging.h"
 
@@ -29,6 +30,14 @@ WindowManager::WindowManager() :
 void WindowManager::Manage(Window* window) {
   // TODO: window management policy
   windows_.push_back(window);
+}
+
+void WindowManager::RemoveWindow(Window* window) {
+  auto iter = std::find(windows_.begin(), windows_.end(), window);
+  if (iter != windows_.end()) {
+    windows_.erase(iter);
+    // TODO: compositor needs to be notified of this
+  }
 }
 
 bool WindowManager::PointerMoved() {

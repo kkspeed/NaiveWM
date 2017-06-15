@@ -18,6 +18,7 @@ class Surface;
 class ShellSurface {
  public:
   ShellSurface(Surface* surface);
+  ~ShellSurface();
 
   void Move();
   void SetGeometry(const base::geometry::Rect& rect);

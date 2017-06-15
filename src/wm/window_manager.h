@@ -23,6 +23,7 @@ class WindowManager : event::EventObserver {
   static void InitializeWindowManager();
   static WindowManager* Get();
   void Manage(Window* window);
+  void RemoveWindow(Window* window);
   bool PointerMoved();
 
   std::vector<Window*> windows() { return windows_; }

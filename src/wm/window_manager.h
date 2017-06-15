@@ -10,6 +10,13 @@
 namespace naive {
 namespace wm {
 
+class MouseEvent;
+
+class MouseObserver {
+ public:
+  virtual void OnMouseEvent(MouseEvent* event) = 0;
+};
+
 class WindowManager : event::EventObserver {
  public:
   WindowManager();

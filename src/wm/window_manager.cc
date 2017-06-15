@@ -12,17 +12,17 @@ namespace wm {
 
 namespace {
 
+// TODO: convert pointer location to surface local position.
 Window* FindMouseEventTargetChildWindow(Window* root,
                                         int32_t x,
                                         int32_t y) {
   Window* candidate = root;
-  for (auto iter = root->children().end() - 1; iter >= root->children().begin(); iter--) {
+  for (auto iter = root->children().rbegin();
+       iter != root->children().rend();
+       iter++) {
     Window* current = *iter;
-    if (current->geometry().ContainsPoint(x, y)) {
-      candidate = current;
-      Window* deeper = FindMouseEventTargetChildWindow(candidate, x, y);
-      return deeper ? deeper : candidate;
-    }
+    if (current->geometry().ContainsPoint(x, y))
+      return FindMouseEventTargetChildWindow(candidate, x, y);
   }
   return candidate;
 }
@@ -72,6 +72,17 @@ bool WindowManager::pointer_moved() {
   return last_mouse_position_.manhattan_distance(mouse_position_) >= 1.0;
 }
 
+void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
+  MouseEventData data;
+  data.button = button;
+  DispatchMouseEvent(
+      std::make_unique<MouseEvent>(FindMouseEventTarget(),
+                                   pressed ? MouseEventType::MouseButtonDown
+                                           : MouseEventType::MouseButtonUp,
+                                   0,  // TODO: Time
+                                   data));
+}
+
 void WindowManager::OnMouseMotion(float dx, float dy) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
@@ -97,9 +108,15 @@ void WindowManager::OnMouseMotion(float dx, float dy) {
 }
 
 Window* WindowManager::FindMouseEventTarget() {
+  // TODO: could be simplified to one function!
   int32_t mouse_x = static_cast<int32_t>(mouse_position_.x());
   int32_t mouse_y = static_cast<int32_t>(mouse_position_.y());
-  for (auto iter = windows_.end() - 1; iter >= windows_.begin(); iter--) {
+  for (auto iter = windows_.rbegin(); iter != windows_.rend(); iter++) {
+    auto rect = (*iter)->geometry();
+    LOG_ERROR << "Testing rect (" << rect.x() << " "
+              << rect.y() << " " << rect.x() + rect.width() << " "
+              << rect.y() + rect.height() << ") for (" << mouse_x
+              << " " << mouse_y << ")" << std::endl;
     if ((*iter)->geometry().ContainsPoint(mouse_x, mouse_y))
       return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
   }

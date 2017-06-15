@@ -3,10 +3,12 @@
 
 #include <cstdint>
 #include <memory>
+#include <iostream>
 #include <vector>
 #include <wayland-server.h>
 
 #include "base/geometry.h"
+#include "base/logging.h"
 #include "compositor/region.h"
 
 namespace naive {
@@ -25,6 +27,9 @@ class SurfaceObserver {
 class Surface {
  public:
   Surface();
+  ~Surface() {
+    LOG_ERROR << "surface dtor " << resource() << std::endl;
+  }
 
   void Attach(Buffer* buffer);
   void Damage(const base::geometry::Rect& rect);

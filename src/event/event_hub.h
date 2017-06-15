@@ -1,6 +1,7 @@
 #ifndef EVENT_EVENT_HUB_H_
 #define EVENT_EVENT_HUB_H_
 
+#include <cstdint>
 #include <vector>
 
 extern "C" {
@@ -12,6 +13,7 @@ namespace event {
 
 class EventObserver {
  public:
+  virtual void OnMouseButton(uint32_t button, bool down) = 0;
   virtual void OnMouseMotion(float dx, float dy) = 0;
 };
 

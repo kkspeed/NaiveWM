@@ -13,6 +13,8 @@ Surface::Surface(): window_(std::make_unique<wm::Window>()) {
 
 void Surface::Attach(Buffer* buffer) {
   buffer->SetOwningSurface(this);
+  window_->SetGeometry(base::geometry::Rect(0, 0, buffer->width(),
+                                            buffer->height()));
   pending_state_.buffer = buffer;
 }
 
@@ -33,6 +35,9 @@ void Surface::Commit() {
   LOG_ERROR << "calling Surface::Commit" << std::endl;
   state_ = pending_state_;
   has_commit_ = true;
+
+  for (auto observer: observers_)
+    observer->OnCommit();
 }
 
 }  // namespace naive

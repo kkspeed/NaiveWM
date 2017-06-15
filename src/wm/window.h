@@ -16,6 +16,7 @@ namespace wm {
 class Window : public SurfaceObserver {
  public:
   Window();
+  ~Window() { LOG_ERROR << "window dtor" << std::endl; }
 
   bool IsManaged() const { return managed_; }
   void SetParent(Window* parent) { parent_ = parent; }
@@ -32,6 +33,7 @@ class Window : public SurfaceObserver {
 
   Surface* surface() { return surface_; }
   void SetSurface(Surface* surface) {
+    LOG_ERROR << "Set Surface " << surface << std::endl;
     surface_ = surface;
     surface_->AddSurfaceObserver(this);
   }
@@ -46,6 +48,8 @@ class Window : public SurfaceObserver {
   }
 
   void SetGeometry(const base::geometry::Rect& rect) {
+    LOG_ERROR << "SetGeometry " << rect.x() << " " << rect.y()
+              << " " << rect.width() << " " << rect.height() << std::endl;
     pending_state_.geometry = rect;
   }
 
@@ -67,7 +71,7 @@ class Window : public SurfaceObserver {
 
   struct WindowState {
     base::geometry::Rect geometry;
-    WindowState() : geometry({0, 0, 0, 0}) {}
+    WindowState(): geometry({0, 0, 0, 0}) {}
   };
 
   bool is_popup_, is_transient_;

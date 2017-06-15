@@ -19,7 +19,7 @@ enum class MouseEventType {
 
 union MouseEventData {
   int32_t delta[2];  // for axis and motion.
-  int32_t button;  // for button down and up.
+  uint32_t button;  // for button down and up.
 };
 
 class MouseEvent: public Event {
@@ -37,7 +37,7 @@ class MouseEvent: public Event {
     dy = data_.delta[1];
   }
 
-  int get_button() {
+  uint32_t get_button() {
     return data_.button;
   }
  private:

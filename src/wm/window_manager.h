@@ -34,6 +34,7 @@ class WindowManager : event::EventObserver {
   base::geometry::FloatPoint last_mouse_position() { return last_mouse_position_; }
 
   // EventObserver overrides:
+  void OnMouseButton(uint32_t button, bool pressed) override;
   void OnMouseMotion(float dx, float dy) override;
 
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);

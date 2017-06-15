@@ -26,6 +26,8 @@ class Pointer:  wm::MouseObserver {
   void OnMouseEvent(wm::MouseEvent* event);
 
  private:
+  uint32_t next_serial();
+
   wl_resource* resource_;
   Surface* target_;
 };

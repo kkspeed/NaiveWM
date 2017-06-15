@@ -168,7 +168,7 @@ void compositor_create_surface(wl_client* client, wl_resource* resource,
       GetUserDataAs<Display>(resource)->CreateSurface();
   wl_resource* surface_resource = wl_resource_create(
       client, &wl_surface_interface, wl_resource_get_version(resource), id);
-  surface->set_resource(resource);
+  surface->set_resource(surface_resource);
   SetImplementation(surface_resource, &surface_implementation,
                     std::move(surface));
 }

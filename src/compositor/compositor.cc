@@ -390,7 +390,7 @@ Compositor::Compositor() {
 bool Compositor::NeedToDraw() {
   // TODO: We redraw when pointer is moved. May be optimized later with HW
   // composer.
-  if (wm::WindowManager::Get()->PointerMoved()) {
+  if (wm::WindowManager::Get()->pointer_moved()) {
     draw_forced_ = true;
   }
 

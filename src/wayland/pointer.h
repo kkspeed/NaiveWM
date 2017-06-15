@@ -18,6 +18,7 @@ namespace wayland {
 class Pointer:  wm::MouseObserver {
  public:
   explicit Pointer(wl_resource* resource);
+  ~Pointer();
 
   bool CanReceiveEvent(Surface* surface);
 

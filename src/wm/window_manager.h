@@ -1,10 +1,12 @@
 #ifndef WM_WINDOW_MANAGER_H_
 #define WM_WINDOW_MANAGER_H_
 
+#include <memory>
 #include <vector>
 
 #include "base/geometry.h"
 #include "event/event_hub.h"
+#include "wm/mouse_event.h"
 #include "wm/window.h"
 
 namespace naive {
@@ -23,18 +25,24 @@ class WindowManager : event::EventObserver {
   static void InitializeWindowManager();
   static WindowManager* Get();
   void Manage(Window* window);
-  bool PointerMoved();
+  void AddMouseObserver(MouseObserver* observer);
+  void RemoveMouseObserver(MouseObserver* observer);
 
   std::vector<Window*> windows() { return windows_; }
+  bool pointer_moved();
   base::geometry::FloatPoint mouse_position() { return mouse_position_; }
   base::geometry::FloatPoint last_mouse_position() { return last_mouse_position_; }
 
   // EventObserver overrides:
   void OnMouseMotion(float dx, float dy) override;
 
+  void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
+  Window* FindMouseEventTarget();
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
+  std::vector<MouseObserver*> mouse_observers_;
   int screen_width_, screen_height_;
 
   base::geometry::FloatPoint mouse_position_;

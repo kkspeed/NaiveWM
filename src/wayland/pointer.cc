@@ -1,11 +1,19 @@
 #include "wayland/pointer.h"
 
+#include "wm/window_manager.h"
+
 namespace naive {
 namespace wayland {
 
 Pointer::Pointer(wl_resource* resource)
     : resource_(resource),
-      target_(nullptr) {}
+      target_(nullptr) {
+  wm::WindowManager::Get()->AddMouseObserver(this);
+}
+
+Pointer::~Pointer() {
+  wm::WindowManager::Get()->RemoveMouseObserver(this);
+}
 
 bool Pointer::CanReceiveEvent(Surface* surface) {
   return wl_resource_get_client(surface->resource()) ==
@@ -13,7 +21,12 @@ bool Pointer::CanReceiveEvent(Surface* surface) {
 }
 
 void Pointer::OnMouseEvent(wm::MouseEvent* event) {
-  // TODO: dispatch mouse event by generating all wayland pointer events.
+  if (!event->window())
+    return;
+  Surface* surface = event->window()->surface();
+  if (CanReceiveEvent(surface)) {
+    // TODO: dispatch mouse event by generating all wayland pointer events.
+  }
 }
 
 }  // namespace wayland

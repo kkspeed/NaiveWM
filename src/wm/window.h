@@ -59,8 +59,9 @@ class Window : public SurfaceObserver {
   void BeginMove() { /* TODO: implement this */
   }
 
+  std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
-
+  base::geometry::Rect geometry() { return state_.geometry; }
  private:
   bool managed_;
 

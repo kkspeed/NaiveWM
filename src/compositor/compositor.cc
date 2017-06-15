@@ -390,7 +390,7 @@ Compositor::Compositor() {
 bool Compositor::NeedToDraw() {
   // TODO: We redraw when pointer is moved. May be optimized later with HW
   // composer.
-  if (wm::WindowManager::Get()->PointerMoved()) {
+  if (wm::WindowManager::Get()->pointer_moved()) {
     draw_forced_ = true;
   }
 
@@ -409,6 +409,7 @@ void Compositor::Draw() {
   for (auto* window : wm::WindowManager::Get()->windows()) {
     // TODO: child windows needs to be handled as well!
     if (window->surface()->has_commit() || draw_forced_) {
+      LOG_ERROR << "Draw window: " << window << std::endl;
       auto* buffer = window->surface()->committed_buffer();
       if (buffer->data()) {
         Texture texture(buffer->width(), buffer->height(), buffer->format(),

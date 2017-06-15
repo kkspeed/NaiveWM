@@ -4,6 +4,8 @@
 #include <functional>
 #include <memory>
 
+#include "base/logging.h"
+
 namespace naive {
 
 namespace wayland {
@@ -17,6 +19,7 @@ class Buffer {
  public:
   Buffer(int32_t width, int32_t height, int32_t format, int32_t offset,
          int32_t stride, std::shared_ptr<wayland::ShmPool> pool);
+  ~Buffer() { LOG_ERROR << "dtor buffer" << std::endl; }
   void SetOwningSurface(Surface* surface);
   void* data();
 

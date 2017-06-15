@@ -96,18 +96,26 @@ void EventHub::HandleEvents() {
       case LIBINPUT_EVENT_POINTER_MOTION: {
         LOG_ERROR << "pointer motion" << std::endl;
       	libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
-        float x = libinput_event_pointer_get_dx(p);
-        float y = libinput_event_pointer_get_dy(p);
+        float x = static_cast<float>(libinput_event_pointer_get_dx(p));
+        float y = static_cast<float>(libinput_event_pointer_get_dy(p));
         for (auto* observer: observers_)
           observer->OnMouseMotion(x, y);
         break;
       }
       case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
-        LOG_ERROR << "pointer motion absolute" << std::endl;
+        LOG_ERROR << "pointer motion" << std::endl;
         break;
-      case LIBINPUT_EVENT_POINTER_BUTTON:
-        LOG_ERROR << "pointer motion button" << std::endl;
+      case LIBINPUT_EVENT_POINTER_BUTTON: {
+        LOG_ERROR << "pointer button" << std::endl;
+        libinput_event_pointer* p = libinput_event_get_pointer_event(ev);
+        libinput_button_state state =
+            libinput_event_pointer_get_button_state(p);
+        uint32_t button = libinput_event_pointer_get_button(p);
+        for (auto* observer: observers_)
+          observer->OnMouseButton(button, state ==
+              LIBINPUT_BUTTON_STATE_PRESSED);
         break;
+      }
       case LIBINPUT_EVENT_POINTER_AXIS:
         LOG_ERROR << "pointer motion axis" << std::endl;
         break;

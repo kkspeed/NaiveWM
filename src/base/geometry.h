@@ -30,6 +30,10 @@ class Rect {
       : x_(x), y_(y), width_(width), height_(height) {}
   ~Rect() = default;
 
+  bool ContainsPoint(int32_t x, int32_t y) {
+    return x_ <= x && x <= x_ + width_ && y_ <= y && y <= y_ + height_;
+  }
+
   int32_t x() const { return x_; }
   int32_t y() const { return y_; }
   int32_t width() const { return width_; }

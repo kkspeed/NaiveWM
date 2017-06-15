@@ -2,10 +2,32 @@
 
 #include <algorithm>
 #include <cassert>
+
+#include "base/geometry.h"
 #include "base/logging.h"
+#include "wm/mouse_event.h"
 
 namespace naive {
 namespace wm {
+
+namespace {
+
+// TODO: convert pointer location to surface local position.
+Window* FindMouseEventTargetChildWindow(Window* root,
+                                        int32_t x,
+                                        int32_t y) {
+  Window* candidate = root;
+  for (auto iter = root->children().rbegin();
+       iter != root->children().rend();
+       iter++) {
+    Window* current = *iter;
+    if (current->geometry().ContainsPoint(x, y))
+      return FindMouseEventTargetChildWindow(candidate, x, y);
+  }
+  return candidate;
+}
+
+}  // namespace
 
 // static
 WindowManager* WindowManager::g_window_manager = nullptr;
@@ -40,8 +62,33 @@ void WindowManager::RemoveWindow(Window* window) {
   }
 }
 
-bool WindowManager::PointerMoved() {
+void WindowManager::AddMouseObserver(MouseObserver* observer) {
+  if (std::find(mouse_observers_.begin(), mouse_observers_.end(), observer) ==
+      mouse_observers_.end()) {
+    mouse_observers_.push_back(observer);
+  }
+}
+
+void WindowManager::RemoveMouseObserver(MouseObserver* observer) {
+  auto iter = std::find(mouse_observers_.begin(), mouse_observers_.end(),
+                        observer);
+  if (iter != mouse_observers_.end())
+    mouse_observers_.erase(iter);
+}
+
+bool WindowManager::pointer_moved() {
   return last_mouse_position_.manhattan_distance(mouse_position_) >= 1.0;
+}
+
+void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
+  MouseEventData data;
+  data.button = button;
+  DispatchMouseEvent(
+      std::make_unique<MouseEvent>(FindMouseEventTarget(),
+                                   pressed ? MouseEventType::MouseButtonDown
+                                           : MouseEventType::MouseButtonUp,
+                                   0,  // TODO: Time
+                                   data));
 }
 
 void WindowManager::OnMouseMotion(float dx, float dy) {
@@ -57,6 +104,36 @@ void WindowManager::OnMouseMotion(float dx, float dy) {
     new_y = 0.4f;
   last_mouse_position_ = mouse_position_;
   mouse_position_ = base::geometry::FloatPoint(new_x, new_y);
+
+  MouseEventData data;
+  data.delta[0] = static_cast<int32_t>(new_x - last_mouse_position_.x());
+  data.delta[1] = static_cast<int32_t>(new_y - last_mouse_position_.y());
+  DispatchMouseEvent(
+      std::make_unique<MouseEvent>(FindMouseEventTarget(),
+                                   MouseEventType::MouseMotion,
+                                   0,  // TODO: Time
+                                   data));
+}
+
+Window* WindowManager::FindMouseEventTarget() {
+  // TODO: could be simplified to one function!
+  int32_t mouse_x = static_cast<int32_t>(mouse_position_.x());
+  int32_t mouse_y = static_cast<int32_t>(mouse_position_.y());
+  for (auto iter = windows_.rbegin(); iter != windows_.rend(); iter++) {
+    auto rect = (*iter)->geometry();
+    LOG_ERROR << "Testing rect (" << rect.x() << " "
+              << rect.y() << " " << rect.x() + rect.width() << " "
+              << rect.y() + rect.height() << ") for (" << mouse_x
+              << " " << mouse_y << ")" << std::endl;
+    if ((*iter)->geometry().ContainsPoint(mouse_x, mouse_y))
+      return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
+  }
+  return nullptr;
+}
+
+void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
+  for (auto mouse_observer: mouse_observers_)
+    mouse_observer->OnMouseEvent(event.get());
 }
 
 

@@ -63,6 +63,7 @@ void buffer_destroy(wl_client* client, wl_resource* resource) {
 const struct wl_buffer_interface buffer_implementation = {buffer_destroy};
 
 void HandleBufferReleaseCallback(wl_resource* resource) {
+  LOG_ERROR << "Buffer release callback" << std::endl;
   wl_buffer_send_release(resource);
   wl_client_flush(wl_resource_get_client(resource));
 }
@@ -71,6 +72,7 @@ void HandleBufferReleaseCallback(wl_resource* resource) {
 // wl_surface_interface
 
 void surface_destroy(wl_client* client, wl_resource* resource) {
+  LOG_ERROR << "surface_destroy " << resource << std::endl;
   wl_resource_destroy(resource);
 }
 
@@ -507,7 +509,8 @@ const struct wl_pointer_interface pointer_implementation {
 
 void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* pointer_resource =
-      wl_resource_create(client, &wl_pointer_interface, 1, id);
+      wl_resource_create(client, &wl_pointer_interface,
+                         wl_resource_get_version(resource), id);
   auto pointer = std::make_unique<Pointer>(pointer_resource);
   SetImplementation(pointer_resource, &pointer_implementation,
                     std::move(pointer));

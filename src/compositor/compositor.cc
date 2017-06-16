@@ -289,26 +289,21 @@ class Texture {
  public:
   Texture(int width, int height, int32_t format, void* data)
       : width_(width), height_(height), identifier_(0) {
-    LOG_ERROR << (format == WL_SHM_FORMAT_ARGB8888) << " " << (format == WL_SHM_FORMAT_XRGB8888) << std::endl;
-    /*
-    const EGLint renderImageAttrs[] = {
-        EGL_WIDTH, width_,
-        EGL_HEIGHT, height_,
-        EGL_MATCH_FORMAT_KHR, EGL_FORMAT_RGBA_8888_KHR,
-        EGL_IMAGE_PRESERVED_KHR, EGL_TRUE,
-        EGL_NONE
-    };
-    EGLImage image = eglCreateImageKHR(gl.display,
-                                       EGL_NO_CONTEXT,
-                                       EGL_TEXTURE_2D,
-                                       data,
-                                       renderImageAttrs);
-     */
+    LOG_ERROR << "Texture format: " << (format == WL_SHM_FORMAT_ARGB8888) << " "
+              << (format == WL_SHM_FORMAT_XRGB8888) << std::endl;
     glGenTextures(1, &identifier_);
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 width_,
+                 height_,
+                 0,
+                 GL_BGRA,
+                 GL_UNSIGNED_BYTE,
+                 data);
     // glEglImageTargetTexture2DOES(GL_TEXTURE_2D, image);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
@@ -406,23 +401,30 @@ void Compositor::Draw() {
   glClearColor(0.5, 0.5, 0.5, 1.0);
   glLoadIdentity();
 
-  for (auto* window : wm::WindowManager::Get()->windows()) {
-    // TODO: child windows needs to be handled as well!
-    if (window->surface()->has_commit() || draw_forced_) {
-      LOG_ERROR << "Draw window: " << window << std::endl;
-      auto* buffer = window->surface()->committed_buffer();
-      if (buffer->data()) {
-        Texture texture(buffer->width(), buffer->height(), buffer->format(),
-                        buffer->data());
-        texture.Draw(0, 0);
-      }
-      window->surface()->clear_commit();
-    }
-  }
+  for (auto* window : wm::WindowManager::Get()->windows())
+    DrawWindowRecursive(window);
 
   DrawPointer();
   draw_forced_ = false;
   finalize_draw();
+}
+
+void Compositor::DrawWindowRecursive(wm::Window* window) {
+  // TODO: child windows needs to be handled as well!
+  if (window->surface()->has_commit() || draw_forced_) {
+    LOG_ERROR << "Draw window: " << window << std::endl;
+    auto* buffer = window->surface()->committed_buffer();
+    if (buffer && buffer->data()) {
+      Texture texture(buffer->width(), buffer->height(), buffer->format(),
+                      buffer->data());
+      texture.Draw(window->geometry().x(), window->geometry().y());
+    }
+    window->surface()->clear_commit();
+  }
+
+  for (auto* child: window->children()) {
+    DrawWindowRecursive(child);
+  }
 }
 
 void Compositor::DrawPointer() {

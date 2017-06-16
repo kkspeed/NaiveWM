@@ -11,7 +11,9 @@ namespace wm {
 Window::Window()
     : surface_(nullptr),
       shell_surface_(nullptr),
-      parent_(nullptr) {}
+      parent_(nullptr) {
+  LOG_ERROR << "creating window " << this << std::endl;
+}
 
 void Window::AddChild(Window* child) {
   children_.push_back(child);

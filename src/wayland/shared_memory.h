@@ -26,6 +26,7 @@ class ShmPool {
 class SharedMemory {
  public:
   explicit SharedMemory(int fd, uint32_t size);
+  void Resize(uint32_t size);
   std::unique_ptr<Buffer> CreateBuffer(int32_t width, int32_t height,
                                        int32_t format, int32_t offset,
                                        int32_t stride);

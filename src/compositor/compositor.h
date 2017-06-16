@@ -2,6 +2,11 @@
 #define COMPOSITOR_COMPOSITOR_H_
 
 namespace naive {
+
+namespace wm {
+class Window;
+}  // namespace wm
+
 namespace compositor {
 
 class Compositor {
@@ -14,6 +19,7 @@ class Compositor {
   void Draw();
 
   void DrawPointer();
+  void DrawWindowRecursive(wm::Window* window);
 
  private:
   static Compositor* g_compositor;

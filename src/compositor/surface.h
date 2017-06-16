@@ -36,6 +36,7 @@ class Surface {
   void SetOpaqueRegion(const Region& region);
   void SetInputRegion(const Region& region);
   void Commit();
+  void SetFrameCallback(std::function<void()>* callback);
   void SetBufferScale(int32_t scale){/* TODO: Implement this */};
 
   void AddSurfaceObserver(SurfaceObserver* observer) {
@@ -55,6 +56,7 @@ class Surface {
     Region opaque_region = Region::Empty();
     Region input_region = Region::Empty();
     Buffer* buffer = nullptr;
+    std::function<void()>* frame_callback = nullptr;
   };
 
   SurfaceState pending_state_;

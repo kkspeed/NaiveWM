@@ -44,7 +44,7 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager() :
-  screen_width_(2560), screen_height_(1080),
+  screen_width_(2560), screen_height_(1440),
   mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f) {
   event::EventHub::Get()->AddEventObserver(this);
 }
@@ -124,7 +124,7 @@ Window* WindowManager::FindMouseEventTarget() {
     LOG_ERROR << "Testing rect (" << rect.x() << " "
               << rect.y() << " " << rect.x() + rect.width() << " "
               << rect.y() + rect.height() << ") for (" << mouse_x
-              << " " << mouse_y << ")" << std::endl;
+              << " " << mouse_y << "), window " << *iter << std::endl;
     if ((*iter)->geometry().ContainsPoint(mouse_x, mouse_y))
       return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
   }

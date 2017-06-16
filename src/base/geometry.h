@@ -1,9 +1,10 @@
-#ifndef _BASE_GEOMETRY_H_
-#define _BASE_GEOMETRY_H_
+#ifndef BASE_GEOMETRY_H_
+#define BASE_GEOMETRY_H_
 
 #include <cstdint>
 #include <cmath>
 
+namespace naive {
 namespace base {
 namespace geometry {
 
@@ -44,5 +45,6 @@ class Rect {
 
 }  // namespace geometry
 }  // namespace base
+}  // namespace naive
 
-#endif  // _BASE_GEOMETRY_H_
+#endif  // BASE_GEOMETRY_H_

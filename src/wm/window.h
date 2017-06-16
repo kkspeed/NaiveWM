@@ -16,7 +16,7 @@ namespace wm {
 class Window : public SurfaceObserver {
  public:
   Window();
-  ~Window() { LOG_ERROR << "window dtor" << std::endl; }
+  ~Window() { LOG_ERROR << "window dtor " << this << std::endl; }
 
   bool IsManaged() const { return managed_; }
   void SetParent(Window* parent) { parent_ = parent; }

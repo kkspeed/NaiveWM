@@ -26,6 +26,7 @@ void ShellSurface::Move() {
 
 void ShellSurface::AcknowledgeConfigure(uint32_t serial) {
   // TODO: need to implement this?
+  NOTIMPLEMENTED();
 }
 
 }  // namespace naive

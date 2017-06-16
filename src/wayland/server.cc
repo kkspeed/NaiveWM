@@ -257,7 +257,7 @@ void shm_pool_destroy(wl_client* client, wl_resource* resource) {
 
 void shm_pool_resize(wl_client* client, wl_resource* resource, int32_t size) {
   TRACE();
-  GetUserDataAs<SharedMemory>(resource)->Resize(size);
+  GetUserDataAs<SharedMemory>(resource)->Resize(static_cast<uint32_t>(size));
 }
 
 const struct wl_shm_pool_interface shm_pool_implementation = {

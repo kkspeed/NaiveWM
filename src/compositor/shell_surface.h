@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "base/geometry.h"
+#include "compositor/surface.h"
 #include "wm/window.h"
 
 namespace naive {
@@ -13,9 +14,7 @@ namespace wm {
 class Window;
 }  // namespace wm;
 
-class Surface;
-
-class ShellSurface {
+class ShellSurface: SurfaceObserver {
  public:
   ShellSurface(Surface* surface);
   ~ShellSurface();
@@ -23,6 +22,9 @@ class ShellSurface {
   void Move();
   void SetGeometry(const base::geometry::Rect& rect);
   void AcknowledgeConfigure(uint32_t serial);
+
+  // SurfaceObserver overrides:
+  void OnCommit() override;
 
   void set_close_callback(std::function<void()> callback) {
     close_callback_ = callback;

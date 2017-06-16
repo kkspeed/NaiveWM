@@ -6,7 +6,7 @@
 
 namespace naive {
 
-ShellSurface::ShellSurface(Surface* surface):
+ShellSurface::ShellSurface(Surface* surface) :
     surface_(surface), window_(surface->window()) {
   window_->SetShellSurface(this);
   surface_->AddSurfaceObserver(this);
@@ -17,6 +17,7 @@ ShellSurface::~ShellSurface() {
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {
+  in_configure_ = true;
   configure_callback_(width, height);
 }
 
@@ -29,14 +30,17 @@ void ShellSurface::Move() {
 }
 
 void ShellSurface::AcknowledgeConfigure(uint32_t serial) {
+  in_configure_ = false;
   // TODO: need to implement this?
   NOTIMPLEMENTED();
 }
 
 void ShellSurface::OnCommit() {
-  if (!surface_->committed_buffer() || !surface_->committed_buffer()->data()) {
+  if (window_->IsManaged() && (!surface_->committed_buffer()
+      || !surface_->committed_buffer()->data())) {
     // TODO: How to anounce size?
-    Configure(1000, 900);
+    TRACE("%d %d", window_->wm_width(), window_->wm_height());
+    Configure(window_->wm_width(), window_->wm_height());
     return;
   }
 }

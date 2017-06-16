@@ -50,8 +50,11 @@ WindowManager::WindowManager() :
 }
 
 void WindowManager::Manage(Window* window) {
+  TRACE("manage: %p", window);
   // TODO: window management policy
   windows_.push_back(window);
+  window->set_managed(true);
+  window->WmSetSize(screen_width_, screen_height_);
 }
 
 void WindowManager::RemoveWindow(Window* window) {

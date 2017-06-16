@@ -138,7 +138,7 @@ void surface_set_buffer_transform(wl_client* client, wl_resource* resource,
 
 void surface_set_buffer_scale(wl_client* client, wl_resource* resource,
                               int32_t scale) {
-  TRACE();
+  TRACE(" scale: %d", scale);
   if (scale < 1) {
     wl_resource_post_error(resource, WL_SURFACE_ERROR_INVALID_SCALE,
                            "buffer scale must be one (%d specified)", scale);
@@ -620,8 +620,8 @@ class WaylandOutput {
     base::geometry::Rect bounds(0, 0, 2560, 1440);
     wl_output_send_geometry(
         output_resource_, bounds.x(), bounds.y(),
-        static_cast<int>(kInchInMm * bounds.width() / 100.0),
-        static_cast<int>(kInchInMm * bounds.height() / 100.0),
+        static_cast<int>(kInchInMm * bounds.width() / 200.0),
+        static_cast<int>(kInchInMm * bounds.height() / 200.0),
         WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
         WL_OUTPUT_TRANSFORM_NORMAL);
 
@@ -759,13 +759,13 @@ void xdg_toplevel_v6_resize(wl_client* client, wl_resource* resource,
 
 void xdg_toplevel_v6_set_max_size(wl_client* client, wl_resource* resource,
                                   int32_t width, int32_t height) {
-  TRACE();
+  TRACE("maxsize: %d %d", width, height);
   NOTIMPLEMENTED();
 }
 
 void xdg_toplevel_v6_set_min_size(wl_client* client, wl_resource* resource,
                                   int32_t width, int32_t height) {
-  TRACE();
+  TRACE("minsize: %d %d", width, height);
   NOTIMPLEMENTED();
 }
 
@@ -849,9 +849,12 @@ void AddXdgToplevelV6State(wl_array* states, zxdg_toplevel_v6_state state) {
 uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
                                               wl_resource* surface_resource,
                                               int32_t width, int32_t height) {
-  TRACE();
+  TRACE("configure: %d %d", width, height);
   wl_array states;
   wl_array_init(&states);
+  // TODO: if window is visible, we'll need maximized state to eliminate window
+  // decorations.
+  AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED);
   // TODO: handle activated state (focus in)
   zxdg_toplevel_v6_send_configure(resource, width, height, &states);
   uint32_t serial = wl_display_next_serial(
@@ -872,18 +875,20 @@ void xdg_surface_v6_get_toplevel(wl_client* client, wl_resource* resource,
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   // TODO: consider add a mapped status to window
-  if (shell_surface->window()->IsManaged()) {
-    wl_resource_post_error(resource, ZXDG_SURFACE_V6_ERROR_ALREADY_CONSTRUCTED,
-                           "surface has already been constructed");
+  /*
+if (shell_surface->window()->IsManaged()) {
+  wl_resource_post_error(resource, ZXDG_SURFACE_V6_ERROR_ALREADY_CONSTRUCTED,
+                         "surface has already been constructed");
     return;
   }
+                         */
   wm::WindowManager::Get()->Manage(shell_surface->window());
   wl_resource* xdg_toplevel_resource =
       wl_resource_create(client, &zxdg_toplevel_v6_interface, 1, id);
   shell_surface->set_close_callback(
       std::bind(&HandleXdgToplevelV6CloseCallback, resource));
   shell_surface->set_configure_callback(std::bind(
-      &HandleXdgToplevelV6ConfigureCallback, resource, xdg_toplevel_resource,
+      &HandleXdgToplevelV6ConfigureCallback, xdg_toplevel_resource, resource,
       std::placeholders::_1, std::placeholders::_2));
   wl_resource_set_implementation(xdg_toplevel_resource,
                                  &xdg_toplevel_v6_implementation, shell_surface,
@@ -902,8 +907,9 @@ void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
   TRACE();
   ShellSurface* shell_surface = GetUserDataAs<ShellSurface>(resource);
   if (shell_surface->window()->IsManaged()) {
+    /*
     wl_resource_post_error(resource, ZXDG_SURFACE_V6_ERROR_ALREADY_CONSTRUCTED,
-                           "surface has already been constructed");
+                           "surface has already been constructed");*/
     return;
   }
 

@@ -1,10 +1,12 @@
 #ifndef WM_WINDOW_H_
 #define WM_WINDOW_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include "base/geometry.h"
 #include "base/logging.h"
+#include "compositor/shell_surface.h"
 #include "compositor/surface.h"
 
 namespace naive {
@@ -48,8 +50,7 @@ class Window : public SurfaceObserver {
   }
 
   void SetGeometry(const base::geometry::Rect& rect) {
-    LOG_ERROR << "SetGeometry " << rect.x() << " " << rect.y()
-              << " " << rect.width() << " " << rect.height() << std::endl;
+    TRACE("geometry: %p: %d %d %d %d", this, rect.x(), rect.y(), rect.width(), rect.height());
     pending_state_.geometry = rect;
   }
 
@@ -63,6 +64,12 @@ class Window : public SurfaceObserver {
   void BeginMove() { /* TODO: implement this */
   }
 
+  // Sets the window size via window manager.
+  void WmSetSize(int32_t width, int32_t height);
+
+  void set_managed(bool managed) { managed_ = managed; }
+  int32_t wm_width() { return wm_width_; }
+  int32_t wm_height() { return wm_height_; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
   base::geometry::Rect geometry() { return state_.geometry; }
@@ -81,6 +88,7 @@ class Window : public SurfaceObserver {
   Window* parent_;
   Surface* surface_;
   ShellSurface* shell_surface_;
+  int32_t wm_width_, wm_height_;
 };
 
 }  // namespace wm

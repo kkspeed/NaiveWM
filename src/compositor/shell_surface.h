@@ -47,6 +47,7 @@ class ShellSurface: SurfaceObserver {
 
   wm::Window* window_;
   Surface* surface_;
+  bool in_configure_ = false;
 };
 
 }  // namespace naive

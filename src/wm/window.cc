@@ -1,4 +1,4 @@
-#include "window.h"
+#include "wm/window.h"
 
 #include <algorithm>
 
@@ -98,6 +98,11 @@ void Window::SetMaximized(bool maximized) {
 
   shell_surface_->Configure(pending_state_.geometry.width(),
                             pending_state_.geometry.height());
+}
+
+void Window::WmSetSize(int32_t width, int32_t height) {
+  wm_width_ = width;
+  wm_height_ = height;
 }
 
 }  // namespace wm

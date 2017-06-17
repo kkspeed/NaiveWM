@@ -43,7 +43,7 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
                   << " " << event->time() << std::endl;
         wl_pointer_send_enter(resource_,
                               next_serial(),
-                              surface->resource(),
+                              target_->resource(),
                               event->x(),
                               event->y());
         wl_pointer_send_frame(resource_);
@@ -69,7 +69,7 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
                                  WL_POINTER_BUTTON_STATE_RELEASED);
           break;
         case wm::MouseEventType::MouseMotion:
-          TRACE("send mouse motion: %d, %d at %d",
+          TRACE("send mouse motion: %d, %d at %u",
                 event->x(),
                 event->y(),
                 event->time());

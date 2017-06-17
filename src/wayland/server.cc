@@ -855,6 +855,8 @@ uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
   // TODO: if window is visible, we'll need maximized state to eliminate window
   // decorations.
   AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED);
+  // TODO: only for debugging, this needs to be activated via mouse focus
+  AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_ACTIVATED);
   // TODO: handle activated state (focus in)
   zxdg_toplevel_v6_send_configure(resource, width, height, &states);
   uint32_t serial = wl_display_next_serial(

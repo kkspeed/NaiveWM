@@ -25,8 +25,8 @@ union MouseEventData {
 class MouseEvent: public Event {
  public:
   MouseEvent(Window* window, MouseEventType type, uint32_t time,
-             MouseEventData data)
-      : window_(window), type_(type), time_(time), data_(data) {}
+             MouseEventData data, uint32_t x, uint32_t y)
+      : window_(window), type_(type), time_(time), data_(data), x_(x), y_(y) {}
 
   Window* window() { return window_; }
   MouseEventType type() { return type_; }
@@ -40,11 +40,20 @@ class MouseEvent: public Event {
   uint32_t get_button() {
     return data_.button;
   }
+
+  void set_coordinates(uint32_t x, uint32_t y) {
+    x_ = x;
+    y_ = y;
+  }
+
+  uint32_t x() { return x_; }
+  uint32_t y() { return y_; }
  private:
   Window* window_;
   MouseEventType type_;
   uint32_t time_;
   MouseEventData data_;
+  uint32_t x_, y_;
 };
 
 }  // namespace wm

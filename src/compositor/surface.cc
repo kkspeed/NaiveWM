@@ -28,11 +28,11 @@ void Surface::Damage(const base::geometry::Rect& rect) {
   pending_state_.damaged_region.Union(region);
 }
 
-void Surface::SetOpaqueRegion(const Region& region) {
+void Surface::SetOpaqueRegion(const Region region) {
   pending_state_.opaque_region = region;
 }
 
-void Surface::SetInputRegion(const Region &region) {
+void Surface::SetInputRegion(const Region region) {
   pending_state_.input_region = region;
 }
 

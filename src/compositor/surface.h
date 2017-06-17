@@ -33,8 +33,8 @@ class Surface {
 
   void Attach(Buffer* buffer);
   void Damage(const base::geometry::Rect& rect);
-  void SetOpaqueRegion(const Region& region);
-  void SetInputRegion(const Region& region);
+  void SetOpaqueRegion(const Region region);
+  void SetInputRegion(const Region region);
   void Commit();
   void SetFrameCallback(std::function<void()>* callback);
   void SetBufferScale(int32_t scale){/* TODO: Implement this */};

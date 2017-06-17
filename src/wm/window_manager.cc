@@ -5,6 +5,7 @@
 
 #include "base/geometry.h"
 #include "base/logging.h"
+#include "base/time.h"
 #include "wm/mouse_event.h"
 
 namespace naive {
@@ -90,8 +91,10 @@ void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
       std::make_unique<MouseEvent>(FindMouseEventTarget(),
                                    pressed ? MouseEventType::MouseButtonDown
                                            : MouseEventType::MouseButtonUp,
-                                   0,  // TODO: Time
-                                   data));
+                                   base::Time::CurrentTimeMilliSeconds(),
+                                   data,
+                                   mouse_position_.x(),
+                                   mouse_position_.y()));
 }
 
 void WindowManager::OnMouseMotion(float dx, float dy) {
@@ -114,8 +117,8 @@ void WindowManager::OnMouseMotion(float dx, float dy) {
   DispatchMouseEvent(
       std::make_unique<MouseEvent>(FindMouseEventTarget(),
                                    MouseEventType::MouseMotion,
-                                   0,  // TODO: Time
-                                   data));
+                                   base::Time::CurrentTimeMilliSeconds(),
+                                   data, new_x, new_y));
 }
 
 Window* WindowManager::FindMouseEventTarget() {
@@ -135,8 +138,27 @@ Window* WindowManager::FindMouseEventTarget() {
 }
 
 void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
-  for (auto mouse_observer: mouse_observers_)
-    mouse_observer->OnMouseEvent(event.get());
+  if (event->window()) {
+    // Transform pointer location to surface local coordinates.
+    std::vector<Window*> window_path;
+    Window* window = event->window();
+    window_path.push_back(window);
+    while (window->parent()) {
+      window_path.push_back(window->parent());
+      window = window->parent();
+    }
+    uint32_t coord_x = event->x();
+    uint32_t coord_y = event->y();
+    for (auto it = window_path.rbegin(); it != window_path.rend(); it++) {
+      coord_x = coord_x - (*it)->geometry().x();
+      coord_y = coord_y - (*it)->geometry().y();
+    }
+    event->set_coordinates(coord_x, coord_y);
+    for (auto mouse_observer: mouse_observers_)
+      mouse_observer->OnMouseEvent(event.get());
+
+  }
+
 }
 
 

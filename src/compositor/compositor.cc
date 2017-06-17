@@ -289,8 +289,9 @@ class Texture {
  public:
   Texture(int width, int height, int32_t format, void* data)
       : width_(width), height_(height), identifier_(0) {
-    LOG_ERROR << "Texture format: " << (format == WL_SHM_FORMAT_ARGB8888) << " "
-              << (format == WL_SHM_FORMAT_XRGB8888) << std::endl;
+    if (format != WL_SHM_FORMAT_ARGB8888) {
+      TRACE("buffer format not WL_SHM_FORMAT_ARGB8888");
+    }
     glGenTextures(1, &identifier_);
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -309,8 +310,8 @@ class Texture {
   }
 
   ~Texture() {
-    // if (identifier_)
-    //  glDeleteTextures(1, &identifier_);
+    //if (identifier_)
+      //glDeleteTextures(1, &identifier_);
   }
 
   void Draw(int x, int y) {
@@ -412,11 +413,11 @@ void Compositor::Draw() {
 void Compositor::DrawWindowRecursive(wm::Window* window) {
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
-    LOG_ERROR << "Draw window: " << window << std::endl;
     auto* buffer = window->surface()->committed_buffer();
     if (buffer && buffer->data()) {
       Texture texture(buffer->width(), buffer->height(), buffer->format(),
                       buffer->data());
+      // TODO: We shouldn't create texture each time.
       texture.Draw(window->geometry().x(), window->geometry().y());
     }
     window->surface()->clear_commit();

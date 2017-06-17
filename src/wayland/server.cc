@@ -546,7 +546,7 @@ void pointer_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_pointer_interface pointer_implementation{
+const struct wl_pointer_interface pointer_implementation {
     .release = pointer_release,
     .set_cursor = pointer_set_cursor
 };
@@ -617,7 +617,7 @@ class WaylandOutput {
     const char* kUnknownModel = "unknown";
 
     // TODO: Get real display information.
-    base::geometry::Rect bounds(0, 0, 2560, 1440);
+    base::geometry::Rect bounds(0, 0, 2560, 1080);
     wl_output_send_geometry(
         output_resource_, bounds.x(), bounds.y(),
         static_cast<int>(kInchInMm * bounds.width() / 200.0),

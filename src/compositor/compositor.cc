@@ -413,6 +413,7 @@ void Compositor::Draw() {
 void Compositor::DrawWindowRecursive(wm::Window* window) {
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
+    window->surface()->RunSurfaceCallback();
     auto* buffer = window->surface()->committed_buffer();
     if (buffer && buffer->data()) {
       Texture texture(buffer->width(), buffer->height(), buffer->format(),

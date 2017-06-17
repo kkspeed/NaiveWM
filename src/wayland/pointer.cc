@@ -38,12 +38,16 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
           LOG_ERROR << "leave window " << target_->window() << std::endl;
         }
         target_ = surface;
-        LOG_ERROR << "enter window " << target_->window() << std::endl;
+        LOG_ERROR << "enter window " << target_->window()
+                  << " " << event->x() << " " << event->y()
+                  << " " << event->time() << std::endl;
         wl_pointer_send_enter(resource_,
                               next_serial(),
                               surface->resource(),
                               event->x(),
                               event->y());
+        wl_pointer_send_frame(resource_);
+        return;
       }
       switch (event->type()) {
         case wm::MouseEventType::MouseButtonDown:TRACE(
@@ -64,10 +68,12 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
                                  event->get_button(),
                                  WL_POINTER_BUTTON_STATE_RELEASED);
           break;
-        case wm::MouseEventType::MouseMotion:TRACE("send mouse motion: %d, %d",
-                                                   event->x(),
-                                                   event->y());
-          wl_pointer_send_motion(resource_, next_serial(), event->x(),
+        case wm::MouseEventType::MouseMotion:
+          TRACE("send mouse motion: %d, %d at %d",
+                event->x(),
+                event->y(),
+                event->time());
+          wl_pointer_send_motion(resource_, event->time(), event->x(),
                                  event->y());
           break;
         default:
@@ -76,6 +82,7 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
       }
     }
     wl_pointer_send_frame(resource_);
+    LOG_ERROR << "send frame" << std::endl;
     // TODO: dispatch mouse event by generating all wayland pointer events.
   }
 }

@@ -43,12 +43,20 @@ class Surface {
     observers_.push_back(observer);
   }
 
+  void RunSurfaceCallback() {
+    if (state_.frame_callback) {
+      (*state_.frame_callback)();
+      state_.frame_callback = nullptr;
+    }
+  }
+
   void set_resource(wl_resource* resource) { resource_ = resource; }
   wl_resource* resource() { return resource_; }
   bool has_commit() { return has_commit_; }
   void clear_commit() { has_commit_ = false; }
   Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() { return window_.get(); }
+  std::function<void()>* frame_callback() { return state_.frame_callback; }
 
  private:
   struct SurfaceState {

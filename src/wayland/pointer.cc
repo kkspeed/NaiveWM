@@ -44,8 +44,8 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
         wl_pointer_send_enter(resource_,
                               next_serial(),
                               target_->resource(),
-                              event->x(),
-                              event->y());
+                              wl_fixed_from_int(event->x()),
+                              wl_fixed_from_int(event->y()));
         wl_pointer_send_frame(resource_);
         return;
       }
@@ -73,8 +73,9 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
                 event->x(),
                 event->y(),
                 event->time());
-          wl_pointer_send_motion(resource_, event->time(), event->x(),
-                                 event->y());
+          wl_pointer_send_motion(resource_, event->time(),
+                                 wl_fixed_from_int(event->x()),
+                                 wl_fixed_from_int(event->y()));
           break;
         default:
           // TODO: Handle other mouse events.

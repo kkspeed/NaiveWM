@@ -283,7 +283,6 @@ void finalize_draw() {
 
   gbm_surface_release_buffer(gbm.surface, bo);
   bo = next_bo;
-  LOG_ERROR << "finalize_draw()" << std::endl;
 }
 
 class Texture: public TextureDelegate {
@@ -317,7 +316,7 @@ class Texture: public TextureDelegate {
   }
 
   void Draw(int x, int y) override {
-    TRACE("x: %d, y: %d, width: %d, height: %d\n", x, y, width_, height_);
+    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
 

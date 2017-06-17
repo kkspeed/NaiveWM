@@ -94,7 +94,6 @@ void EventHub::HandleEvents() {
         LOG_ERROR << "keyboard key" << std::endl;
         break;
       case LIBINPUT_EVENT_POINTER_MOTION: {
-        LOG_ERROR << "pointer motion" << std::endl;
       	libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
         float x = static_cast<float>(libinput_event_pointer_get_dx(p));
         float y = static_cast<float>(libinput_event_pointer_get_dy(p));
@@ -103,7 +102,7 @@ void EventHub::HandleEvents() {
         break;
       }
       case LIBINPUT_EVENT_POINTER_MOTION_ABSOLUTE:
-        LOG_ERROR << "pointer motion" << std::endl;
+        // LOG_ERROR << "pointer motion absolute" << std::endl;
         break;
       case LIBINPUT_EVENT_POINTER_BUTTON: {
         LOG_ERROR << "pointer button" << std::endl;

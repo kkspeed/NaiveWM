@@ -17,13 +17,14 @@ namespace {
 Window* FindMouseEventTargetChildWindow(Window* root,
                                         int32_t x,
                                         int32_t y) {
+  TRACE("root window: %p", root);
   Window* candidate = root;
   for (auto iter = root->children().rbegin();
        iter != root->children().rend();
        iter++) {
     Window* current = *iter;
     if (current->geometry().ContainsPoint(x, y))
-      return FindMouseEventTargetChildWindow(candidate, x, y);
+      return FindMouseEventTargetChildWindow(current, x, y);
   }
   return candidate;
 }

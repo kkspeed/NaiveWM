@@ -10,6 +10,11 @@ SubSurface::SubSurface(Surface* parent, Surface* surface) :
   parent_->AddSurfaceObserver(this);
 }
 
+SubSurface::~SubSurface() {
+  parent_->window()->RemoveChild(surface_->window());
+  parent_->RemoveSurfaceObserver(this);
+}
+
 void SubSurface::PlaceAbove(Surface* target) {
   pending_placement_.push_back(std::make_pair(true, target));
 }

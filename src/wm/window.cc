@@ -4,6 +4,7 @@
 
 #include "base/logging.h"
 #include "compositor/shell_surface.h"
+#include "wm/window_manager.h"
 
 namespace naive {
 namespace wm {
@@ -13,6 +14,11 @@ Window::Window()
       shell_surface_(nullptr),
       parent_(nullptr) {
   LOG_ERROR << "creating window " << this << std::endl;
+}
+
+Window::~Window() {
+  TRACE("%p", this);
+  wm::WindowManager::Get()->RemoveWindow(this);
 }
 
 void Window::AddChild(Window* child) {

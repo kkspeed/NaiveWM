@@ -1,6 +1,7 @@
 #ifndef _COMPOSITOR_SURFACE_H_
 #define _COMPOSITOR_SURFACE_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <iostream>
@@ -41,6 +42,11 @@ class Surface {
 
   void AddSurfaceObserver(SurfaceObserver* observer) {
     observers_.push_back(observer);
+  }
+  void RemoveSurfaceObserver(SurfaceObserver* observer) {
+    auto iter = std::find(observers_.begin(), observers_.end(), observer);
+    if (iter != observers_.end())
+      observers_.erase(iter);
   }
 
   void RunSurfaceCallback() {

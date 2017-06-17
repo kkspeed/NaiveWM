@@ -12,6 +12,7 @@ namespace naive {
 class SubSurface : public SurfaceObserver {
  public:
   SubSurface(Surface* parent, Surface* surface);
+  ~SubSurface();
   void SetPosition(int32_t x, int32_t y);
   void PlaceAbove(Surface* target);
   void PlaceBelow(Surface* target);

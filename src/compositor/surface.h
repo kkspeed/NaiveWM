@@ -2,14 +2,17 @@
 #define _COMPOSITOR_SURFACE_H_
 
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
-#include <memory>
 #include <iostream>
+#include <functional>
+#include <memory>
 #include <vector>
 #include <wayland-server.h>
 
 #include "base/geometry.h"
 #include "base/logging.h"
+#include "compositor/texture_delegate.h"
 #include "compositor/region.h"
 
 namespace naive {
@@ -17,6 +20,10 @@ namespace naive {
 namespace wm {
 class Window;
 }  // namespace wm
+
+namespace compositor {
+class TextureDelegate;
+}  // namespace compositor
 
 class Buffer;
 
@@ -61,8 +68,17 @@ class Surface {
   bool has_commit() { return has_commit_; }
   void clear_commit() { has_commit_ = false; }
   Buffer* committed_buffer() { return state_.buffer; }
-  wm::Window* window() { return window_.get(); }
+  wm::Window* window() {
+    assert(window_);
+    return window_.get();
+  }
   std::function<void()>* frame_callback() { return state_.frame_callback; }
+
+  compositor::TextureDelegate* cached_texture() {
+    return cached_texture_ ? cached_texture_.get() : nullptr; }
+  void cache_texture(std::unique_ptr<compositor::TextureDelegate> texture) {
+    cached_texture_ = std::move(texture);
+  }
 
  private:
   struct SurfaceState {
@@ -80,6 +96,8 @@ class Surface {
   bool has_commit_ = false;
   std::vector<SurfaceObserver*> observers_;
   std::unique_ptr<wm::Window> window_;
+
+  std::unique_ptr<compositor::TextureDelegate> cached_texture_;
 };
 
 }  // namespace naive

@@ -24,6 +24,7 @@
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/surface.h"
+#include "compositor/texture_delegate.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -285,7 +286,7 @@ void finalize_draw() {
   LOG_ERROR << "finalize_draw()" << std::endl;
 }
 
-class Texture {
+class Texture: public TextureDelegate {
  public:
   Texture(int width, int height, int32_t format, void* data)
       : width_(width), height_(height), identifier_(0) {
@@ -310,13 +311,13 @@ class Texture {
   }
 
   ~Texture() {
-    //if (identifier_)
-      //glDeleteTextures(1, &identifier_);
+    TRACE();
+    if (identifier_)
+      glDeleteTextures(1, &identifier_);
   }
 
-  void Draw(int x, int y) {
-    LOG_ERROR << "calling draw " << x << " " << y << " " << width_ << " "
-              << height_ << std::endl;
+  void Draw(int x, int y) override {
+    TRACE("x: %d, y: %d, width: %d, height: %d\n", x, y, width_, height_);
     if (!identifier_)
       return;
 
@@ -414,14 +415,22 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
-    auto* buffer = window->surface()->committed_buffer();
-    if (buffer && buffer->data()) {
-      Texture texture(buffer->width(), buffer->height(), buffer->format(),
-                      buffer->data());
-      // TODO: We shouldn't create texture each time.
-      texture.Draw(window->geometry().x(), window->geometry().y());
+    if (!window->surface()->has_commit()
+        && window->surface()->cached_texture()) {
+      window->surface()->cached_texture()->Draw(window->geometry().x(),
+                                                window->geometry().y());
+    } else {
+      auto* buffer = window->surface()->committed_buffer();
+      if (buffer && buffer->data()) {
+        auto texture = std::make_unique<Texture>(
+            buffer->width(), buffer->height(), buffer->format(),
+            buffer->data());
+        // TODO: We shouldn't create texture each time.
+        texture->Draw(window->geometry().x(), window->geometry().y());
+        window->surface()->cache_texture(std::move(texture));
+      }
+      window->surface()->clear_commit();
     }
-    window->surface()->clear_commit();
   }
 
   for (auto* child: window->children()) {

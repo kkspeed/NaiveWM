@@ -316,7 +316,7 @@ class Texture: public TextureDelegate {
   }
 
   void Draw(int x, int y) override {
-    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
+//    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
 
@@ -347,8 +347,6 @@ class Texture: public TextureDelegate {
     glDisable(GL_TEXTURE_RECTANGLE);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
-
-    LOG_ERROR << "drawing texture" << std::endl;
   }
  private:
   GLuint identifier_;

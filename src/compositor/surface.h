@@ -26,17 +26,21 @@ class TextureDelegate;
 }  // namespace compositor
 
 class Buffer;
+class Surface;
 
 class SurfaceObserver {
  public:
-  virtual void OnCommit() = 0;
+  virtual void OnCommit() {}
+  virtual void OnSurfaceDestroyed(Surface*) {}
 };
 
 class Surface {
  public:
   Surface();
   ~Surface() {
-    LOG_ERROR << "surface dtor " << resource() << std::endl;
+    for (auto observer: observers_)
+      observer->OnSurfaceDestroyed(this);
+    LOG_ERROR << "surface dtor " << resource() << " " << window() << std::endl;
   }
 
   void Attach(Buffer* buffer);
@@ -48,7 +52,9 @@ class Surface {
   void SetBufferScale(int32_t scale){/* TODO: Implement this */};
 
   void AddSurfaceObserver(SurfaceObserver* observer) {
-    observers_.push_back(observer);
+    auto iter = std::find(observers_.begin(), observers_.end(), observer);
+    if (iter == observers_.end())
+      observers_.push_back(observer);
   }
   void RemoveSurfaceObserver(SurfaceObserver* observer) {
     auto iter = std::find(observers_.begin(), observers_.end(), observer);

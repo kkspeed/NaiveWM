@@ -3,6 +3,7 @@
 
 #include <wayland-server.h>
 
+#include "compositor/surface.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -15,7 +16,8 @@ class Surface;
 
 namespace wayland {
 
-class Pointer:  wm::MouseObserver {
+class Pointer:  public wm::MouseObserver,
+                public SurfaceObserver {
  public:
   explicit Pointer(wl_resource* resource);
   ~Pointer();
@@ -25,6 +27,8 @@ class Pointer:  wm::MouseObserver {
   // MouseObserver overrides:
   void OnMouseEvent(wm::MouseEvent* event);
 
+  // SurfaceObserver overrides
+  void OnSurfaceDestroyed(Surface* surface);
  private:
   uint32_t next_serial();
 

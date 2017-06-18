@@ -23,19 +23,24 @@ bool Pointer::CanReceiveEvent(Surface* surface) {
 void Pointer::OnMouseEvent(wm::MouseEvent* event) {
 
   if (!event->window()) {
-    if (target_)
+    if (target_) {
+      LOG_ERROR << "Leave to null surface " << resource_  << " "
+                << target_ << std::endl;
       wl_pointer_send_leave(resource_, next_serial(), target_->resource());
+    }
     target_ = nullptr;
   } else {
     LOG_ERROR << "Dispatch to window: " << event->window() << " "
               << event->window()->surface() << std::endl;
     Surface* surface = event->window()->surface();
     assert(surface);
+    surface->AddSurfaceObserver(this);
     if (CanReceiveEvent(surface)) {
       if (target_ != surface) {
-        if (target_) {
-          wl_pointer_send_leave(resource_, next_serial(), target_->resource());
+        LOG_ERROR << "leave surface: " << target_ << std::endl;
+        if (target_ && target_->window()) {
           LOG_ERROR << "leave window " << target_->window() << std::endl;
+          wl_pointer_send_leave(resource_, next_serial(), target_->resource());
         }
         target_ = surface;
         LOG_ERROR << "enter window " << target_->window()
@@ -86,6 +91,13 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
     LOG_ERROR << "send frame" << std::endl;
     // TODO: dispatch mouse event by generating all wayland pointer events.
   }
+}
+
+void Pointer::OnSurfaceDestroyed(Surface* surface) {
+  // TODO: This is a really ugly solution to notify surface removal
+  TRACE("%p", surface);
+  if (surface == target_)
+    target_ = nullptr;
 }
 
 uint32_t Pointer::next_serial() {

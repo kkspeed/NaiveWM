@@ -14,6 +14,7 @@ ShellSurface::ShellSurface(Surface* surface) :
 
 ShellSurface::~ShellSurface() {
   wm::WindowManager::Get()->RemoveWindow(window_);
+  surface_->RemoveSurfaceObserver(this);
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {

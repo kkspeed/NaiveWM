@@ -187,12 +187,13 @@ const struct wl_region_interface region_implementation = {
 
 void compositor_create_surface(wl_client* client, wl_resource* resource,
                                uint32_t id) {
-  TRACE();
+
   std::unique_ptr<Surface> surface =
       GetUserDataAs<Display>(resource)->CreateSurface();
   wl_resource* surface_resource = wl_resource_create(
       client, &wl_surface_interface, wl_resource_get_version(resource), id);
   surface->set_resource(surface_resource);
+  TRACE("creating %p, window: %p", surface.get(), surface->window());
   SetImplementation(surface_resource, &surface_implementation,
                     std::move(surface));
 }

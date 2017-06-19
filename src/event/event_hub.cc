@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <libinput.h>
 #include <unistd.h>
+#include <linux/input.h>
 
 #include "base/logging.h"
 
@@ -90,9 +91,18 @@ void EventHub::HandleEvents() {
       case LIBINPUT_EVENT_DEVICE_REMOVED:
         LOG_ERROR << "device changed" << std::endl;
         break;
-      case LIBINPUT_EVENT_KEYBOARD_KEY:
+      case LIBINPUT_EVENT_KEYBOARD_KEY: {
+        libinput_device* device = libinput_event_get_device(ev);
+        libinput_event_keyboard* p = libinput_event_get_keyboard_event(ev);
+        libinput_key_state state = libinput_event_keyboard_get_key_state(p);
+        uint32_t key = libinput_event_keyboard_get_key(p);
+        if (state == LIBINPUT_KEY_STATE_RELEASED
+            && MaybeChangeLockStates(device, key)) {
+          return;
+        }
         LOG_ERROR << "keyboard key" << std::endl;
         break;
+      }
       case LIBINPUT_EVENT_POINTER_MOTION: {
       	libinput_event_pointer *p = libinput_event_get_pointer_event(ev);
         float x = static_cast<float>(libinput_event_pointer_get_dx(p));
@@ -124,6 +134,25 @@ void EventHub::HandleEvents() {
 
     libinput_event_destroy(ev);
     libinput_dispatch(libinput_);
+  }
+}
+
+bool EventHub::MaybeChangeLockStates(libinput_device* device, uint32_t key) {
+  switch (key) {
+    case KEY_CAPSLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_CAPS_LOCK);
+      libinput_device_led_update(device, leds_);
+      return true;
+    case KEY_NUMLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_NUM_LOCK);
+      libinput_device_led_update(device, leds_);
+      return true;
+    case KEY_SCROLLLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_SCROLL_LOCK);
+      libinput_device_led_update(device, leds_);
+      return true;
+    default:
+      return false;
   }
 }
 

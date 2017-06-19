@@ -3,10 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-
-extern "C" {
-struct libinput;
-};
+#include <libinput.h>
 
 namespace naive {
 namespace event {
@@ -32,9 +29,11 @@ class EventHub {
   void AddEventObserver(EventObserver* observer);
 
  private:
+  bool MaybeChangeLockStates(libinput_device* device, uint32_t key);
   static EventHub* g_event_hub;
   libinput* libinput_;
   std::vector<EventObserver*> observers_;
+  libinput_led leds_ = static_cast<libinput_led>(0);
 };
 
 }  // namespace event

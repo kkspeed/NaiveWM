@@ -28,6 +28,8 @@ void TileWindows(Window* window, std::vector<Window*> windows,
 
 void ManageHook::WindowCreated(Window* window) {
   TRACE();
+  if (window->is_popup() || window->is_transient())
+    return;
   primitives_->FocusWindow(window);
   TileWindows(window, primitives_->windows(), width_, height_);
 }

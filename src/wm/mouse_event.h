@@ -25,12 +25,12 @@ union MouseEventData {
 class MouseEvent: public Event {
  public:
   MouseEvent(Window* window, MouseEventType type, uint32_t time,
-             MouseEventData data, uint32_t x, uint32_t y)
-      : window_(window), type_(type), time_(time), data_(data), x_(x), y_(y) {}
+             uint32_t modifiers, MouseEventData data, uint32_t x,
+             uint32_t y)
+      : Event(window, time, modifiers), type_(type), data_(data), x_(x), y_
+      (y) {}
 
-  Window* window() { return window_; }
   MouseEventType type() { return type_; }
-  uint32_t time() { return time_; }
 
   void get_delta(int32_t& dx, int32_t dy) {
     dx = data_.delta[0];
@@ -49,9 +49,7 @@ class MouseEvent: public Event {
   uint32_t x() { return x_; }
   uint32_t y() { return y_; }
  private:
-  Window* window_;
   MouseEventType type_;
-  uint32_t time_;
   MouseEventData data_;
   uint32_t x_, y_;
 };

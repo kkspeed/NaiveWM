@@ -105,6 +105,7 @@ void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
                                    pressed ? MouseEventType::MouseButtonDown
                                            : MouseEventType::MouseButtonUp,
                                    base::Time::CurrentTimeMilliSeconds(),
+                                   0,
                                    data,
                                    mouse_position_.x(),
                                    mouse_position_.y()));
@@ -131,6 +132,7 @@ void WindowManager::OnMouseMotion(float dx, float dy) {
       std::make_unique<MouseEvent>(FindMouseEventTarget(),
                                    MouseEventType::MouseMotion,
                                    base::Time::CurrentTimeMilliSeconds(),
+                                   0,
                                    data, new_x, new_y));
 }
 

@@ -38,6 +38,7 @@ class ShellSurface: SurfaceObserver {
   }
 
   void Configure(int32_t width, int32_t height);
+  void Close();
   wm::Window* window() { return window_; }
 
  private:

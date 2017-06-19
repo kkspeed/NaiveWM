@@ -46,8 +46,8 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager() :
-  screen_width_(1024), screen_height_(768),
-  mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f) {
+    screen_width_(1024), screen_height_(768),
+    mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f) {
   event::EventHub::Get()->AddEventObserver(this);
 }
 
@@ -57,11 +57,17 @@ void WindowManager::Manage(Window* window) {
   windows_.push_back(window);
   window->set_managed(true);
   window->WmSetSize(screen_width_, screen_height_);
+  window->TakeFocus();
 }
 
 void WindowManager::RemoveWindow(Window* window) {
   auto iter = std::find(windows_.begin(), windows_.end(), window);
   if (iter != windows_.end()) {
+    if (*iter == focused_window_) {
+      focused_window_->LoseFocus();
+      auto* next_window = NextWindow(focused_window_);
+      FocusWindow(next_window);
+    }
     windows_.erase(iter);
     // TODO: compositor needs to be notified of this
   }
@@ -126,12 +132,14 @@ Window* WindowManager::FindMouseEventTarget() {
   // TODO: could be simplified to one function!
   int32_t mouse_x = static_cast<int32_t>(mouse_position_.x());
   int32_t mouse_y = static_cast<int32_t>(mouse_position_.y());
-  for (auto iter = windows_.rbegin(); iter != windows_.rend(); iter++) {
-    auto rect = (*iter)->geometry();
-    LOG_ERROR << "Testing rect (" << rect.x() << " "
-              << rect.y() << " " << rect.x() + rect.width() << " "
-              << rect.y() + rect.height() << ") for (" << mouse_x
-              << " " << mouse_y << "), window " << *iter << std::endl;
+
+  // We append the focused window to the back of this list for highest priority.
+  // during event dispatching.
+  std::vector<Window*> temporary_windows(windows_);
+  if (focused_window_)
+    temporary_windows.push_back(focused_window_);
+  for (auto iter = temporary_windows.rbegin(); iter != temporary_windows.rend();
+       iter++) {
     if ((*iter)->geometry().ContainsPoint(mouse_x, mouse_y))
       return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
   }
@@ -159,9 +167,54 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
       mouse_observer->OnMouseEvent(event.get());
 
   }
-
 }
 
+Window* WindowManager::NextWindow(Window* window) {
+  TRACE();
+  auto iter = std::find(windows_.begin(), windows_.end(), window);
+  if (iter != windows_.end() && iter + 1 != windows_.end())
+    return *(iter + 1);
+  return nullptr;
+}
+
+Window* WindowManager::PreviousWindow(Window* window) {
+  TRACE();
+  auto iter = std::find(windows_.begin(), windows_.end(), window);
+  if (iter != windows_.begin())
+    return *(iter - 1);
+  return nullptr;
+}
+
+void WindowManager::FocusWindow(Window* window) {
+  TRACE();
+  if (window == focused_window_)
+    return;
+
+  if (!window) {
+    if (focused_window_)
+      focused_window_->LoseFocus();
+    focused_window_ = nullptr;
+    return;
+  }
+
+  auto iter = std::find(windows_.begin(), windows_.end(), window);
+  if (iter != windows_.end()) {
+    if (focused_window_)
+      focused_window_->LoseFocus();
+    focused_window_ = *iter;
+    if (focused_window_)
+      focused_window_->TakeFocus();
+    return;
+  }
+
+  LOG_ERROR << "window not found!" << std::endl;
+}
+
+void WindowManager::MoveResizeWindow(Window* window,
+                                     base::geometry::Rect resize) {
+  window->SetPosition(resize.x(), resize.y());
+  window->WmSetSize(resize.width(), resize.height());
+}
 
 }  // namespace wm
 }  // namespace naive

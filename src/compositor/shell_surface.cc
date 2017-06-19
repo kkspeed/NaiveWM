@@ -22,6 +22,10 @@ void ShellSurface::Configure(int32_t width, int32_t height) {
   configure_callback_(width, height);
 }
 
+void ShellSurface::Close() {
+  close_callback_();
+}
+
 void ShellSurface::SetGeometry(const base::geometry::Rect &rect) {
   window_->SetGeometry(rect);
 }
@@ -40,8 +44,6 @@ void ShellSurface::OnCommit() {
   if (window_->IsManaged() && (!surface_->committed_buffer()
       || !surface_->committed_buffer()->data())) {
     // TODO: How to anounce size?
-    TRACE("%d %d", window_->wm_width(), window_->wm_height());
-    Configure(window_->wm_width(), window_->wm_height());
     return;
   }
 }

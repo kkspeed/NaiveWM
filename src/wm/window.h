@@ -21,20 +21,20 @@ class Window : public SurfaceObserver {
   ~Window();
 
   bool IsManaged() const { return managed_; }
-  void SetParent(Window* parent) { parent_ = parent; }
-  void SetTransient(bool transient) { is_transient_ = transient; }
-  void SetPopup(bool popup) { is_popup_ = popup; }
-  void SetFullscreen(bool fullscreen);
-  void SetMaximized(bool maximized);
-  void SetTitle(std::string title) { title_ = title; }
-  void SetClass(std::string clazz) { clazz_ = clazz; }
-  void SetAppId(std::string app_id) { app_id_ = app_id; }
+  void set_parent(Window* parent) { parent_ = parent; }
+  void set_transient(bool transient) { is_transient_ = transient; }
+  void set_fullscreen(bool fullscreen);
+  void set_maximized(bool maximized);
+  void set_title(std::string title) { title_ = title; }
+  void set_class(std::string clazz) { clazz_ = clazz; }
+  void set_appid(std::string app_id) { app_id_ = app_id; }
+  void set_popup(bool popup) { is_popup_ = popup; }
 
   // SurfaceObserver overrides
   void OnCommit() override;
 
   Surface* surface() { return surface_; }
-  void SetSurface(Surface* surface) {
+  void set_surface(Surface* surface) {
     LOG_ERROR << "Set Surface " << surface << std::endl;
     surface_ = surface;
     surface_->AddSurfaceObserver(this);
@@ -64,17 +64,20 @@ class Window : public SurfaceObserver {
   void BeginMove() { /* TODO: implement this */
   }
 
+  bool focused() { return focused_; }
   // Sets the window size via window manager.
   void WmSetSize(int32_t width, int32_t height);
+  void LoseFocus();
+  void TakeFocus();
+  void Close();
 
   void set_managed(bool managed) { managed_ = managed; }
-  int32_t wm_width() { return wm_width_; }
-  int32_t wm_height() { return wm_height_; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
   base::geometry::Rect geometry() { return state_.geometry; }
  private:
   bool managed_;
+  bool focused_ = false;
 
   struct WindowState {
     base::geometry::Rect geometry;
@@ -88,7 +91,6 @@ class Window : public SurfaceObserver {
   Window* parent_;
   Surface* surface_;
   ShellSurface* shell_surface_;
-  int32_t wm_width_, wm_height_;
 };
 
 }  // namespace wm

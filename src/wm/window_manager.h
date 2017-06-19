@@ -19,7 +19,19 @@ class MouseObserver {
   virtual void OnMouseEvent(MouseEvent* event) = 0;
 };
 
-class WindowManager : event::EventObserver {
+// A class for window manipulation primitives.
+class WMPrimirtives {
+ public:
+  virtual Window* focused_window() = 0;
+  virtual Window* NextWindow(Window* window) = 0;
+  virtual Window* PreviousWindow(Window* window) = 0;
+  virtual void FocusWindow(Window* window) = 0;
+  virtual void MoveResizeWindow(Window* window,
+                                base::geometry::Rect resize) = 0;
+};
+
+class WindowManager : public event::EventObserver,
+                      public WMPrimirtives {
  public:
   WindowManager();
   static void InitializeWindowManager();
@@ -41,6 +53,14 @@ class WindowManager : event::EventObserver {
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
   Window* FindMouseEventTarget();
 
+  // WMPrimitives overrides:
+  Window* focused_window() override { return focused_window_; }
+  Window* NextWindow(Window* window) override;
+  Window* PreviousWindow(Window* window) override;
+  void MoveResizeWindow(Window* window,
+                        base::geometry::Rect resize) override;
+  void FocusWindow(Window* window) override;
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
@@ -49,6 +69,8 @@ class WindowManager : event::EventObserver {
 
   base::geometry::FloatPoint mouse_position_;
   base::geometry::FloatPoint last_mouse_position_;
+
+  Window* focused_window_ = nullptr;
 };
 
 }  // namespace wm

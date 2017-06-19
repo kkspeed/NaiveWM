@@ -8,7 +8,7 @@
 namespace naive {
 
 Surface::Surface(): window_(std::make_unique<wm::Window>()) {
-  window_->SetSurface(this);
+  window_->set_surface(this);
 }
 
 void Surface::Attach(Buffer* buffer) {

@@ -23,14 +23,14 @@ Window::~Window() {
 
 void Window::AddChild(Window* child) {
   children_.push_back(child);
-  child->SetParent(this);
+  child->set_parent(this);
 }
 
 void Window::RemoveChild(Window* child) {
   auto iter = std::find(children_.begin(), children_.end(), child);
   if (iter != children_.end())
     children_.erase(iter);
-  child->SetParent(nullptr);
+  child->set_parent(nullptr);
 }
 
 bool Window::HasChild(const Window* child) const {
@@ -86,9 +86,9 @@ void Window::OnCommit() {
   state_ = pending_state_;
 }
 
-void Window::SetFullscreen(bool fullscreen) {
+void Window::set_fullscreen(bool fullscreen) {
   if (!shell_surface_) {
-    LOG_ERROR << " only shell surface can call SetFullscreen. " << std::endl;
+    LOG_ERROR << " only shell surface can call set_fullscreen. " << std::endl;
     return;
   }
 
@@ -96,9 +96,9 @@ void Window::SetFullscreen(bool fullscreen) {
                             pending_state_.geometry.height());
 }
 
-void Window::SetMaximized(bool maximized) {
+void Window::set_maximized(bool maximized) {
   if (!shell_surface_) {
-    LOG_ERROR << " only shell surface can call SetMaximized. " << std::endl;
+    LOG_ERROR << " only shell surface can call set_maximized. " << std::endl;
     return;
   }
 
@@ -107,8 +107,43 @@ void Window::SetMaximized(bool maximized) {
 }
 
 void Window::WmSetSize(int32_t width, int32_t height) {
-  wm_width_ = width;
-  wm_height_ = height;
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can set window size." << std::endl;
+    return;
+  }
+
+  shell_surface_->Configure(width, height);
+}
+
+void Window::LoseFocus() {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can do focus." << std::endl;
+    return;
+  }
+  if (focused_) {
+    focused_ = false;
+    // TODO: Not seem to need to configure?
+  }
+}
+
+void Window::TakeFocus() {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can do focus." << std::endl;
+    return;
+  }
+  if (!focused_) {
+    focused_ = true;
+    auto size = geometry();
+    shell_surface_->Configure(size.width(), size.height());
+  }
+}
+
+void Window::Close() {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can call close." << std::endl;
+    return;
+  }
+  shell_surface_->Close();
 }
 
 }  // namespace wm

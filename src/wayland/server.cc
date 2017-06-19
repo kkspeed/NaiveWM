@@ -405,7 +405,8 @@ void shell_surface_resize(wl_client* client, wl_resource* resource,
 void shell_surface_set_toplevel(wl_client* client, wl_resource* resource) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
-  if (shell_surface->window()->IsManaged()) return;
+  if (shell_surface->window()->IsManaged())
+    return;
 
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
@@ -416,8 +417,8 @@ void shell_surface_set_transient(wl_client* client, wl_resource* resource,
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
-  shell_surface->window()->SetParent(parent_surface->window());
-  shell_surface->window()->SetTransient(true);
+  shell_surface->window()->set_parent(parent_surface->window());
+  shell_surface->window()->set_transient(true);
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -426,7 +427,7 @@ void shell_surface_set_fullscreen(wl_client* client, wl_resource* resource,
                                   wl_resource* output_resource) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
-  shell_surface->window()->SetFullscreen(true);
+  shell_surface->window()->set_fullscreen(true);
 }
 
 void shell_surface_set_popup(wl_client* client, wl_resource* resource,
@@ -436,8 +437,8 @@ void shell_surface_set_popup(wl_client* client, wl_resource* resource,
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
-  shell_surface->window()->SetParent(parent_surface->window());
-  shell_surface->window()->SetPopup(true);
+  shell_surface->window()->set_parent(parent_surface->window());
+  shell_surface->window()->set_popup(true);
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -445,20 +446,20 @@ void shell_surface_set_maximized(wl_client* client, wl_resource* resource,
                                  wl_resource* output_resource) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
-  shell_surface->window()->SetMaximized(true);
+  shell_surface->window()->set_maximized(true);
 }
 
 void shell_surface_set_title(wl_client* client, wl_resource* resource,
                              const char* title) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetTitle(
+  GetUserDataAs<ShellSurface>(resource)->window()->set_title(
       std::string(title));
 }
 
 void shell_surface_set_class(wl_client* client, wl_resource* resource,
                              const char* clazz) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetClass(clazz);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_class(clazz);
 }
 
 const struct wl_shell_surface_interface shell_surface_implementation = {
@@ -480,6 +481,7 @@ void HandleShellSurfaceCloseCallback(wl_resource* resource) {
   TRACE();
   uint32_t serial = wl_display_next_serial(
       wl_client_get_display(wl_resource_get_client(resource)));
+  // TODO: We probably need to send a sigkill to this process.
   wl_shell_surface_send_ping(resource, serial);
   wl_client_flush(wl_resource_get_client(resource));
 }
@@ -714,26 +716,26 @@ void xdg_toplevel_v6_set_parent(wl_client* client, wl_resource* resource,
                                 wl_resource* parent) {
   TRACE();
   if (!parent) {
-    GetUserDataAs<ShellSurface>(resource)->window()->SetParent(nullptr);
+    GetUserDataAs<ShellSurface>(resource)->window()->set_parent(nullptr);
     return;
   }
 
   if (GetUserDataAs<ShellSurface>(resource)->window())
-    GetUserDataAs<ShellSurface>(resource)->window()->SetParent(
+    GetUserDataAs<ShellSurface>(resource)->window()->set_parent(
         GetUserDataAs<ShellSurface>(parent)->window());
 }
 
 void xdg_toplevel_v6_set_title(wl_client* client, wl_resource* resource,
                                const char* title) {
-  TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetTitle(
+  TRACE("%s", title);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_title(
       std::string(title));
 }
 
 void xdg_toplevel_v6_set_app_id(wl_client* client, wl_resource* resource,
                                 const char* app_id) {
-  TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetAppId(
+  TRACE("%s", app_id);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_appid(
       std::string(app_id));
 }
 
@@ -772,24 +774,24 @@ void xdg_toplevel_v6_set_min_size(wl_client* client, wl_resource* resource,
 
 void xdg_toplevel_v6_set_maximized(wl_client* client, wl_resource* resource) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetMaximized(true);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(true);
 }
 
 void xdg_toplevel_v6_unset_maximized(wl_client* client, wl_resource* resource) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetMaximized(false);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(false);
 }
 
 void xdg_toplevel_v6_set_fullscreen(wl_client* client, wl_resource* resource,
                                     wl_resource* output) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetFullscreen(true);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(true);
 }
 
 void xdg_toplevel_v6_unset_fullscreen(wl_client* client,
                                       wl_resource* resource) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetFullscreen(false);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(false);
 }
 
 void xdg_toplevel_v6_set_minimized(wl_client* client, wl_resource* resource) {
@@ -851,13 +853,16 @@ uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
                                               wl_resource* surface_resource,
                                               int32_t width, int32_t height) {
   TRACE("configure: %d %d", width, height);
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   wl_array states;
   wl_array_init(&states);
   // TODO: if window is visible, we'll need maximized state to eliminate window
   // decorations.
   AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED);
+
   // TODO: only for debugging, this needs to be activated via mouse focus
-  AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_ACTIVATED);
+  if (shell_surface->window()->focused())
+    AddXdgToplevelV6State( &states, ZXDG_TOPLEVEL_V6_STATE_ACTIVATED);
   // TODO: handle activated state (focus in)
   zxdg_toplevel_v6_send_configure(resource, width, height, &states);
   uint32_t serial = wl_display_next_serial(
@@ -885,7 +890,6 @@ if (shell_surface->window()->IsManaged()) {
     return;
   }
                          */
-  wm::WindowManager::Get()->Manage(shell_surface->window());
   wl_resource* xdg_toplevel_resource =
       wl_resource_create(client, &zxdg_toplevel_v6_interface, 1, id);
   shell_surface->set_close_callback(
@@ -896,6 +900,8 @@ if (shell_surface->window()->IsManaged()) {
   wl_resource_set_implementation(xdg_toplevel_resource,
                                  &xdg_toplevel_v6_implementation, shell_surface,
                                  nullptr);
+
+  wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
 void HandleXdgPopupV6CloseCallback(wl_resource* resource) {
@@ -916,8 +922,6 @@ void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
     return;
   }
 
-  wm::WindowManager::Get()->Manage(shell_surface->window());
-
   wl_resource* xdg_popup_resource =
       wl_resource_create(client, &zxdg_popup_v6_interface, 1, id);
 
@@ -926,6 +930,7 @@ void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
 
   wl_resource_set_implementation(
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);
+  wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
 void xdg_surface_v6_set_window_geometry(wl_client* client,
@@ -981,9 +986,9 @@ void xdg_shell_v6_get_xdg_surface(wl_client* client, wl_resource* resource,
     return;
   }
 
-  // Xdg shell v6 surfaces are initially disabled and needs to be explicitly
-  // mapped before they are enabled and can become visible.
-  wm::WindowManager::Get()->Manage(shell_surface->window());
+  // TODO: Xdg shell v6 surfaces are initially disabled and needs to be
+  // explicitly mapped before they are enabled and can become visible.
+  // wm::WindowManager::Get()->Manage(shell_surface->window());
 
   wl_resource* xdg_surface_resource =
       wl_resource_create(client, &zxdg_surface_v6_interface, 1, id);

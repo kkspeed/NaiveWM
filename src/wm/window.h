@@ -48,8 +48,6 @@ class Window : public SurfaceObserver {
     TRACE("%d, %d", x, y);
     pending_state_.geometry.x_ = x;
     pending_state_.geometry.y_ = y;
-    state_.geometry.x_ = x;
-    state_.geometry.y_ = y;
   }
 
   void SetGeometry(const base::geometry::Rect& rect) {
@@ -80,6 +78,8 @@ class Window : public SurfaceObserver {
   void TakeFocus();
   void Close();
 
+  bool is_popup() { return is_popup_; }
+  bool is_transient() { return is_transient_; }
   void set_managed(bool managed) { managed_ = managed; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
@@ -95,7 +95,7 @@ class Window : public SurfaceObserver {
     WindowState(): geometry({0, 0, 0, 0}) {}
   };
 
-  bool is_popup_, is_transient_;
+  bool is_popup_ = false, is_transient_ = false;
   WindowState pending_state_, state_;
   std::string title_, clazz_, app_id_;
   std::vector<Window*> children_;

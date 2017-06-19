@@ -922,6 +922,7 @@ void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
     return;
   }
 
+  shell_surface->window()->set_popup(true);
   wl_resource* xdg_popup_resource =
       wl_resource_create(client, &zxdg_popup_v6_interface, 1, id);
 

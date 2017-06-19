@@ -14,12 +14,10 @@ Surface::Surface(): window_(std::make_unique<wm::Window>()) {
 void Surface::Attach(Buffer* buffer) {
   LOG_ERROR << "Surface::Attach " << buffer << std::endl;
   buffer->SetOwningSurface(this);
-  /*
   window_->SetGeometry(base::geometry::Rect(window_->geometry().x(),
                                             window_->geometry().y(),
                                             buffer->width(),
                                             buffer->height()));
-                                            */
   pending_state_.buffer = buffer;
 }
 

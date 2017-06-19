@@ -133,6 +133,10 @@ void Window::TakeFocus() {
     LOG_ERROR << " only shell surface can do focus." << std::endl;
     return;
   }
+
+  if (is_popup() || is_transient())
+    return;
+
   if (!focused_) {
     focused_ = true;
     auto size = geometry();

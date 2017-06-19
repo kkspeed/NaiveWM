@@ -58,6 +58,9 @@ void WindowManager::Manage(Window* window) {
   // TODO: window management policy
   windows_.push_back(window);
   window->set_managed(true);
+  // We'll skip popup windows for configure.
+  if (window->is_popup() || window->is_transient())
+    return;
   wm_event_observer_->WindowCreated(window);
 }
 

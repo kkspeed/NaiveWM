@@ -19,7 +19,9 @@ class Buffer {
  public:
   Buffer(int32_t width, int32_t height, int32_t format, int32_t offset,
          int32_t stride, std::shared_ptr<wayland::ShmPool> pool);
-  ~Buffer() { LOG_ERROR << "dtor buffer" << std::endl; }
+  ~Buffer() {
+    TRACE("%p", this);
+  }
   void SetOwningSurface(Surface* surface);
   void* data();
 

@@ -41,7 +41,8 @@ void Surface::SetInputRegion(const Region region) {
 }
 
 void Surface::Commit() {
-  LOG_ERROR << "calling Surface::Commit on window " << window() << std::endl;
+  LOG_ERROR << "calling Surface::Commit on window " << window()
+            << " surface: " << this << std::endl;
   state_ = pending_state_;
   has_commit_ = true;
 
@@ -51,8 +52,10 @@ void Surface::Commit() {
     pending_state_.frame_callback = nullptr;
   }
 
-  for (auto observer: observers_)
+  for (auto observer: observers_) {
+    LOG_ERROR << "notifying " << observer << " for commit " << std::endl;
     observer->OnCommit();
+  }
 }
 
 }  // namespace naive

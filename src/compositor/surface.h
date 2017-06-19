@@ -38,9 +38,11 @@ class Surface {
  public:
   Surface();
   ~Surface() {
-    for (auto observer: observers_)
+    TRACE("resource %p, window %p", resource(), window());
+    for (auto observer: observers_) {
+      LOG_ERROR << "surface " << this << " destroyed for " << observer << std::endl;
       observer->OnSurfaceDestroyed(this);
-    LOG_ERROR << "surface dtor " << resource() << " " << window() << std::endl;
+    }
   }
 
   void Attach(Buffer* buffer);
@@ -72,6 +74,7 @@ class Surface {
   void set_resource(wl_resource* resource) { resource_ = resource; }
   wl_resource* resource() { return resource_; }
   bool has_commit() { return has_commit_; }
+  void force_commit() { has_commit_ = true; }
   void clear_commit() { has_commit_ = false; }
   Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() {

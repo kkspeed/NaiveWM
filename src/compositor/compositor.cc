@@ -316,7 +316,7 @@ class Texture: public TextureDelegate {
   }
 
   void Draw(int x, int y) override {
-    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
+    // TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
 
@@ -404,7 +404,7 @@ void Compositor::Draw() {
     DrawWindowRecursive(window);
 
   DrawPointer();
-  draw_forced_ = false;
+  draw_forced_ = true;
   finalize_draw();
 }
 

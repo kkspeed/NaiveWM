@@ -30,6 +30,7 @@ class Pointer:  public wm::MouseObserver,
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface);
  private:
+  uint32_t observing_surfaces_ = 0;
   uint32_t next_serial();
 
   wl_resource* resource_;

@@ -19,6 +19,8 @@ Window::Window()
 Window::~Window() {
   TRACE("%p", this);
   wm::WindowManager::Get()->RemoveWindow(this);
+  if (surface_)
+    surface_->RemoveSurfaceObserver(this);
 }
 
 void Window::AddChild(Window* child) {

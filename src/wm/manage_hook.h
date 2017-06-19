@@ -16,6 +16,7 @@ class MouseEvent;
 class ManageHook: public WmEventObserver {
  public:
   void WindowCreated(Window* window) override;
+  void WindowDestroying(Window* window) override;
   void WindowDestroyed(Window* window) override;
   bool OnMouseEvent(MouseEvent* event) override;
   bool OnKey(Event* event) override;

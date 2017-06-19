@@ -37,6 +37,7 @@ class WmEventObserver {
   virtual bool OnMouseEvent(MouseEvent* event) = 0;
   virtual bool OnKey(Event* event) = 0;
   virtual void WindowCreated(Window* window) = 0;
+  virtual void WindowDestroying(Window* window) = 0;
   virtual void WindowDestroyed(Window* window) = 0;
 };
 

@@ -69,8 +69,9 @@ void WindowManager::RemoveWindow(Window* window) {
       auto* next_window = NextWindow(focused_window_);
       FocusWindow(next_window);
     }
-    wm_event_observer_->WindowDestroyed(window);
+    wm_event_observer_->WindowDestroying(window);
     windows_.erase(iter);
+    wm_event_observer_->WindowDestroyed(window);
     // TODO: compositor needs to be notified of this
   }
 }
@@ -142,7 +143,13 @@ Window* WindowManager::FindMouseEventTarget() {
     temporary_windows.push_back(focused_window_);
   for (auto iter = temporary_windows.rbegin(); iter != temporary_windows.rend();
        iter++) {
-    if ((*iter)->geometry().ContainsPoint(mouse_x, mouse_y))
+    auto rect = base::geometry::Rect((*iter)->geometry());
+    rect.x_ = (*iter)->wm_x();
+    rect.y_ = (*iter)->wm_y();
+    LOG_ERROR << "Test Rect: " << rect.x() << " " << rect.y() << " "
+              << rect.width() << " " << rect.height() << " for "
+              << mouse_x << " " << mouse_y << std::endl;
+    if (rect.ContainsPoint(mouse_x, mouse_y))
       return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
   }
   return nullptr;
@@ -167,6 +174,10 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
       coord_x = coord_x - (*it)->geometry().x();
       coord_y = coord_y - (*it)->geometry().y();
     }
+    // TODO: this is dirty.. try a different approach!
+    // Finally, window has a transformation
+    coord_x -= window_path[0]->wm_x();
+    coord_y -= window_path[0]->wm_y();
     event->set_coordinates(coord_x, coord_y);
     for (auto mouse_observer: mouse_observers_)
       mouse_observer->OnMouseEvent(event.get());
@@ -179,6 +190,8 @@ Window* WindowManager::NextWindow(Window* window) {
   auto iter = std::find(windows_.begin(), windows_.end(), window);
   if (iter != windows_.end() && iter + 1 != windows_.end())
     return *(iter + 1);
+  if (iter == windows_.end() && windows_.size() > 0)
+    return windows_.front();
   return nullptr;
 }
 
@@ -187,6 +200,8 @@ Window* WindowManager::PreviousWindow(Window* window) {
   auto iter = std::find(windows_.begin(), windows_.end(), window);
   if (iter != windows_.begin())
     return *(iter - 1);
+  if (iter == windows_.begin() && windows_.size() > 0)
+    return windows_.back();
   return nullptr;
 }
 

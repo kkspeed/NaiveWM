@@ -71,7 +71,11 @@ class Window : public SurfaceObserver {
   // Sets the window size via window manager.
   // TODO: This needs to commit as well.
   void WmSetSize(int32_t width, int32_t height);
-  void WmSetPosition(int32_t x, int32_t y) { wm_x_ = x; wm_y_ = y; }
+  void WmSetPosition(int32_t x, int32_t y) {
+    wm_x_ = x;
+    wm_y_ = y;
+    surface_->force_commit();
+  }
   void LoseFocus();
   void TakeFocus();
   void Close();

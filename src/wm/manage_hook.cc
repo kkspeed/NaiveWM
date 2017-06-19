@@ -13,8 +13,8 @@ namespace {
 void TileWindows(Window* window, std::vector<Window*> windows,
                  int32_t width, int32_t height) {
   if (windows.size() == 1) {
-    window->WmSetPosition(0, 0);
-    window->WmSetSize(width, height);
+    windows[0]->WmSetPosition(0, 0);
+    windows[0]->WmSetSize(width, height);
   }
   if (windows.size() == 2) {
     windows[0]->WmSetPosition(0, 0);
@@ -32,13 +32,19 @@ void ManageHook::WindowCreated(Window* window) {
   TileWindows(window, primitives_->windows(), width_, height_);
 }
 
-void ManageHook::WindowDestroyed(Window* window) {
+void ManageHook::WindowDestroying(Window* window) {
   TRACE();
   auto* current_focus = primitives_->focused_window();
   if (current_focus == window) {
     auto* next_focus = primitives_->NextWindow(window);
     primitives_->FocusWindow(next_focus);
   }
+}
+
+void ManageHook::WindowDestroyed(Window* window) {
+  TRACE();
+  TileWindows(primitives_->focused_window(), primitives_->windows(),
+              width_, height_);
 }
 
 bool ManageHook::OnKey(Event* event) {

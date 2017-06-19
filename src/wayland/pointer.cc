@@ -8,10 +8,14 @@ namespace wayland {
 Pointer::Pointer(wl_resource* resource)
     : resource_(resource),
       target_(nullptr) {
+  TRACE();
   wm::WindowManager::Get()->AddMouseObserver(this);
 }
 
 Pointer::~Pointer() {
+  TRACE("my pointer dtor %p", this);
+  if (target_)
+    target_->RemoveSurfaceObserver(this);
   wm::WindowManager::Get()->RemoveMouseObserver(this);
 }
 
@@ -34,8 +38,8 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
               << event->window()->surface() << std::endl;
     Surface* surface = event->window()->surface();
     assert(surface);
-    surface->AddSurfaceObserver(this);
     if (CanReceiveEvent(surface)) {
+      surface->AddSurfaceObserver(this);
       if (target_ != surface) {
         LOG_ERROR << "leave surface: " << target_ << std::endl;
         if (target_ && target_->window()) {

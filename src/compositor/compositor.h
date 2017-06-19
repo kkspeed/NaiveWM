@@ -19,6 +19,7 @@ class Compositor {
   void Draw();
 
   void DrawPointer();
+  void DrawWindowBorder(wm::Window* window);
   void DrawWindowRecursive(wm::Window* window);
 
  private:

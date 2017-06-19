@@ -316,6 +316,7 @@ class Texture: public TextureDelegate {
   }
 
   void Draw(int x, int y) override {
+    glColor3f(1.0, 1.0, 1.0);
     // TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
@@ -400,8 +401,10 @@ void Compositor::Draw() {
   glClearColor(0.5, 0.5, 0.5, 1.0);
   glLoadIdentity();
 
-  for (auto* window : wm::WindowManager::Get()->windows())
+  for (auto* window : wm::WindowManager::Get()->windows()) {
     DrawWindowRecursive(window);
+    DrawWindowBorder(window);
+  }
 
   DrawPointer();
   draw_forced_ = true;
@@ -434,6 +437,22 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
     // TODO: Child widget coordinates might not be alright
     DrawWindowRecursive(child);
   }
+}
+
+void Compositor::DrawWindowBorder(wm::Window* window) {
+  glLineWidth(2.5);
+  if (window->focused())
+    glColor3f(1.0, 0.0, 0.0);
+  else
+    glColor3f(0.0, 1.0, 0.0);
+  int32_t x = window->wm_x(), y = window->wm_y();
+  auto rect = window->geometry();
+  glBegin(GL_LINE_LOOP);
+  glVertex2f(x, y);
+  glVertex2f(x + rect.width(), y);
+  glVertex2f(x + rect.width(), y + rect.height());
+  glVertex2f(x, y + rect.height());
+  glEnd();
 }
 
 void Compositor::DrawPointer() {

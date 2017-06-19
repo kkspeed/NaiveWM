@@ -20,9 +20,10 @@ class MouseObserver {
 };
 
 // A class for window manipulation primitives.
-class WMPrimirtives {
+class WMPrimitives {
  public:
   virtual Window* focused_window() = 0;
+  virtual std::vector<Window*> windows() = 0;
   virtual Window* NextWindow(Window* window) = 0;
   virtual Window* PreviousWindow(Window* window) = 0;
   virtual void FocusWindow(Window* window) = 0;
@@ -30,18 +31,26 @@ class WMPrimirtives {
                                 base::geometry::Rect resize) = 0;
 };
 
-class WindowManager : public event::EventObserver,
-                      public WMPrimirtives {
+class WmEventObserver {
  public:
-  WindowManager();
-  static void InitializeWindowManager();
+  virtual void set_wm_primitives(WMPrimitives* primitives) = 0;
+  virtual bool OnMouseEvent(MouseEvent* event) = 0;
+  virtual bool OnKey(Event* event) = 0;
+  virtual void WindowCreated(Window* window) = 0;
+  virtual void WindowDestroyed(Window* window) = 0;
+};
+
+class WindowManager : public event::EventObserver,
+                      public WMPrimitives {
+ public:
+  WindowManager(WmEventObserver* wm_event_observer);
+  static void InitializeWindowManager(WmEventObserver* wm_event_observer);
   static WindowManager* Get();
   void Manage(Window* window);
   void RemoveWindow(Window* window);
   void AddMouseObserver(MouseObserver* observer);
   void RemoveMouseObserver(MouseObserver* observer);
 
-  std::vector<Window*> windows() { return windows_; }
   bool pointer_moved();
   base::geometry::FloatPoint mouse_position() { return mouse_position_; }
   base::geometry::FloatPoint last_mouse_position() { return last_mouse_position_; }
@@ -54,6 +63,7 @@ class WindowManager : public event::EventObserver,
   Window* FindMouseEventTarget();
 
   // WMPrimitives overrides:
+  std::vector<Window*> windows() override { return windows_; }
   Window* focused_window() override { return focused_window_; }
   Window* NextWindow(Window* window) override;
   Window* PreviousWindow(Window* window) override;
@@ -71,6 +81,7 @@ class WindowManager : public event::EventObserver,
   base::geometry::FloatPoint last_mouse_position_;
 
   Window* focused_window_ = nullptr;
+  WmEventObserver* wm_event_observer_ = nullptr;
 };
 
 }  // namespace wm

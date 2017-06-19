@@ -35,8 +35,8 @@ Window* FindMouseEventTargetChildWindow(Window* root,
 WindowManager* WindowManager::g_window_manager = nullptr;
 
 // static
-void WindowManager::InitializeWindowManager() {
-  g_window_manager = new WindowManager();
+void WindowManager::InitializeWindowManager(WmEventObserver* wm_event_observer) {
+  g_window_manager = new WindowManager(wm_event_observer);
 }
 
 WindowManager* WindowManager::Get() {
@@ -45,9 +45,11 @@ WindowManager* WindowManager::Get() {
 }
 
 // TODO: use real dimension
-WindowManager::WindowManager() :
-    screen_width_(1024), screen_height_(768),
-    mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f) {
+WindowManager::WindowManager(WmEventObserver* wm_event_observer) :
+    screen_width_(1280), screen_height_(720),
+    mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f),
+    wm_event_observer_(wm_event_observer) {
+  wm_event_observer_->set_wm_primitives(this);
   event::EventHub::Get()->AddEventObserver(this);
 }
 
@@ -56,8 +58,7 @@ void WindowManager::Manage(Window* window) {
   // TODO: window management policy
   windows_.push_back(window);
   window->set_managed(true);
-  window->WmSetSize(screen_width_, screen_height_);
-  window->TakeFocus();
+  wm_event_observer_->WindowCreated(window);
 }
 
 void WindowManager::RemoveWindow(Window* window) {
@@ -68,6 +69,7 @@ void WindowManager::RemoveWindow(Window* window) {
       auto* next_window = NextWindow(focused_window_);
       FocusWindow(next_window);
     }
+    wm_event_observer_->WindowDestroyed(window);
     windows_.erase(iter);
     // TODO: compositor needs to be notified of this
   }
@@ -147,6 +149,9 @@ Window* WindowManager::FindMouseEventTarget() {
 }
 
 void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
+  if (wm_event_observer_->OnMouseEvent(event.get()))
+    return;
+
   if (event->window()) {
     // Transform pointer location to surface local coordinates.
     std::vector<Window*> window_path;

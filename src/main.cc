@@ -4,12 +4,14 @@
 #include "wayland/server.h"
 
 #include "compositor/compositor.h"
-#include "wm/window_manager.h"
 #include "event/event_hub.h"
+#include "wm/window_manager.h"
+#include "wm/manage_hook.h"
 
 int main() {
   naive::event::EventHub::InitializeEventHub();
-  naive::wm::WindowManager::InitializeWindowManager();
+  naive::wm::WindowManager::InitializeWindowManager(
+      new naive::wm::ManageHook);
   naive::compositor::Compositor::InitializeCompoistor();
 
   auto display = std::make_unique<naive::wayland::Display>();

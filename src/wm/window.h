@@ -45,8 +45,11 @@ class Window : public SurfaceObserver {
   }
 
   void SetPosition(int32_t x, int32_t y) {
+    TRACE("%d, %d", x, y);
     pending_state_.geometry.x_ = x;
     pending_state_.geometry.y_ = y;
+    state_.geometry.x_ = x;
+    state_.geometry.y_ = y;
   }
 
   void SetGeometry(const base::geometry::Rect& rect) {
@@ -66,7 +69,9 @@ class Window : public SurfaceObserver {
 
   bool focused() { return focused_; }
   // Sets the window size via window manager.
+  // TODO: This needs to commit as well.
   void WmSetSize(int32_t width, int32_t height);
+  void WmSetPosition(int32_t x, int32_t y) { wm_x_ = x; wm_y_ = y; }
   void LoseFocus();
   void TakeFocus();
   void Close();
@@ -75,6 +80,8 @@ class Window : public SurfaceObserver {
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
   base::geometry::Rect geometry() { return state_.geometry; }
+  int32_t wm_x() { return wm_x_; }
+  int32_t wm_y() { return wm_y_; }
  private:
   bool managed_;
   bool focused_ = false;
@@ -91,6 +98,7 @@ class Window : public SurfaceObserver {
   Window* parent_;
   Surface* surface_;
   ShellSurface* shell_surface_;
+  int32_t wm_x_, wm_y_;
 };
 
 }  // namespace wm

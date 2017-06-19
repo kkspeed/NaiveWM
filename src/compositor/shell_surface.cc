@@ -27,6 +27,7 @@ void ShellSurface::Close() {
 }
 
 void ShellSurface::SetGeometry(const base::geometry::Rect &rect) {
+  TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
   window_->SetGeometry(rect);
 }
 

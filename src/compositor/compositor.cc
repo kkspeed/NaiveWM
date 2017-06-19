@@ -316,7 +316,7 @@ class Texture: public TextureDelegate {
   }
 
   void Draw(int x, int y) override {
-//    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
+    TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
 
@@ -414,8 +414,8 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
     window->surface()->RunSurfaceCallback();
     if (!window->surface()->has_commit()
         && window->surface()->cached_texture()) {
-      window->surface()->cached_texture()->Draw(window->geometry().x(),
-                                                window->geometry().y());
+      window->surface()->cached_texture()->Draw(window->wm_x(),
+                                                window->wm_y());
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
@@ -423,7 +423,7 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
             buffer->width(), buffer->height(), buffer->format(),
             buffer->data());
         // TODO: We shouldn't create texture each time.
-        texture->Draw(window->geometry().x(), window->geometry().y());
+        texture->Draw(window->wm_x(), window->wm_y());
         window->surface()->cache_texture(std::move(texture));
       }
       window->surface()->clear_commit();
@@ -431,6 +431,7 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
   }
 
   for (auto* child: window->children()) {
+    // TODO: Child widget coordinates might not be alright
     DrawWindowRecursive(child);
   }
 }

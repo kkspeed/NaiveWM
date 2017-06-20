@@ -27,9 +27,12 @@ class Keyboard: public wm::KeyboardObserver,
   bool CanReceiveEvent(Surface* surface);
  private:
   void UpdateKeyStates(wm::KeyboardEvent* key_event);
+  void SendLayout();
   uint32_t next_serial();
 
   xkb_context* xkb_context_;
+  xkb_keymap* xkb_keymap_;
+  xkb_state* xkb_state_;
   wl_resource* resource_;
   std::set<uint32_t> pressed_keys_;
   Surface* target_ = nullptr;

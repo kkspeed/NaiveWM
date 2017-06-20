@@ -3,7 +3,7 @@ PROJECT(NaiveWM)
 
 SET(CMAKE_CXX_COMPILER "clang++")
 SET(CMAKE_CXX_FLAGS "-D__TRACE__ -std=c++14 -Werror -ggdb -O0")
-SET(CMAKE_LINK_LIBRARY_FLAG "-lSegFault")
+SET(CMAKE_EXE_LINKER_FLAGS "-lrt -lSegFault")
 SET(CMAKE_C_COMPILER "clang")
 SET(CMAKE_C_FLAGS "-Werror")
 

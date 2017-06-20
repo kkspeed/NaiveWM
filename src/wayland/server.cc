@@ -580,12 +580,14 @@ void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
 
 void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   TRACE();
+  int version = wl_resource_get_version(resource);
   wl_resource* keyboard_resource =
-      wl_resource_create(client, &wl_keyboard_interface,
-                         wl_resource_get_version(resource), id);
+      wl_resource_create(client, &wl_keyboard_interface, version, id);
   auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
+  if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
+    wl_keyboard_send_repeat_info(keyboard_resource, 400, 500);
 }
 
 void seat_get_touch(wl_client* client, wl_resource* resource, uint32_t id) {

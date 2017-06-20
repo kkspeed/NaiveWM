@@ -26,6 +26,7 @@ class Keyboard: public wm::KeyboardObserver,
 
   bool CanReceiveEvent(Surface* surface);
  private:
+  void UpdateKeyStates(wm::KeyboardEvent* key_event);
   uint32_t next_serial();
 
   xkb_context* xkb_context_;

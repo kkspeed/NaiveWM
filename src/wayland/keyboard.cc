@@ -23,13 +23,38 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 }
 
 void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
+  UpdateKeyStates(key_event);
+
+  if (!key_event->window()) {
+    if (target_)
+      wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
+    return;
+  }
+
+  if (!CanReceiveEvent(key_event->window()->surface()))
+    return;
+
+  if (key_event->window()->surface() != target_) {
+    if (target_)
+      wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
+    target_ = key_event->window()->surface();
+    // TODO: Keys!
+    wl_keyboard_send_enter(resource_,
+                           next_serial(),
+                           target_->resource(),
+                           nullptr);
+    return;
+  }
   if (key_event->keycode() == 0) {
-    // This is an update event.
+    // TODO: construct modifiers.
+    wl_keyboard_send_modifiers(resource_, next_serial(), 0, 0, 0, 0);
+    return;
   } else {
-    if (key_event->pressed())
-      pressed_keys_.insert(key_event->keycode());
-    else
-      pressed_keys_.erase(key_event->keycode());
+    wl_keyboard_send_key(
+        resource_, next_serial(), key_event->time(),
+        key_event->keycode(),
+        key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
+                             : WL_KEYBOARD_KEY_STATE_RELEASED);
   }
 }
 
@@ -37,6 +62,15 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
   TRACE("%p", surface);
   if (surface == target_)
     target_ = nullptr;
+}
+
+void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {
+  if (key_event->keycode() != 0) {
+    if (key_event->pressed())
+      pressed_keys_.insert(key_event->keycode());
+    else
+      pressed_keys_.erase(key_event->keycode());
+  }
 }
 
 uint32_t Keyboard::next_serial() {

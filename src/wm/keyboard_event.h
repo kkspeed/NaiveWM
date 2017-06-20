@@ -11,21 +11,19 @@ class KeyboardEvent : public Event {
  public:
   KeyboardEvent(Window* window,
                 uint32_t keycode,
-                event::Leds leds,
+                event::Leds locks,
                 uint32_t time,
                 bool pressed,
                 uint32_t modifiers)
-      : Event(window, time, modifiers), keycode_(keycode),  leds_(leds),
-        pressed_(pressed_) {}
+      : Event(window, time, modifiers, locks), keycode_(keycode),
+        pressed_(pressed) {}
 
   uint32_t keycode() { return keycode_; }
   bool pressed() { return pressed_; }
-  event::Leds leds() { return leds_; }
 
  private:
   bool pressed_;
   uint32_t keycode_;
-  event::Leds leds_;
 };
 
 }  // namespace wm

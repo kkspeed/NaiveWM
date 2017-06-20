@@ -105,7 +105,7 @@ void EventHub::HandleEvents() {
           return_keycode = 0;
         for (auto observer: observers_)
           observer->OnKey(
-              return_keycode, modifiers_, leds_,
+              return_keycode, modifiers_,
               state == LIBINPUT_KEY_STATE_PRESSED, static_cast<Leds>(leds_));
         break;
       }

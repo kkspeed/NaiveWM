@@ -1,26 +1,37 @@
 #ifndef WAYLAND_KEYBOARD_H_
 #define WAYLAND_KEYBOARD_H_
 
+#include <cstdint>
+#include <set>
 #include <wayland-server.h>
 #include <xkbcommon/xkbcommon.h>
 
+#include "compositor/surface.h"
 #include "wm/window_manager.h"
 
 namespace naive {
 namespace wayland {
 
-class Keyboard: public wm::KeyboardObserver {
+class Keyboard: public wm::KeyboardObserver,
+                public SurfaceObserver {
  public:
   explicit Keyboard(wl_resource* resource);
   ~Keyboard();
 
   // KeyboardObserver overrides
-  void OnKey();
+  void OnKey(wm::KeyboardEvent* key_event) override;
 
+  // SurfaceObserver overrides
+  void OnSurfaceDestroyed(Surface* surface) override;
+
+  bool CanReceiveEvent(Surface* surface);
  private:
+  uint32_t next_serial();
+
   xkb_context* xkb_context_;
   wl_resource* resource_;
-  std::vector<uint32_t> pressed_keys_;
+  std::set<uint32_t> pressed_keys_;
+  Surface* target_ = nullptr;
 };
 
 }  // namespace wayland

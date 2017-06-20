@@ -26,9 +26,9 @@ class MouseEvent: public Event {
  public:
   MouseEvent(Window* window, MouseEventType type, uint32_t time,
              uint32_t modifiers, MouseEventData data, uint32_t x,
-             uint32_t y)
-      : Event(window, time, modifiers), type_(type), data_(data), x_(x), y_
-      (y) {}
+             uint32_t y, event::Leds locks)
+      : Event(window, time, modifiers, locks),
+        type_(type), data_(data), x_(x), y_(y) {}
 
   MouseEventType type() { return type_; }
 

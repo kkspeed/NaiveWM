@@ -67,12 +67,14 @@ class WindowManager : public event::EventObserver,
   // EventObserver overrides:
   void OnMouseButton(uint32_t button,
                      bool pressed,
-                     uint32_t modifiers) override;
-  void OnMouseMotion(float dx, float dy, uint32_t modifiers) override;
+                     uint32_t modifiers,
+                     event::Leds locks) override;
+  void OnMouseMotion(float dx, float dy, uint32_t modifiers,
+                     event::Leds locks) override;
   void OnKey(uint32_t keycode,
              uint32_t modifiers,
-             uint32_t lock_states,
-             bool key_down) override;
+             bool key_down,
+             event::Leds locks) override;
 
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
   Window* FindMouseEventTarget();

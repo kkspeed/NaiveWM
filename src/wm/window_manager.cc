@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "base/time.h"
 #include "wm/mouse_event.h"
+#include "wm/keyboard_event.h"
 
 namespace naive {
 namespace wm {
@@ -114,7 +115,8 @@ bool WindowManager::pointer_moved() {
 
 void WindowManager::OnMouseButton(uint32_t button,
                                   bool pressed,
-                                  uint32_t modifiers) {
+                                  uint32_t modifiers,
+                                  event::Leds leds) {
   MouseEventData data;
   data.button = button;
   DispatchMouseEvent(
@@ -125,10 +127,12 @@ void WindowManager::OnMouseButton(uint32_t button,
                                    modifiers,
                                    data,
                                    mouse_position_.x(),
-                                   mouse_position_.y()));
+                                   mouse_position_.y(),
+                                   leds));
 }
 
-void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers) {
+void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers,
+                                  event::Leds leds) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
   if (mouse_position_.x() + dx >= screen_width_)
@@ -150,17 +154,23 @@ void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers) {
                                    MouseEventType::MouseMotion,
                                    base::Time::CurrentTimeMilliSeconds(),
                                    modifiers,
-                                   data, new_x, new_y));
+                                   data, new_x, new_y, leds));
 }
 
 void WindowManager::OnKey(uint32_t keycode,
                           uint32_t modifiers,
-                          uint32_t lock_states,
-                          bool key_down) {
+                          bool key_down,
+                          event::Leds locks) {
   if (focused_window_) {
-    auto event = std::make_unique<KeyboardEvent>(focused_window(), keycode, );
+    auto event = std::make_unique<KeyboardEvent>(
+        focused_window(),
+        keycode,
+        locks,
+        base::Time::CurrentTimeMilliSeconds(),
+        key_down,
+        modifiers);
     for (auto observer: keyboard_observers_)
-      observer->OnKey()
+      observer->OnKey(event.get());
   }
   if (keycode == 0) {
     // TODO: send modifiers event

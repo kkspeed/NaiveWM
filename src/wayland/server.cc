@@ -21,9 +21,9 @@
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/display.h"
+#include "wayland/keyboard.h"
 #include "wayland/pointer.h"
 #include "wm/window_manager.h"
-#include "wayland/display.h"
 
 namespace naive {
 namespace wayland {
@@ -549,13 +549,21 @@ void pointer_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_pointer_interface pointer_implementation {
+const struct wl_pointer_interface pointer_implementation{
     .release = pointer_release,
     .set_cursor = pointer_set_cursor
 };
 
 //////////////////////////////////////////////////////////////////////////////
 // wl_keyboard_interface:
+void keyboard_release(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
+}
+
+const struct wl_keyboard_interface keyboard_implementation{
+    .release = keyboard_release
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_seat interface:
@@ -572,8 +580,12 @@ void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
 
 void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   TRACE();
-  // TODO: implement wayland keyboard interface.
-  NOTIMPLEMENTED();
+  wl_resource* keyboard_resource =
+      wl_resource_create(client, &wl_keyboard_interface,
+                         wl_resource_get_version(resource), id);
+  auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
+  SetImplementation(keyboard_resource, &keyboard_implementation,
+                    std::move(keyboard));
 }
 
 void seat_get_touch(wl_client* client, wl_resource* resource, uint32_t id) {
@@ -601,7 +613,8 @@ void bind_seat(wl_client* client, void* data, uint32_t version, uint32_t id) {
   wl_resource_set_implementation(resource, &seat_implementation, data, nullptr);
   wl_seat_send_name(resource, "seat0");
   // TODO: add keyboard
-  uint32_t capabilities = WL_SEAT_CAPABILITY_POINTER;
+  uint32_t capabilities = WL_SEAT_CAPABILITY_POINTER
+      | WL_SEAT_CAPABILITY_KEYBOARD;
   wl_seat_send_capabilities(resource, capabilities);
 }
 
@@ -862,7 +875,7 @@ uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
 
   // TODO: only for debugging, this needs to be activated via mouse focus
   if (shell_surface->window()->focused())
-    AddXdgToplevelV6State( &states, ZXDG_TOPLEVEL_V6_STATE_ACTIVATED);
+    AddXdgToplevelV6State(&states, ZXDG_TOPLEVEL_V6_STATE_ACTIVATED);
   // TODO: handle activated state (focus in)
   zxdg_toplevel_v6_send_configure(resource, width, height, &states);
   uint32_t serial = wl_display_next_serial(

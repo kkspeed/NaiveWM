@@ -13,10 +13,16 @@ namespace naive {
 namespace wm {
 
 class MouseEvent;
+class KeyboardEvent;
 
 class MouseObserver {
  public:
   virtual void OnMouseEvent(MouseEvent* event) = 0;
+};
+
+class KeyboardObserver {
+ public:
+  virtual void OnKey(KeyboardEvent* event) = 0;
 };
 
 // A class for window manipulation primitives.
@@ -51,14 +57,22 @@ class WindowManager : public event::EventObserver,
   void RemoveWindow(Window* window);
   void AddMouseObserver(MouseObserver* observer);
   void RemoveMouseObserver(MouseObserver* observer);
+  void AddKeyboardObserver(KeyboardObserver* observer);
+  void RemoveKeyboardObserver(KeyboardObserver* observer);
 
   bool pointer_moved();
   base::geometry::FloatPoint mouse_position() { return mouse_position_; }
   base::geometry::FloatPoint last_mouse_position() { return last_mouse_position_; }
 
   // EventObserver overrides:
-  void OnMouseButton(uint32_t button, bool pressed) override;
-  void OnMouseMotion(float dx, float dy) override;
+  void OnMouseButton(uint32_t button,
+                     bool pressed,
+                     uint32_t modifiers) override;
+  void OnMouseMotion(float dx, float dy, uint32_t modifiers) override;
+  void OnKey(uint32_t keycode,
+             uint32_t modifiers,
+             uint32_t lock_states,
+             bool key_down) override;
 
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
   Window* FindMouseEventTarget();
@@ -75,6 +89,7 @@ class WindowManager : public event::EventObserver,
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
+  std::vector<KeyboardObserver*> keyboard_observers_;
   std::vector<MouseObserver*> mouse_observers_;
   int screen_width_, screen_height_;
 

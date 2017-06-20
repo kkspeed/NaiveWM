@@ -93,11 +93,28 @@ void WindowManager::RemoveMouseObserver(MouseObserver* observer) {
     mouse_observers_.erase(iter);
 }
 
+void WindowManager::AddKeyboardObserver(KeyboardObserver* observer) {
+  if (std::find(keyboard_observers_.begin(),
+                keyboard_observers_.end(),
+                observer) == keyboard_observers_.end()) {
+    keyboard_observers_.push_back(observer);
+  }
+}
+
+void WindowManager::RemoveKeyboardObserver(KeyboardObserver* observer) {
+  auto iter = std::find(keyboard_observers_.begin(), keyboard_observers_.end(),
+                        observer);
+ if (iter != keyboard_observers_.end())
+   keyboard_observers_.erase(iter);
+}
+
 bool WindowManager::pointer_moved() {
   return last_mouse_position_.manhattan_distance(mouse_position_) >= 1.0;
 }
 
-void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
+void WindowManager::OnMouseButton(uint32_t button,
+                                  bool pressed,
+                                  uint32_t modifiers) {
   MouseEventData data;
   data.button = button;
   DispatchMouseEvent(
@@ -105,13 +122,13 @@ void WindowManager::OnMouseButton(uint32_t button, bool pressed) {
                                    pressed ? MouseEventType::MouseButtonDown
                                            : MouseEventType::MouseButtonUp,
                                    base::Time::CurrentTimeMilliSeconds(),
-                                   0,
+                                   modifiers,
                                    data,
                                    mouse_position_.x(),
                                    mouse_position_.y()));
 }
 
-void WindowManager::OnMouseMotion(float dx, float dy) {
+void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
   if (mouse_position_.x() + dx >= screen_width_)
@@ -132,8 +149,22 @@ void WindowManager::OnMouseMotion(float dx, float dy) {
       std::make_unique<MouseEvent>(FindMouseEventTarget(),
                                    MouseEventType::MouseMotion,
                                    base::Time::CurrentTimeMilliSeconds(),
-                                   0,
+                                   modifiers,
                                    data, new_x, new_y));
+}
+
+void WindowManager::OnKey(uint32_t keycode,
+                          uint32_t modifiers,
+                          uint32_t lock_states,
+                          bool key_down) {
+  if (focused_window_) {
+    auto event = std::make_unique<KeyboardEvent>(focused_window(), keycode, );
+    for (auto observer: keyboard_observers_)
+      observer->OnKey()
+  }
+  if (keycode == 0) {
+    // TODO: send modifiers event
+  }
 }
 
 Window* WindowManager::FindMouseEventTarget() {

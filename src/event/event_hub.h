@@ -8,10 +8,27 @@
 namespace naive {
 namespace event {
 
+enum KeyModifiers {
+  CONTROL = 1 << 0,
+  SHIFT = 1 << 1,
+  ALT = 1 << 2,
+  SUPER = 1 << 3,
+};
+
+enum Leds {
+  CAPS_LOCK = LIBINPUT_LED_CAPS_LOCK,
+  NUM_LOCK = LIBINPUT_LED_NUM_LOCK,
+  SCROLL_LOCK = LIBINPUT_LED_SCROLL_LOCK
+};
+
 class EventObserver {
  public:
-  virtual void OnMouseButton(uint32_t button, bool down) = 0;
-  virtual void OnMouseMotion(float dx, float dy) = 0;
+  virtual void OnMouseButton(uint32_t button, bool down,
+                             uint32_t modifiers, Leds locks) = 0;
+  virtual void OnMouseMotion(float dx, float dy, uint32_t modifiers,
+                             Leds locks) = 0;
+  virtual void OnKey(uint32_t keycode, uint32_t modifiers,
+                     bool key_down, Leds locks) = 0;
 };
 
 // establishes a connection between libevent and window manager.
@@ -30,10 +47,12 @@ class EventHub {
 
  private:
   bool MaybeChangeLockStates(libinput_device* device, uint32_t key);
+  bool UpdateModifiers(uint32_t key, libinput_key_state state);
   static EventHub* g_event_hub;
   libinput* libinput_;
   std::vector<EventObserver*> observers_;
   libinput_led leds_ = static_cast<libinput_led>(0);
+  uint32_t modifiers_ = 0;
 };
 
 }  // namespace event

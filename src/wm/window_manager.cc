@@ -169,8 +169,11 @@ void WindowManager::OnKey(uint32_t keycode,
         base::Time::CurrentTimeMilliSeconds(),
         key_down,
         modifiers);
-    for (auto observer: keyboard_observers_)
-      observer->OnKey(event.get());
+
+    if (!wm_event_observer_->OnKey(event.get())) {
+      for (auto observer: keyboard_observers_)
+        observer->OnKey(event.get());
+    }
   }
   if (keycode == 0) {
     // TODO: send modifiers event

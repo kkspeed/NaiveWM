@@ -19,7 +19,7 @@ class ManageHook: public WmEventObserver {
   void WindowDestroying(Window* window) override;
   void WindowDestroyed(Window* window) override;
   bool OnMouseEvent(MouseEvent* event) override;
-  bool OnKey(Event* event) override;
+  bool OnKey(KeyboardEvent* event) override;
 
   void set_wm_primitives(WMPrimitives* primitives) override {
     primitives_ = primitives;

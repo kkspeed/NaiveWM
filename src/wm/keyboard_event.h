@@ -1,8 +1,8 @@
 #ifndef WM_KEYBOARD_EVENT_H_
 #define WM_KEYBOARD_EVENT_H_
 
-#include "wm/event.h"
 #include "event/event_hub.h"
+#include "wm/event.h"
 
 namespace naive {
 namespace wm {
@@ -15,7 +15,8 @@ class KeyboardEvent : public Event {
                 uint32_t time,
                 bool pressed,
                 uint32_t modifiers)
-      : Event(window, time, modifiers, locks), keycode_(keycode),
+      : Event(window, time, modifiers, locks),
+        keycode_(keycode),
         pressed_(pressed) {}
 
   uint32_t keycode() { return keycode_; }

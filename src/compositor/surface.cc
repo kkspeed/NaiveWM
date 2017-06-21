@@ -2,12 +2,12 @@
 
 #include <algorithm>
 
-#include "wm/window.h"
 #include "compositor/buffer.h"
+#include "wm/window.h"
 
 namespace naive {
 
-Surface::Surface(): window_(std::make_unique<wm::Window>()) {
+Surface::Surface() : window_(std::make_unique<wm::Window>()) {
   window_->set_surface(this);
 }
 
@@ -16,8 +16,7 @@ void Surface::Attach(Buffer* buffer) {
   buffer->SetOwningSurface(this);
   window_->SetGeometry(base::geometry::Rect(window_->geometry().x(),
                                             window_->geometry().y(),
-                                            buffer->width(),
-                                            buffer->height()));
+                                            buffer->width(), buffer->height()));
   pending_state_.buffer = buffer;
 }
 
@@ -42,19 +41,23 @@ void Surface::Commit() {
   LOG_ERROR << "calling Surface::Commit on window " << window()
             << " surface: " << this << std::endl;
   state_ = pending_state_;
+  if (state_.buffer && state_.buffer->data()) {
+    state_.buffer->CopyLocal();
+    state_.buffer->Release();
+  }
   has_commit_ = true;
 
-  if (state_.frame_callback) {
+  if (state_.frame_callback)
     (*state_.frame_callback)();
-    state_.frame_callback = nullptr;
-    pending_state_.frame_callback = nullptr;
-  }
 
-  for (auto observer: observers_) {
+  state_.frame_callback = nullptr;
+  pending_state_.frame_callback = nullptr;
+  pending_state_.buffer = nullptr;
+
+  for (auto observer : observers_) {
     LOG_ERROR << "notifying " << observer << " for commit " << std::endl;
     observer->OnCommit();
   }
 }
 
 }  // namespace naive
-

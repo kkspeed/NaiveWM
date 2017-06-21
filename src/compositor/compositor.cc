@@ -1,22 +1,23 @@
 #include "compositor/compositor.h"
 
 #include <cassert>
-#include <cstdlib>
-#include <cstdint>
-#include <cstring>
 #include <cerrno>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <stack>
 
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <fcntl.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <gbm.h>
 #include <GL/gl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <drm_mode.h>
+#include <fcntl.h>
+#include <gbm.h>
 #include <wayland-server.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
@@ -38,16 +39,14 @@ struct {
   EGLConfig config;
   EGLContext context;
   EGLSurface surface;
-  GLuint program;
-  GLint modelview_matrix, modelview_projection_matrix, normal_matrix;
-  GLuint vbo;
-  GLuint positions_offset, colors_offset, nomral_offset;
+  EGLSurface mouse_surface;
   int32_t display_width, display_height;
 } gl;
 
 struct {
   gbm_device* dev;
   gbm_surface* surface;
+  gbm_surface* mouse_surface;
 } gbm;
 
 struct {
@@ -58,12 +57,8 @@ struct {
 } drm;
 
 struct drm_fb {
-  gbm_bo* bo;
   uint32_t fb_id;
 };
-
-PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR;
-PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEglImageTargetTexture2DOES;
 
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
@@ -148,55 +143,48 @@ void init_drm() {
 
 void init_gbm() {
   gbm.dev = gbm_create_device(drm.fd);
-  gbm.surface = gbm_surface_create(gbm.dev,
-                                   drm.mode->hdisplay, drm.mode->vdisplay,
-                                   GBM_FORMAT_ARGB8888,  // TODO: ARGB?
-                                   GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+  gbm.surface =
+      gbm_surface_create(gbm.dev, drm.mode->hdisplay, drm.mode->vdisplay,
+                         GBM_FORMAT_ARGB8888,  // TODO: ARGB?
+                         GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+  gbm.mouse_surface =
+      gbm_surface_create(gbm.dev, 64, 64, GBM_FORMAT_ARGB8888,
+                         GBM_BO_USE_CURSOR_64X64 | GBM_BO_USE_RENDERING);
   assert(gbm.surface);
+  assert(gbm.mouse_surface);
 }
 
 void init_gl() {
   EGLint major, minor, n;
 
-  const EGLint context_attribs[] = {
-      EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
-  };
+  const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-  const EGLint config_attributes[] = {
-      // EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-      EGL_RED_SIZE, 8,
-      EGL_GREEN_SIZE, 8,
-      EGL_BLUE_SIZE, 8,
-      EGL_ALPHA_SIZE, 8,
-      EGL_NONE
-  };
+  const EGLint config_attributes[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+                                      EGL_RED_SIZE, 8,
+                                      EGL_GREEN_SIZE, 8,
+                                      EGL_BLUE_SIZE, 8,
+                                      EGL_ALPHA_SIZE, 8,
+                                      EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
       (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
-  eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC) eglGetProcAddress(
-      "eglCreateImageKHR");
-  assert(eglCreateImageKHR);
-  glEglImageTargetTexture2DOES =
-      (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC) eglGetProcAddress(
-          "glEglImageTargetTexture2DOES");
-  assert(glEglImageTargetTexture2DOES);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
 
   assert(eglInitialize(gl.display, &major, &minor));
   assert(eglBindAPI(EGL_OPENGL_API));
   assert(eglChooseConfig(gl.display, config_attributes, &gl.config, 1, &n));
+  LOG_ERROR << "eglConfig " << n << std::endl;
   assert(n == 1);
 
   gl.context =
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
-  gl.surface = eglCreateWindowSurface(gl.display,
-                                      gl.config,
-                                      (EGLNativeWindowType) gbm.surface,
-                                      NULL);
-
+  gl.surface = eglCreateWindowSurface(gl.display, gl.config,
+                                      (EGLNativeWindowType) gbm.surface, NULL);
+  gl.mouse_surface = eglCreateWindowSurface(
+      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
 }
 
@@ -212,10 +200,10 @@ drm_fb* drm_fb_get_from_bo(gbm_bo* bo) {
   drm_fb* fb = static_cast<drm_fb*>(gbm_bo_get_user_data(bo));
   uint32_t width, height, stride, handle;
 
-  if (fb) return fb;
+  if (fb)
+    return fb;
 
   fb = new drm_fb;
-  fb->bo = bo;
   width = gbm_bo_get_width(bo);
   height = gbm_bo_get_height(bo);
   stride = gbm_bo_get_stride(bo);
@@ -224,20 +212,17 @@ drm_fb* drm_fb_get_from_bo(gbm_bo* bo) {
   // TODO: This is a dirty workaround. Move somewhere else.
   gl.display_width = width;
   gl.display_height = height;
-  assert(!drmModeAddFB(drm.fd,
-                       width,
-                       height,
-                       24,
-                       32,
-                       stride,
-                       handle,
-                       &fb->fb_id));
+  assert(
+      !drmModeAddFB(drm.fd, width, height, 24, 32, stride, handle, &fb->fb_id));
   gbm_bo_set_user_data(bo, fb, drm_fb_destroy_callback);
   return fb;
 }
 
-void page_flip_handler(int fd, unsigned int frame,
-                       unsigned int sec, unsigned int usec, void* data) {
+void page_flip_handler(int fd,
+                       unsigned int frame,
+                       unsigned int sec,
+                       unsigned int usec,
+                       void* data) {
   int* waiting_for_flip = static_cast<int*>(data);
   *waiting_for_flip = 0;
 }
@@ -258,13 +243,52 @@ void drm_egl_init() {
   FD_SET(drm.fd, &fds);
   init_gbm();
   init_gl();
-  glClearColor(0.0, 1.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
   eglSwapBuffers(gl.display, gl.surface);
   bo = gbm_surface_lock_front_buffer(gbm.surface);
   fb = drm_fb_get_from_bo(bo);
-  drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0,
-                 &drm.connector_id, 1, drm.mode);
+  drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1,
+                 drm.mode);
+}
+
+void initialize_cursor() {
+  eglMakeCurrent(gl.display, gl.mouse_surface, gl.mouse_surface, gl.context);
+  eglSwapBuffers(gl.display, gl.mouse_surface);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glViewport(0, 0, 64, 64);
+  glMatrixMode(GL_PROJECTION);
+  glOrtho(0, 64, 64, 0, 1, -1);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glColor4f(0.0, 0.0, 0.0, 1.0);
+  glBegin(GL_TRIANGLES);
+  glVertex2f(0.0f, 0.0f);
+  glVertex2f(20.0f, 0.0f);
+  glVertex2f(0.0f, 20.0f);
+  glEnd();
+  glColor4f(1.0, 1.0, 1.0, 1.0);
+  glBegin(GL_TRIANGLES);
+  glVertex2f(2.0f, 2.0f);
+  glVertex2f(22.0f, 2.0f);
+  glVertex2f(2.0f, 22.0f);
+  glEnd();
+
+  eglSwapBuffers(gl.display, gl.mouse_surface);
+  gbm_bo* bo = gbm_surface_lock_front_buffer(gbm.mouse_surface);
+  int result =
+      drmModeSetCursor(drm.fd, drm.crtc_id, gbm_bo_get_handle(bo).u32, 64, 64);
+  if (result < 0) {
+    LOG_ERROR << "unable to set cusror " << strerror(errno) << std::endl;
+    exit(1);
+  }
+  gbm_surface_release_buffer(gbm.mouse_surface, bo);
+  eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
+}
+
+void move_cursor(int32_t x, int32_t y) {
+  drmModeMoveCursor(drm.fd, drm.crtc_id, x, y);
 }
 
 void finalize_draw() {
@@ -274,8 +298,8 @@ void finalize_draw() {
   next_bo = gbm_surface_lock_front_buffer(gbm.surface);
   fb = drm_fb_get_from_bo(next_bo);
 
-  drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id,
-                  DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
+  drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
+                  &waiting_for_flip);
   while (waiting_for_flip) {
     select(drm.fd + 1, &fds, nullptr, nullptr, nullptr);
     drmHandleEvent(drm.fd, &evctx);
@@ -285,27 +309,19 @@ void finalize_draw() {
   bo = next_bo;
 }
 
-class Texture: public TextureDelegate {
+class Texture : public TextureDelegate {
  public:
   Texture(int width, int height, int32_t format, void* data)
       : width_(width), height_(height), identifier_(0) {
-    if (format != WL_SHM_FORMAT_ARGB8888) {
+    if (format != WL_SHM_FORMAT_ARGB8888 && format != WL_SHM_FORMAT_XRGB8888) {
       TRACE("buffer format not WL_SHM_FORMAT_ARGB8888");
     }
     glGenTextures(1, &identifier_);
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 width_,
-                 height_,
-                 0,
-                 GL_BGRA,
-                 GL_UNSIGNED_BYTE,
-                 data);
-    // glEglImageTargetTexture2DOES(GL_TEXTURE_2D, image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_BGRA,
+                 GL_UNSIGNED_BYTE, data);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
 
@@ -315,24 +331,37 @@ class Texture: public TextureDelegate {
       glDeleteTextures(1, &identifier_);
   }
 
-  void Draw(int x, int y) override {
+  void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
+  override {
+    TRACE("Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d)",
+          x, y, patch_x, patch_y, width, height);
     glColor3f(1.0, 1.0, 1.0);
-    // TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width_, height_);
     if (!identifier_)
       return;
 
-    GLint vertices[] = {
-        x, y,
-        x + width_, y,
-        x + width_, y + height_,
-        x, y + height_
-    };
-    GLint tex_coords[] = {
-        0, 0,
-        1, 0,
-        1, 1,
-        0, 1
-    };
+    if (width_ == 0)
+      width_ = 1;
+    if (height_ == 0)
+      height_ = 1;
+    if (width > width_)
+      width = width_;
+    if (height > height_)
+      height = height_;
+
+    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
+                        y + patch_y, x + patch_x + width, y + patch_y + height,
+                        x + patch_x, y + patch_y + height};
+    float top_left_x = ((float) patch_x) / width_;
+    float top_left_y = ((float) patch_y) / height_;
+    float bottom_right_x = ((float) (patch_x + width)) / width_;
+    float bottom_right_y = ((float) (patch_y + height)) / height_;
+
+    TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
+          bottom_right_x, bottom_right_y);
+
+    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
+                            top_left_y, bottom_right_x, bottom_right_y,
+                            top_left_x, bottom_right_y};
 
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -340,7 +369,7 @@ class Texture: public TextureDelegate {
 
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glVertexPointer(2, GL_INT, 0, vertices);
-    glTexCoordPointer(2, GL_INT, 0, tex_coords);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex_coords);
 
     glDrawArrays(GL_QUADS, 0, 4);
 
@@ -349,10 +378,31 @@ class Texture: public TextureDelegate {
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
   }
+
  private:
   GLuint identifier_;
   int32_t width_, height_;
 };
+
+std::vector<wm::Window*> CollectNewlyCommittedWindows() {
+  std::vector<wm::Window*> result;
+
+  for (auto* window : wm::WindowManager::Get()->windows()) {
+    std::stack<wm::Window*> stack;
+    stack.push(window);
+    while (!stack.empty()) {
+      auto* current = stack.top();
+      if (current->surface()->has_commit())
+        result.push_back(current);
+      stack.pop();
+      for (auto* child : current->children()) {
+        stack.push(child);
+      }
+    }
+  }
+
+  return result;
+}
 
 }  // namespace
 
@@ -373,6 +423,7 @@ Compositor::Compositor() {
   drm_egl_init();
   int width = gl.display_width;
   int height = gl.display_height;
+  initialize_cursor();
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -382,33 +433,21 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
-bool Compositor::NeedToDraw() {
-  // TODO: We redraw when pointer is moved. May be optimized later with HW
-  // composer.
-  if (wm::WindowManager::Get()->pointer_moved()) {
-    draw_forced_ = true;
-  }
-
-  for (auto* window : wm::WindowManager::Get()->windows()) {
-    if (window->surface()->has_commit())
-      return true;
-  }
-  return draw_forced_;
-}
-
 void Compositor::Draw() {
-  glClear(GL_COLOR_BUFFER_BIT);
-  glClearColor(0.5, 0.5, 0.5, 1.0);
-  glLoadIdentity();
-
-  for (auto* window : wm::WindowManager::Get()->windows()) {
-    DrawWindowRecursive(window, window->wm_x(), window->wm_y());
-    DrawWindowBorder(window);
+  std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
+  if (!committed_windows.empty() || draw_forced_) {
+    glLoadIdentity();
+    for (auto* window : wm::WindowManager::Get()->windows()) {
+      DrawWindowRecursive(window, window->wm_x(), window->wm_y());
+      DrawWindowBorder(window);
+    }
+    finalize_draw();
   }
 
   DrawPointer();
+  // TODO: still cannot disable this yet, since the surface dependency is not
+  // resolved
   draw_forced_ = true;
-  finalize_draw();
 }
 
 void Compositor::DrawWindowRecursive(wm::Window* window,
@@ -417,30 +456,30 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
-    if (!window->surface()->has_commit()
-        && window->surface()->cached_texture()) {
-      window->surface()->cached_texture()
-          ->Draw(start_x + window->geometry().x(),
-                 start_y + window->geometry().y());
+    if (!window->surface()->has_commit() &&
+        window->surface()->cached_texture()) {
+      window->surface()->cached_texture()->Draw(
+          start_x, start_y, window->geometry().x(), window->geometry().y(),
+          window->geometry().width(), window->geometry().height());
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
-        auto texture = std::make_unique<Texture>(
-            buffer->width(), buffer->height(), buffer->format(),
-            buffer->data());
+        auto texture =
+            std::make_unique<Texture>(buffer->width(), buffer->height(),
+                                      buffer->format(), buffer->local_data());
         // TODO: We shouldn't create texture each time.
-        texture->Draw(start_x + window->geometry().x(),
-                      start_y + window->geometry().y());
+        texture->Draw(start_x, start_y, window->geometry().x(),
+                      window->geometry().y(), window->geometry().width(),
+                      window->geometry().height());
         window->surface()->cache_texture(std::move(texture));
       }
-      window->surface()->clear_commit();
     }
+    window->surface()->clear_commit();
   }
 
-  for (auto* child: window->children()) {
+  for (auto* child : window->children()) {
     // TODO: Child widget coordinates might not be alright
-    DrawWindowRecursive(child,
-                        start_x + window->geometry().x(),
+    DrawWindowRecursive(child, start_x + window->geometry().x(),
                         start_y + window->geometry().y());
   }
 }
@@ -463,20 +502,8 @@ void Compositor::DrawWindowBorder(wm::Window* window) {
 
 void Compositor::DrawPointer() {
   auto pointer = wm::WindowManager::Get()->mouse_position();
-  // TODO: This pointer is really ugly...
-  // Black under, white above
-  glColor3f(0.0, 0.0, 0.0);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(pointer.x() - 2.0f, pointer.y() - 2.0f);
-  glVertex2f(pointer.x() - 2.0f, pointer.y() + 24.0f);
-  glVertex2f(pointer.x() + 24.0f, pointer.y() - 2.0f);
-  glEnd();
-  glColor3f(1.0, 1.0, 1.0);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(pointer.x(), pointer.y());
-  glVertex2f(pointer.x(), pointer.y() + 20.0f);
-  glVertex2f(pointer.x() + 20.0f, pointer.y());
-  glEnd();
+  move_cursor(static_cast<int32_t>(pointer.x()),
+              static_cast<int32_t>(pointer.y()));
 }
 
 }  // namespace compositor

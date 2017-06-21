@@ -1,13 +1,13 @@
 #include "event_hub.h"
 
+#include <fcntl.h>
+#include <libinput.h>
+#include <linux/input.h>
+#include <unistd.h>
 #include <cassert>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#include <fcntl.h>
-#include <libinput.h>
-#include <unistd.h>
-#include <linux/input.h>
 
 #include "base/logging.h"
 
@@ -31,8 +31,7 @@ void close_restricted(int fd, void* user_data) {
 
 const struct libinput_interface interface = {
     .close_restricted = close_restricted,
-    .open_restricted = open_restricted
-};
+    .open_restricted = open_restricted};
 
 libinput* open_libinput_udev(const struct libinput_interface* interface,
                              const char* seat) {
@@ -85,11 +84,11 @@ void EventHub::HandleEvents() {
   libinput_dispatch(libinput_);
   while ((ev = libinput_get_event(libinput_))) {
     switch (libinput_event_get_type(ev)) {
-      case LIBINPUT_EVENT_NONE:LOG_ERROR << "can't figure out event type"
-                                         << std::endl;
+      case LIBINPUT_EVENT_NONE:
+        LOG_ERROR << "can't figure out event type" << std::endl;
       case LIBINPUT_EVENT_DEVICE_ADDED:
-      case LIBINPUT_EVENT_DEVICE_REMOVED:LOG_ERROR << "device changed"
-                                                   << std::endl;
+      case LIBINPUT_EVENT_DEVICE_REMOVED:
+        LOG_ERROR << "device changed" << std::endl;
         break;
       case LIBINPUT_EVENT_KEYBOARD_KEY: {
         libinput_device* device = libinput_event_get_device(ev);
@@ -97,23 +96,23 @@ void EventHub::HandleEvents() {
         libinput_key_state state = libinput_event_keyboard_get_key_state(p);
         uint32_t key = libinput_event_keyboard_get_key(p);
         uint32_t return_keycode = key;
-        if (state == LIBINPUT_KEY_STATE_RELEASED
-            && MaybeChangeLockStates(device, key)) {
+        if (state == LIBINPUT_KEY_STATE_RELEASED &&
+            MaybeChangeLockStates(device, key)) {
           return_keycode = 0;
         }
         if (UpdateModifiers(key, state))
           return_keycode = 0;
-        for (auto observer: observers_)
-          observer->OnKey(
-              return_keycode, modifiers_,
-              state == LIBINPUT_KEY_STATE_PRESSED, static_cast<Leds>(leds_));
+        for (auto observer : observers_)
+          observer->OnKey(return_keycode, modifiers_,
+                          state == LIBINPUT_KEY_STATE_PRESSED,
+                          static_cast<Leds>(leds_));
         break;
       }
       case LIBINPUT_EVENT_POINTER_MOTION: {
         libinput_event_pointer* p = libinput_event_get_pointer_event(ev);
         float x = static_cast<float>(libinput_event_pointer_get_dx(p));
         float y = static_cast<float>(libinput_event_pointer_get_dy(p));
-        for (auto* observer: observers_)
+        for (auto* observer : observers_)
           observer->OnMouseMotion(x, y, modifiers_, static_cast<Leds>(leds_));
         break;
       }
@@ -126,16 +125,17 @@ void EventHub::HandleEvents() {
         libinput_button_state state =
             libinput_event_pointer_get_button_state(p);
         uint32_t button = libinput_event_pointer_get_button(p);
-        for (auto* observer: observers_)
-          observer->OnMouseButton(button, state ==
-              LIBINPUT_BUTTON_STATE_PRESSED, modifiers_,
-                                  static_cast<Leds>(leds_));
+        for (auto* observer : observers_)
+          observer->OnMouseButton(button,
+                                  state == LIBINPUT_BUTTON_STATE_PRESSED,
+                                  modifiers_, static_cast<Leds>(leds_));
         break;
       }
-      case LIBINPUT_EVENT_POINTER_AXIS:LOG_ERROR << "pointer motion axis"
-                                                 << std::endl;
+      case LIBINPUT_EVENT_POINTER_AXIS:
+        LOG_ERROR << "pointer motion axis" << std::endl;
         break;
-      default:break;
+      default:
+        break;
     }
 
     libinput_event_destroy(ev);
@@ -145,19 +145,20 @@ void EventHub::HandleEvents() {
 
 bool EventHub::MaybeChangeLockStates(libinput_device* device, uint32_t key) {
   switch (key) {
-    case KEY_CAPSLOCK:leds_ = static_cast<libinput_led>(leds_
-          ^ LIBINPUT_LED_CAPS_LOCK);
+    case KEY_CAPSLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_CAPS_LOCK);
       libinput_device_led_update(device, leds_);
       return true;
-    case KEY_NUMLOCK:leds_ = static_cast<libinput_led>(leds_
-          ^ LIBINPUT_LED_NUM_LOCK);
+    case KEY_NUMLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_NUM_LOCK);
       libinput_device_led_update(device, leds_);
       return true;
-    case KEY_SCROLLLOCK:leds_ = static_cast<libinput_led>(leds_
-          ^ LIBINPUT_LED_SCROLL_LOCK);
+    case KEY_SCROLLLOCK:
+      leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_SCROLL_LOCK);
       libinput_device_led_update(device, leds_);
       return true;
-    default:return false;
+    default:
+      return false;
   }
 }
 

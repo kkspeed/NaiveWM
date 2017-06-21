@@ -5,13 +5,12 @@
 
 #include "compositor/compositor.h"
 #include "event/event_hub.h"
-#include "wm/window_manager.h"
 #include "wm/manage_hook.h"
+#include "wm/window_manager.h"
 
 int main() {
   naive::event::EventHub::InitializeEventHub();
-  naive::wm::WindowManager::InitializeWindowManager(
-      new naive::wm::ManageHook);
+  naive::wm::WindowManager::InitializeWindowManager(new naive::wm::ManageHook);
   naive::compositor::Compositor::InitializeCompoistor();
 
   auto display = std::make_unique<naive::wayland::Display>();
@@ -26,10 +25,10 @@ int main() {
   for (;;) {
     server->DispatchEvents();
     libinput->HandleEvents();
-    if (naive::compositor::Compositor::Get()->NeedToDraw())
-      naive::compositor::Compositor::Get()->Draw();
-    else
-      poll(fds, 2, 3);
+    naive::compositor::Compositor::Get()->Draw();
+    poll(fds, 2, 3);
+    // else
+    // if (naive::compositor::Compositor::Get()->NeedToDraw())
   }
   return 0;
 }

@@ -12,13 +12,13 @@
 
 #define LOG_ERROR (std::cerr << "[Error] ")
 
-#define NOTIMPLEMENTED() std::cerr << "Not implemented: " \
-                                   << __PRETTY_FUNCTION__ << std::endl;
+#define NOTIMPLEMENTED() \
+  std::cerr << "Not implemented: " << __PRETTY_FUNCTION__ << std::endl;
 
 #ifdef __TRACE__
-#define TRACE(format, ...) \
-    fprintf(stderr, "[Trace] %s:%d::%s " format "\n",  \
-            __FILENAME__, __LINE__, __FUNCTION__, ##__VA_ARGS__);
+#define TRACE(format, ...)                                                  \
+  fprintf(stderr, "[Trace] %s:%d::%s " format "\n", __FILENAME__, __LINE__, \
+          __FUNCTION__, ##__VA_ARGS__);
 #else
 #define TRACE(...)
 #endif

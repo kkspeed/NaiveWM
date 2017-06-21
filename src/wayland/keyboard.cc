@@ -1,8 +1,8 @@
 #include "wayland/keyboard.h"
 
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 #include "base/logging.h"
@@ -12,8 +12,7 @@ namespace naive {
 namespace wayland {
 
 Keyboard::Keyboard(wl_resource* resource)
-    : resource_(resource),
-      xkb_context_(xkb_context_new(XKB_CONTEXT_NO_FLAGS)) {
+    : resource_(resource), xkb_context_(xkb_context_new(XKB_CONTEXT_NO_FLAGS)) {
   TRACE();
   // TODO: maybe reconstruct this in SendLayout()?
   xkb_keymap_ = xkb_keymap_new_from_names(
@@ -31,47 +30,41 @@ Keyboard::~Keyboard() {
 
 void Keyboard::SendLayout() {
   TRACE();
-  char* keymap_string = xkb_keymap_get_as_string(xkb_keymap_,
-                                                 XKB_KEYMAP_FORMAT_TEXT_V1);
+  char* keymap_string =
+      xkb_keymap_get_as_string(xkb_keymap_, XKB_KEYMAP_FORMAT_TEXT_V1);
   uint32_t keymap_length = static_cast<uint32_t>(strlen(keymap_string) + 1);
   int fd = shm_open("keymap", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
   ftruncate(fd, keymap_length);
-  void* area = mmap(NULL,
-                    keymap_length,
-                    PROT_READ | PROT_WRITE,
-                    MAP_SHARED,
-                    fd,
-                    0);
+  void* area =
+      mmap(NULL, keymap_length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
   // TODO: call mumap somewhere?
   memcpy(area, keymap_string, keymap_length);
   munmap(area, keymap_length);
-  wl_keyboard_send_keymap(resource_, XKB_KEYMAP_FORMAT_TEXT_V1,
-                          fd, keymap_length);
+  wl_keyboard_send_keymap(resource_, XKB_KEYMAP_FORMAT_TEXT_V1, fd,
+                          keymap_length);
   shm_unlink("keymap");
   free(keymap_string);
 }
 
 bool Keyboard::CanReceiveEvent(Surface* surface) {
   return wl_resource_get_client(resource_) ==
-      wl_resource_get_client(surface->resource());
+         wl_resource_get_client(surface->resource());
 }
 
 void Keyboard::OnFocus(wm::Window* window) {
-  if (window && window->surface() != target_
-      && CanReceiveEvent(window->surface())) {
+  if (window && window->surface() != target_ &&
+      CanReceiveEvent(window->surface())) {
     if (target_)
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
     target_ = window->surface();
     wl_array keys;
     wl_array_init(&keys);
     for (auto key : pressed_keys_) {
-      uint32_t* value = static_cast<uint32_t*>(
-          wl_array_add(&keys, sizeof(uint32_t)));
+      uint32_t* value =
+          static_cast<uint32_t*>(wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
-    wl_keyboard_send_enter(resource_,
-                           next_serial(),
-                           target_->resource(),
+    wl_keyboard_send_enter(resource_, next_serial(), target_->resource(),
                            &keys);
     wl_array_release(&keys);
     return;
@@ -97,13 +90,11 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
     wl_array keys;
     wl_array_init(&keys);
     for (auto key : pressed_keys_) {
-      uint32_t* value = static_cast<uint32_t*>(
-          wl_array_add(&keys, sizeof(uint32_t)));
+      uint32_t* value =
+          static_cast<uint32_t*>(wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
-    wl_keyboard_send_enter(resource_,
-                           next_serial(),
-                           target_->resource(),
+    wl_keyboard_send_enter(resource_, next_serial(), target_->resource(),
                            &keys);
     wl_array_release(&keys);
     return;
@@ -112,20 +103,19 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
     LOG_ERROR << "send modifiers " << key_event->shift_pressed() << std::endl;
     wl_keyboard_send_modifiers(
         resource_, next_serial(),
-        xkb_state_serialize_mods(xkb_state_,
-                                 static_cast<xkb_state_component>(XKB_STATE_DEPRESSED)),
-        xkb_state_serialize_mods(xkb_state_,
-                                 static_cast<xkb_state_component>(XKB_STATE_LOCKED)),
-        xkb_state_serialize_mods(xkb_state_,
-                                 static_cast<xkb_state_component>(XKB_STATE_LATCHED)),
+        xkb_state_serialize_mods(
+            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_DEPRESSED)),
+        xkb_state_serialize_mods(
+            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LOCKED)),
+        xkb_state_serialize_mods(
+            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LATCHED)),
         xkb_state_serialize_layout(xkb_state_, XKB_STATE_LAYOUT_EFFECTIVE));
     return;
   } else {
-    wl_keyboard_send_key(
-        resource_, next_serial(), key_event->time(),
-        key_event->keycode(),
-        key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
-                             : WL_KEYBOARD_KEY_STATE_RELEASED);
+    wl_keyboard_send_key(resource_, next_serial(), key_event->time(),
+                         key_event->keycode(),
+                         key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
+                                              : WL_KEYBOARD_KEY_STATE_RELEASED);
   }
 }
 

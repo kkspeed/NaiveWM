@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "base/logging.h"
 #include "compositor/buffer.h"
 
 namespace naive {
@@ -26,9 +27,12 @@ class ShmPool {
 class SharedMemory {
  public:
   explicit SharedMemory(int fd, uint32_t size);
+  ~SharedMemory() { TRACE(); }
   void Resize(uint32_t size);
-  std::unique_ptr<Buffer> CreateBuffer(int32_t width, int32_t height,
-                                       int32_t format, int32_t offset,
+  std::unique_ptr<Buffer> CreateBuffer(int32_t width,
+                                       int32_t height,
+                                       int32_t format,
+                                       int32_t offset,
                                        int32_t stride);
 
  private:

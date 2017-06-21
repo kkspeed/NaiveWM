@@ -6,8 +6,8 @@
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "base/time.h"
-#include "wm/mouse_event.h"
 #include "wm/keyboard_event.h"
+#include "wm/mouse_event.h"
 
 namespace naive {
 namespace wm {
@@ -15,25 +15,19 @@ namespace wm {
 namespace {
 
 // TODO: convert pointer location to surface local position.
-Window* FindMouseEventTargetChildWindow(Window* root,
-                                        int32_t x,
-                                        int32_t y) {
+Window* FindMouseEventTargetChildWindow(Window* root, int32_t x, int32_t y) {
   TRACE("root window: %p", root);
   Window* candidate = root;
-  for (auto iter = root->children().rbegin();
-       iter != root->children().rend();
+  for (auto iter = root->children().rbegin(); iter != root->children().rend();
        iter++) {
     Window* current = *iter;
     LOG_ERROR << "Child: Testing " << current->geometry().x() << " "
-              << current->geometry().y() << " "
-              << current->geometry().width() << " "
-              << current->geometry().height() << " "
+              << current->geometry().y() << " " << current->geometry().width()
+              << " " << current->geometry().height() << " "
               << " for point " << x << " " << y << std::endl;
     if (current->geometry().ContainsPoint(x, y))
       return FindMouseEventTargetChildWindow(
-          current,
-          x - current->geometry().x(),
-          y - current->geometry().y());
+          current, x - current->geometry().x(), y - current->geometry().y());
   }
   return candidate;
 }
@@ -44,7 +38,8 @@ Window* FindMouseEventTargetChildWindow(Window* root,
 WindowManager* WindowManager::g_window_manager = nullptr;
 
 // static
-void WindowManager::InitializeWindowManager(WmEventObserver* wm_event_observer) {
+void WindowManager::InitializeWindowManager(
+    WmEventObserver* wm_event_observer) {
   g_window_manager = new WindowManager(wm_event_observer);
 }
 
@@ -54,10 +49,12 @@ WindowManager* WindowManager::Get() {
 }
 
 // TODO: use real dimension
-WindowManager::WindowManager(WmEventObserver* wm_event_observer) :
-    screen_width_(1280), screen_height_(720),
-    mouse_position_(1280.0f, 720.0f), last_mouse_position_(1280.0f, 720.0f),
-    wm_event_observer_(wm_event_observer) {
+WindowManager::WindowManager(WmEventObserver* wm_event_observer)
+    : screen_width_(1280),
+      screen_height_(720),
+      mouse_position_(1280.0f, 720.0f),
+      last_mouse_position_(1280.0f, 720.0f),
+      wm_event_observer_(wm_event_observer) {
   wm_event_observer_->set_wm_primitives(this);
   event::EventHub::Get()->AddEventObserver(this);
 }
@@ -96,15 +93,14 @@ void WindowManager::AddMouseObserver(MouseObserver* observer) {
 }
 
 void WindowManager::RemoveMouseObserver(MouseObserver* observer) {
-  auto iter = std::find(mouse_observers_.begin(), mouse_observers_.end(),
-                        observer);
+  auto iter =
+      std::find(mouse_observers_.begin(), mouse_observers_.end(), observer);
   if (iter != mouse_observers_.end())
     mouse_observers_.erase(iter);
 }
 
 void WindowManager::AddKeyboardObserver(KeyboardObserver* observer) {
-  if (std::find(keyboard_observers_.begin(),
-                keyboard_observers_.end(),
+  if (std::find(keyboard_observers_.begin(), keyboard_observers_.end(),
                 observer) == keyboard_observers_.end()) {
     keyboard_observers_.push_back(observer);
   }
@@ -113,8 +109,8 @@ void WindowManager::AddKeyboardObserver(KeyboardObserver* observer) {
 void WindowManager::RemoveKeyboardObserver(KeyboardObserver* observer) {
   auto iter = std::find(keyboard_observers_.begin(), keyboard_observers_.end(),
                         observer);
- if (iter != keyboard_observers_.end())
-   keyboard_observers_.erase(iter);
+  if (iter != keyboard_observers_.end())
+    keyboard_observers_.erase(iter);
 }
 
 bool WindowManager::pointer_moved() {
@@ -127,19 +123,16 @@ void WindowManager::OnMouseButton(uint32_t button,
                                   event::Leds leds) {
   MouseEventData data;
   data.button = button;
-  DispatchMouseEvent(
-      std::make_unique<MouseEvent>(FindMouseEventTarget(),
-                                   pressed ? MouseEventType::MouseButtonDown
-                                           : MouseEventType::MouseButtonUp,
-                                   base::Time::CurrentTimeMilliSeconds(),
-                                   modifiers,
-                                   data,
-                                   mouse_position_.x(),
-                                   mouse_position_.y(),
-                                   leds));
+  DispatchMouseEvent(std::make_unique<MouseEvent>(
+      FindMouseEventTarget(),
+      pressed ? MouseEventType::MouseButtonDown : MouseEventType::MouseButtonUp,
+      base::Time::CurrentTimeMilliSeconds(), modifiers, data,
+      mouse_position_.x(), mouse_position_.y(), leds));
 }
 
-void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers,
+void WindowManager::OnMouseMotion(float dx,
+                                  float dy,
+                                  uint32_t modifiers,
                                   event::Leds leds) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
@@ -157,31 +150,25 @@ void WindowManager::OnMouseMotion(float dx, float dy, uint32_t modifiers,
   MouseEventData data;
   data.delta[0] = static_cast<int32_t>(new_x - last_mouse_position_.x());
   data.delta[1] = static_cast<int32_t>(new_y - last_mouse_position_.y());
-  DispatchMouseEvent(
-      std::make_unique<MouseEvent>(FindMouseEventTarget(),
-                                   MouseEventType::MouseMotion,
-                                   base::Time::CurrentTimeMilliSeconds(),
-                                   modifiers,
-                                   data, new_x, new_y, leds));
+  DispatchMouseEvent(std::make_unique<MouseEvent>(
+      FindMouseEventTarget(), MouseEventType::MouseMotion,
+      base::Time::CurrentTimeMilliSeconds(), modifiers, data, new_x, new_y,
+      leds));
 }
 
 void WindowManager::OnKey(uint32_t keycode,
                           uint32_t modifiers,
                           bool key_down,
                           event::Leds locks) {
-  if (focused_window_) {
-    auto event = std::make_unique<KeyboardEvent>(
-        focused_window(),
-        keycode,
-        locks,
-        base::Time::CurrentTimeMilliSeconds(),
-        key_down,
-        modifiers);
+  auto event = std::make_unique<KeyboardEvent>(
+      focused_window(), keycode, locks, base::Time::CurrentTimeMilliSeconds(),
+      key_down, modifiers);
+  if (wm_event_observer_->OnKey(event.get()))
+    return;
 
-    if (!wm_event_observer_->OnKey(event.get())) {
-      for (auto observer: keyboard_observers_)
-        observer->OnKey(event.get());
-    }
+  if (focused_window_) {
+    for (auto observer : keyboard_observers_)
+      observer->OnKey(event.get());
   }
   if (keycode == 0) {
     // TODO: send modifiers event
@@ -204,8 +191,8 @@ Window* WindowManager::FindMouseEventTarget() {
     rect.x_ = (*iter)->wm_x();
     rect.y_ = (*iter)->wm_y();
     LOG_ERROR << "Test Rect: " << rect.x() << " " << rect.y() << " "
-              << rect.width() << " " << rect.height() << " for "
-              << mouse_x << " " << mouse_y << std::endl;
+              << rect.width() << " " << rect.height() << " for " << mouse_x
+              << " " << mouse_y << std::endl;
     if (rect.ContainsPoint(mouse_x, mouse_y))
       return FindMouseEventTargetChildWindow(*iter, mouse_x - rect.x_,
                                              mouse_y - rect.y_);
@@ -239,9 +226,8 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
     event->set_coordinates(coord_x, coord_y);
     LOG_ERROR << " dispatch final coords: " << coord_x << " " << coord_y
               << std::endl;
-    for (auto mouse_observer: mouse_observers_)
+    for (auto mouse_observer : mouse_observers_)
       mouse_observer->OnMouseEvent(event.get());
-
   }
 }
 
@@ -284,7 +270,7 @@ void WindowManager::FocusWindow(Window* window) {
     focused_window_ = *iter;
     if (focused_window_) {
       focused_window_->TakeFocus();
-      for (auto observer: keyboard_observers_)
+      for (auto observer : keyboard_observers_)
         observer->OnFocus(focused_window_);
     }
     return;

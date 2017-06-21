@@ -51,7 +51,8 @@ class Window : public SurfaceObserver {
   }
 
   void SetGeometry(const base::geometry::Rect& rect) {
-    TRACE("geometry: %p: %d %d %d %d", this, rect.x(), rect.y(), rect.width(), rect.height());
+    TRACE("geometry: %p: %d %d %d %d", this, rect.x(), rect.y(), rect.width(),
+          rect.height());
     pending_state_.geometry = rect;
   }
 
@@ -86,13 +87,14 @@ class Window : public SurfaceObserver {
   base::geometry::Rect geometry() { return state_.geometry; }
   int32_t wm_x() { return wm_x_; }
   int32_t wm_y() { return wm_y_; }
+
  private:
   bool managed_;
   bool focused_ = false;
 
   struct WindowState {
     base::geometry::Rect geometry;
-    WindowState(): geometry({0, 0, 0, 0}) {}
+    WindowState() : geometry({0, 0, 0, 0}) {}
   };
 
   bool is_popup_ = false, is_transient_ = false;

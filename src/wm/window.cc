@@ -10,17 +10,14 @@ namespace naive {
 namespace wm {
 
 Window::Window()
-    : surface_(nullptr),
-      shell_surface_(nullptr),
-      parent_(nullptr) {
+    : surface_(nullptr), shell_surface_(nullptr), parent_(nullptr) {
   TRACE();
 }
 
 Window::~Window() {
   TRACE("%p", this);
   wm::WindowManager::Get()->RemoveWindow(this);
-  if (surface_)
-    surface_->RemoveSurfaceObserver(this);
+  // Window is destroyed with surface. no need to remove surface observer
 }
 
 void Window::AddChild(Window* child) {
@@ -72,7 +69,7 @@ void Window::PlaceBelow(Window* window, Window* target) {
   children_.insert(iter, window);
 }
 
-void Window::Resize(int32_t width, int32_t height)  {
+void Window::Resize(int32_t width, int32_t height) {
   if (!shell_surface_) {
     LOG_ERROR << " only shell surface can be resized. " << std::endl;
     return;

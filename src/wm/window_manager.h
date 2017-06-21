@@ -48,8 +48,7 @@ class WmEventObserver {
   virtual void WindowDestroyed(Window* window) = 0;
 };
 
-class WindowManager : public event::EventObserver,
-                      public WMPrimitives {
+class WindowManager : public event::EventObserver, public WMPrimitives {
  public:
   WindowManager(WmEventObserver* wm_event_observer);
   static void InitializeWindowManager(WmEventObserver* wm_event_observer);
@@ -63,14 +62,18 @@ class WindowManager : public event::EventObserver,
 
   bool pointer_moved();
   base::geometry::FloatPoint mouse_position() { return mouse_position_; }
-  base::geometry::FloatPoint last_mouse_position() { return last_mouse_position_; }
+  base::geometry::FloatPoint last_mouse_position() {
+    return last_mouse_position_;
+  }
 
   // EventObserver overrides:
   void OnMouseButton(uint32_t button,
                      bool pressed,
                      uint32_t modifiers,
                      event::Leds locks) override;
-  void OnMouseMotion(float dx, float dy, uint32_t modifiers,
+  void OnMouseMotion(float dx,
+                     float dy,
+                     uint32_t modifiers,
                      event::Leds locks) override;
   void OnKey(uint32_t keycode,
              uint32_t modifiers,
@@ -85,8 +88,7 @@ class WindowManager : public event::EventObserver,
   Window* focused_window() override { return focused_window_; }
   Window* NextWindow(Window* window) override;
   Window* PreviousWindow(Window* window) override;
-  void MoveResizeWindow(Window* window,
-                        base::geometry::Rect resize) override;
+  void MoveResizeWindow(Window* window, base::geometry::Rect resize) override;
   void FocusWindow(Window* window) override;
 
  private:

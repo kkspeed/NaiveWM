@@ -16,8 +16,7 @@ class Surface;
 
 namespace wayland {
 
-class Pointer:  public wm::MouseObserver,
-                public SurfaceObserver {
+class Pointer : public wm::MouseObserver, public SurfaceObserver {
  public:
   explicit Pointer(wl_resource* resource);
   ~Pointer();
@@ -29,6 +28,7 @@ class Pointer:  public wm::MouseObserver,
 
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface);
+
  private:
   uint32_t observing_surfaces_ = 0;
   uint32_t next_serial();

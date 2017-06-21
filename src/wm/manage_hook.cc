@@ -1,7 +1,11 @@
+#include "wm/manage_hook.h"
+
+#include <linux/input.h>
 #include <vector>
 
-#include "wm/manage_hook.h"
+#include "base/utils.h"
 #include "wm/mouse_event.h"
+#include "wm/keyboard_event.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -10,8 +14,10 @@ namespace wm {
 
 namespace {
 
-void TileWindows(Window* window, std::vector<Window*> windows,
-                 int32_t width, int32_t height) {
+void TileWindows(Window* window,
+                 std::vector<Window*> windows,
+                 int32_t width,
+                 int32_t height) {
   if (windows.size() == 1) {
     windows[0]->WmSetPosition(0, 0);
     windows[0]->WmSetSize(width, height);
@@ -45,17 +51,26 @@ void ManageHook::WindowDestroying(Window* window) {
 
 void ManageHook::WindowDestroyed(Window* window) {
   TRACE();
-  TileWindows(primitives_->focused_window(), primitives_->windows(),
-              width_, height_);
+  TileWindows(primitives_->focused_window(), primitives_->windows(), width_,
+              height_);
 }
 
 bool ManageHook::OnKey(KeyboardEvent* event) {
+  if (!event->pressed() && event->super_pressed()
+      && event->keycode() == KEY_T) {
+    base::LaunchProgram("lxterminal", {});
+    return true;
+  }
+  if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
+      event->keycode() == KEY_Q) {
+    exit(0);
+  }
   return false;
 }
 
 bool ManageHook::OnMouseEvent(MouseEvent* event) {
-  if (event->type() == MouseEventType::MouseButtonDown &&
-    event->window() && event->window() != primitives_->focused_window()) {
+  if (event->type() == MouseEventType::MouseButtonDown && event->window() &&
+      event->window() != primitives_->focused_window()) {
     primitives_->FocusWindow(event->window());
     // return true;
   }

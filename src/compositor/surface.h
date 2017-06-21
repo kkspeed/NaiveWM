@@ -1,19 +1,19 @@
 #ifndef _COMPOSITOR_SURFACE_H_
 #define _COMPOSITOR_SURFACE_H_
 
+#include <wayland-server.h>
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <vector>
-#include <wayland-server.h>
 
 #include "base/geometry.h"
 #include "base/logging.h"
-#include "compositor/texture_delegate.h"
 #include "compositor/region.h"
+#include "compositor/texture_delegate.h"
 
 namespace naive {
 
@@ -39,8 +39,9 @@ class Surface {
   Surface();
   ~Surface() {
     TRACE("resource %p, window %p", resource(), window());
-    for (auto observer: observers_) {
-      LOG_ERROR << "surface " << this << " destroyed for " << observer << std::endl;
+    for (auto observer : observers_) {
+      LOG_ERROR << "surface " << this << " destroyed for " << observer
+                << std::endl;
       observer->OnSurfaceDestroyed(this);
     }
   }
@@ -84,7 +85,8 @@ class Surface {
   std::function<void()>* frame_callback() { return state_.frame_callback; }
 
   compositor::TextureDelegate* cached_texture() {
-    return cached_texture_ ? cached_texture_.get() : nullptr; }
+    return cached_texture_ ? cached_texture_.get() : nullptr;
+  }
   void cache_texture(std::unique_ptr<compositor::TextureDelegate> texture) {
     cached_texture_ = std::move(texture);
   }

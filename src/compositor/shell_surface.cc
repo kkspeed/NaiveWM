@@ -6,8 +6,8 @@
 
 namespace naive {
 
-ShellSurface::ShellSurface(Surface* surface) :
-    surface_(surface), window_(surface->window()) {
+ShellSurface::ShellSurface(Surface* surface)
+    : surface_(surface), window_(surface->window()) {
   window_->SetShellSurface(this);
   surface_->AddSurfaceObserver(this);
 }
@@ -28,7 +28,7 @@ void ShellSurface::Close() {
   close_callback_();
 }
 
-void ShellSurface::SetGeometry(const base::geometry::Rect &rect) {
+void ShellSurface::SetGeometry(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
   window_->SetGeometry(rect);
 }
@@ -44,8 +44,8 @@ void ShellSurface::AcknowledgeConfigure(uint32_t serial) {
 }
 
 void ShellSurface::OnCommit() {
-  if (window_->IsManaged() && (!surface_->committed_buffer()
-      || !surface_->committed_buffer()->data())) {
+  if (window_->IsManaged() && (!surface_->committed_buffer() ||
+                               !surface_->committed_buffer()->data())) {
     // TODO: How to anounce size?
     return;
   }

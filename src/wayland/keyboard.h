@@ -1,10 +1,10 @@
 #ifndef WAYLAND_KEYBOARD_H_
 #define WAYLAND_KEYBOARD_H_
 
-#include <cstdint>
-#include <set>
 #include <wayland-server.h>
 #include <xkbcommon/xkbcommon.h>
+#include <cstdint>
+#include <set>
 
 #include "compositor/surface.h"
 #include "wm/window_manager.h"
@@ -12,8 +12,7 @@
 namespace naive {
 namespace wayland {
 
-class Keyboard: public wm::KeyboardObserver,
-                public SurfaceObserver {
+class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
  public:
   explicit Keyboard(wl_resource* resource);
   ~Keyboard();
@@ -26,6 +25,7 @@ class Keyboard: public wm::KeyboardObserver,
   void OnSurfaceDestroyed(Surface* surface) override;
 
   bool CanReceiveEvent(Surface* surface);
+
  private:
   void UpdateKeyStates(wm::KeyboardEvent* key_event);
   void SendLayout();

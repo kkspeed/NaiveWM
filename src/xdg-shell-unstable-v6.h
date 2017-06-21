@@ -341,7 +341,7 @@ struct zxdg_shell_v6_interface {
    * still alive created by this xdg_shell object instance is illegal
    * and will result in a protocol error.
    */
-  void (*destroy)(struct wl_client *client, struct wl_resource *resource);
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
   /**
    * create a positioner object
    *
@@ -349,8 +349,9 @@ struct zxdg_shell_v6_interface {
    * position surfaces relative to some parent surface. See the
    * interface description and xdg_surface.get_popup for details.
    */
-  void (*create_positioner)(struct wl_client *client,
-                            struct wl_resource *resource, uint32_t id);
+  void (*create_positioner)(struct wl_client* client,
+                            struct wl_resource* resource,
+                            uint32_t id);
   /**
    * create a shell surface from a surface
    *
@@ -367,9 +368,10 @@ struct zxdg_shell_v6_interface {
    * See the documentation of xdg_surface for more details about what
    * an xdg_surface is and how it is used.
    */
-  void (*get_xdg_surface)(struct wl_client *client,
-                          struct wl_resource *resource, uint32_t id,
-                          struct wl_resource *surface);
+  void (*get_xdg_surface)(struct wl_client* client,
+                          struct wl_resource* resource,
+                          uint32_t id,
+                          struct wl_resource* surface);
   /**
    * respond to a ping event
    *
@@ -377,7 +379,8 @@ struct zxdg_shell_v6_interface {
    * the client may be deemed unresponsive. See xdg_shell.ping.
    * @param serial serial of the ping event
    */
-  void (*pong)(struct wl_client *client, struct wl_resource *resource,
+  void (*pong)(struct wl_client* client,
+               struct wl_resource* resource,
                uint32_t serial);
 };
 
@@ -411,7 +414,7 @@ struct zxdg_shell_v6_interface {
  * @param resource_ The client's resource
  * @param serial pass this to the pong request
  */
-static inline void zxdg_shell_v6_send_ping(struct wl_resource *resource_,
+static inline void zxdg_shell_v6_send_ping(struct wl_resource* resource_,
                                            uint32_t serial) {
   wl_resource_post_event(resource_, ZXDG_SHELL_V6_PING, serial);
 }
@@ -508,7 +511,7 @@ struct zxdg_positioner_v6_interface {
    * Notify the compositor that the xdg_positioner will no longer
    * be used.
    */
-  void (*destroy)(struct wl_client *client, struct wl_resource *resource);
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
   /**
    * set the size of the to-be positioned rectangle
    *
@@ -522,8 +525,10 @@ struct zxdg_positioner_v6_interface {
    * @param width width of positioned rectangle
    * @param height height of positioned rectangle
    */
-  void (*set_size)(struct wl_client *client, struct wl_resource *resource,
-                   int32_t width, int32_t height);
+  void (*set_size)(struct wl_client* client,
+                   struct wl_resource* resource,
+                   int32_t width,
+                   int32_t height);
   /**
    * set the anchor rectangle within the parent surface
    *
@@ -544,9 +549,12 @@ struct zxdg_positioner_v6_interface {
    * @param width width of anchor rectangle
    * @param height height of anchor rectangle
    */
-  void (*set_anchor_rect)(struct wl_client *client,
-                          struct wl_resource *resource, int32_t x, int32_t y,
-                          int32_t width, int32_t height);
+  void (*set_anchor_rect)(struct wl_client* client,
+                          struct wl_resource* resource,
+                          int32_t x,
+                          int32_t y,
+                          int32_t width,
+                          int32_t height);
   /**
    * set anchor rectangle anchor edges
    *
@@ -563,7 +571,8 @@ struct zxdg_positioner_v6_interface {
    * 'right'), the invalid_input error is raised.
    * @param anchor bit mask of anchor edges
    */
-  void (*set_anchor)(struct wl_client *client, struct wl_resource *resource,
+  void (*set_anchor)(struct wl_client* client,
+                     struct wl_resource* resource,
                      uint32_t anchor);
   /**
    * set child surface gravity
@@ -579,7 +588,8 @@ struct zxdg_positioner_v6_interface {
    * 'right'), the invalid_input error is raised.
    * @param gravity bit mask of gravity directions
    */
-  void (*set_gravity)(struct wl_client *client, struct wl_resource *resource,
+  void (*set_gravity)(struct wl_client* client,
+                      struct wl_resource* resource,
                       uint32_t gravity);
   /**
    * set the adjustment to be done when constrained
@@ -602,8 +612,8 @@ struct zxdg_positioner_v6_interface {
    * The default adjustment is none.
    * @param constraint_adjustment bit mask of constraint adjustments
    */
-  void (*set_constraint_adjustment)(struct wl_client *client,
-                                    struct wl_resource *resource,
+  void (*set_constraint_adjustment)(struct wl_client* client,
+                                    struct wl_resource* resource,
                                     uint32_t constraint_adjustment);
   /**
    * set surface position offset
@@ -623,8 +633,10 @@ struct zxdg_positioner_v6_interface {
    * @param x surface position x offset
    * @param y surface position y offset
    */
-  void (*set_offset)(struct wl_client *client, struct wl_resource *resource,
-                     int32_t x, int32_t y);
+  void (*set_offset)(struct wl_client* client,
+                     struct wl_resource* resource,
+                     int32_t x,
+                     int32_t y);
 };
 
 /**
@@ -676,7 +688,7 @@ struct zxdg_surface_v6_interface {
    * Destroy the xdg_surface object. An xdg_surface must only be
    * destroyed after its role object has been destroyed.
    */
-  void (*destroy)(struct wl_client *client, struct wl_resource *resource);
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
   /**
    * assign the xdg_toplevel surface role
    *
@@ -686,7 +698,8 @@ struct zxdg_surface_v6_interface {
    * See the documentation of xdg_toplevel for more details about
    * what an xdg_toplevel is and how it is used.
    */
-  void (*get_toplevel)(struct wl_client *client, struct wl_resource *resource,
+  void (*get_toplevel)(struct wl_client* client,
+                       struct wl_resource* resource,
                        uint32_t id);
   /**
    * assign the xdg_popup surface role
@@ -697,9 +710,11 @@ struct zxdg_surface_v6_interface {
    * See the documentation of xdg_popup for more details about what
    * an xdg_popup is and how it is used.
    */
-  void (*get_popup)(struct wl_client *client, struct wl_resource *resource,
-                    uint32_t id, struct wl_resource *parent,
-                    struct wl_resource *positioner);
+  void (*get_popup)(struct wl_client* client,
+                    struct wl_resource* resource,
+                    uint32_t id,
+                    struct wl_resource* parent,
+                    struct wl_resource* positioner);
   /**
    * set the new window geometry
    *
@@ -730,9 +745,12 @@ struct zxdg_surface_v6_interface {
    * bounding rectangle of the combined geometry of the surface of
    * the xdg_surface and the associated subsurfaces.
    */
-  void (*set_window_geometry)(struct wl_client *client,
-                              struct wl_resource *resource, int32_t x,
-                              int32_t y, int32_t width, int32_t height);
+  void (*set_window_geometry)(struct wl_client* client,
+                              struct wl_resource* resource,
+                              int32_t x,
+                              int32_t y,
+                              int32_t width,
+                              int32_t height);
   /**
    * ack a configure event
    *
@@ -758,7 +776,8 @@ struct zxdg_surface_v6_interface {
    * to.
    * @param serial the serial from the configure event
    */
-  void (*ack_configure)(struct wl_client *client, struct wl_resource *resource,
+  void (*ack_configure)(struct wl_client* client,
+                        struct wl_resource* resource,
                         uint32_t serial);
 };
 
@@ -796,7 +815,7 @@ struct zxdg_surface_v6_interface {
  * @param resource_ The client's resource
  * @param serial serial of the configure event
  */
-static inline void zxdg_surface_v6_send_configure(struct wl_resource *resource_,
+static inline void zxdg_surface_v6_send_configure(struct wl_resource* resource_,
                                                   uint32_t serial) {
   wl_resource_post_event(resource_, ZXDG_SURFACE_V6_CONFIGURE, serial);
 }
@@ -865,7 +884,7 @@ struct zxdg_toplevel_v6_interface {
    * hidden from the user's point of view, and all state like
    * maximization, fullscreen, and so on, will be lost.
    */
-  void (*destroy)(struct wl_client *client, struct wl_resource *resource);
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
   /**
    * set the parent of this surface
    *
@@ -877,8 +896,9 @@ struct zxdg_toplevel_v6_interface {
    * "auxiliary" surfaces, so that the parent is raised when the
    * dialog is raised.
    */
-  void (*set_parent)(struct wl_client *client, struct wl_resource *resource,
-                     struct wl_resource *parent);
+  void (*set_parent)(struct wl_client* client,
+                     struct wl_resource* resource,
+                     struct wl_resource* parent);
   /**
    * set surface title
    *
@@ -890,8 +910,9 @@ struct zxdg_toplevel_v6_interface {
    *
    * The string must be encoded in UTF-8.
    */
-  void (*set_title)(struct wl_client *client, struct wl_resource *resource,
-                    const char *title);
+  void (*set_title)(struct wl_client* client,
+                    struct wl_resource* resource,
+                    const char* title);
   /**
    * set application ID
    *
@@ -917,8 +938,9 @@ struct zxdg_toplevel_v6_interface {
    *
    * [0] http://standards.freedesktop.org/desktop-entry-spec/
    */
-  void (*set_app_id)(struct wl_client *client, struct wl_resource *resource,
-                     const char *app_id);
+  void (*set_app_id)(struct wl_client* client,
+                     struct wl_resource* resource,
+                     const char* app_id);
   /**
    * show the window menu
    *
@@ -939,9 +961,11 @@ struct zxdg_toplevel_v6_interface {
    * @param x the x position to pop up the window menu at
    * @param y the y position to pop up the window menu at
    */
-  void (*show_window_menu)(struct wl_client *client,
-                           struct wl_resource *resource,
-                           struct wl_resource *seat, uint32_t serial, int32_t x,
+  void (*show_window_menu)(struct wl_client* client,
+                           struct wl_resource* resource,
+                           struct wl_resource* seat,
+                           uint32_t serial,
+                           int32_t x,
                            int32_t y);
   /**
    * start an interactive move
@@ -966,8 +990,10 @@ struct zxdg_toplevel_v6_interface {
    * @param seat the wl_seat of the user event
    * @param serial the serial of the user event
    */
-  void (*move)(struct wl_client *client, struct wl_resource *resource,
-               struct wl_resource *seat, uint32_t serial);
+  void (*move)(struct wl_client* client,
+               struct wl_resource* resource,
+               struct wl_resource* seat,
+               uint32_t serial);
   /**
    * start an interactive resize
    *
@@ -1005,8 +1031,11 @@ struct zxdg_toplevel_v6_interface {
    * @param serial the serial of the user event
    * @param edges which edge or corner is being dragged
    */
-  void (*resize)(struct wl_client *client, struct wl_resource *resource,
-                 struct wl_resource *seat, uint32_t serial, uint32_t edges);
+  void (*resize)(struct wl_client* client,
+                 struct wl_resource* resource,
+                 struct wl_resource* seat,
+                 uint32_t serial,
+                 uint32_t edges);
   /**
    * set the maximum size
    *
@@ -1045,8 +1074,10 @@ struct zxdg_toplevel_v6_interface {
    * Using strictly negative values for width and height will result
    * in a protocol error.
    */
-  void (*set_max_size)(struct wl_client *client, struct wl_resource *resource,
-                       int32_t width, int32_t height);
+  void (*set_max_size)(struct wl_client* client,
+                       struct wl_resource* resource,
+                       int32_t width,
+                       int32_t height);
   /**
    * set the minimum size
    *
@@ -1085,8 +1116,10 @@ struct zxdg_toplevel_v6_interface {
    * Using strictly negative values for width and height will result
    * in a protocol error.
    */
-  void (*set_min_size)(struct wl_client *client, struct wl_resource *resource,
-                       int32_t width, int32_t height);
+  void (*set_min_size)(struct wl_client* client,
+                       struct wl_resource* resource,
+                       int32_t width,
+                       int32_t height);
   /**
    * maximize the window
    *
@@ -1107,7 +1140,7 @@ struct zxdg_toplevel_v6_interface {
    * If the surface was already maximized, the compositor will still
    * emit a configure event with the "maximized" state.
    */
-  void (*set_maximized)(struct wl_client *client, struct wl_resource *resource);
+  void (*set_maximized)(struct wl_client* client, struct wl_resource* resource);
   /**
    * unmaximize the window
    *
@@ -1129,8 +1162,8 @@ struct zxdg_toplevel_v6_interface {
    * If the surface was already not maximized, the compositor will
    * still emit a configure event without the "maximized" state.
    */
-  void (*unset_maximized)(struct wl_client *client,
-                          struct wl_resource *resource);
+  void (*unset_maximized)(struct wl_client* client,
+                          struct wl_resource* resource);
   /**
    * set the window as fullscreen on a monitor
    *
@@ -1144,12 +1177,13 @@ struct zxdg_toplevel_v6_interface {
    * will position the surface in the center of the output and
    * compensate with black borders filling the rest of the output.
    */
-  void (*set_fullscreen)(struct wl_client *client, struct wl_resource *resource,
-                         struct wl_resource *output);
+  void (*set_fullscreen)(struct wl_client* client,
+                         struct wl_resource* resource,
+                         struct wl_resource* output);
   /**
    */
-  void (*unset_fullscreen)(struct wl_client *client,
-                           struct wl_resource *resource);
+  void (*unset_fullscreen)(struct wl_client* client,
+                           struct wl_resource* resource);
   /**
    * set the window as minimized
    *
@@ -1162,7 +1196,7 @@ struct zxdg_toplevel_v6_interface {
    * also work with live previews on windows in Alt-Tab, Expose or
    * similar compositor features.
    */
-  void (*set_minimized)(struct wl_client *client, struct wl_resource *resource);
+  void (*set_minimized)(struct wl_client* client, struct wl_resource* resource);
 };
 
 #define ZXDG_TOPLEVEL_V6_CONFIGURE 0
@@ -1240,8 +1274,10 @@ struct zxdg_toplevel_v6_interface {
  * @param resource_ The client's resource
  */
 static inline void zxdg_toplevel_v6_send_configure(
-    struct wl_resource *resource_, int32_t width, int32_t height,
-    struct wl_array *states) {
+    struct wl_resource* resource_,
+    int32_t width,
+    int32_t height,
+    struct wl_array* states) {
   wl_resource_post_event(resource_, ZXDG_TOPLEVEL_V6_CONFIGURE, width, height,
                          states);
 }
@@ -1251,7 +1287,7 @@ static inline void zxdg_toplevel_v6_send_configure(
  * Sends an close event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void zxdg_toplevel_v6_send_close(struct wl_resource *resource_) {
+static inline void zxdg_toplevel_v6_send_close(struct wl_resource* resource_) {
   wl_resource_post_event(resource_, ZXDG_TOPLEVEL_V6_CLOSE);
 }
 
@@ -1279,7 +1315,7 @@ struct zxdg_popup_v6_interface {
    * If this xdg_popup is not the "topmost" popup, a protocol error
    * will be sent.
    */
-  void (*destroy)(struct wl_client *client, struct wl_resource *resource);
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
   /**
    * make the popup take an explicit grab
    *
@@ -1331,8 +1367,10 @@ struct zxdg_popup_v6_interface {
    * @param seat the wl_seat of the user event
    * @param serial the serial of the user event
    */
-  void (*grab)(struct wl_client *client, struct wl_resource *resource,
-               struct wl_resource *seat, uint32_t serial);
+  void (*grab)(struct wl_client* client,
+               struct wl_resource* resource,
+               struct wl_resource* seat,
+               uint32_t serial);
 };
 
 #define ZXDG_POPUP_V6_CONFIGURE 0
@@ -1365,9 +1403,11 @@ struct zxdg_popup_v6_interface {
  * @param width window geometry width
  * @param height window geometry height
  */
-static inline void zxdg_popup_v6_send_configure(struct wl_resource *resource_,
-                                                int32_t x, int32_t y,
-                                                int32_t width, int32_t height) {
+static inline void zxdg_popup_v6_send_configure(struct wl_resource* resource_,
+                                                int32_t x,
+                                                int32_t y,
+                                                int32_t width,
+                                                int32_t height) {
   wl_resource_post_event(resource_, ZXDG_POPUP_V6_CONFIGURE, x, y, width,
                          height);
 }
@@ -1378,7 +1418,7 @@ static inline void zxdg_popup_v6_send_configure(struct wl_resource *resource_,
  * @param resource_ The client's resource
  */
 static inline void zxdg_popup_v6_send_popup_done(
-    struct wl_resource *resource_) {
+    struct wl_resource* resource_) {
   wl_resource_post_event(resource_, ZXDG_POPUP_V6_POPUP_DONE);
 }
 

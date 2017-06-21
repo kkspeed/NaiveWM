@@ -14,7 +14,7 @@ namespace wm {
 class Window;
 }  // namespace wm;
 
-class ShellSurface: SurfaceObserver {
+class ShellSurface : SurfaceObserver {
  public:
   ShellSurface(Surface* surface);
   ~ShellSurface();

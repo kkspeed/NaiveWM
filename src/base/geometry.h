@@ -1,23 +1,24 @@
 #ifndef BASE_GEOMETRY_H_
 #define BASE_GEOMETRY_H_
 
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 
 namespace naive {
 namespace base {
 namespace geometry {
 
-template<typename T>
+template <typename T>
 class Point {
  public:
   Point(T x, T y) : x_(x), y_(y) {}
   T x() { return x_; }
   T y() { return y_; }
-  T manhattan_distance(const Point<T> &other) {
-    return static_cast<T>(fabs(static_cast<float>(other.x_ - x_))
-        + fabs(static_cast<float>(other.y_ - y_)));
+  T manhattan_distance(const Point<T>& other) {
+    return static_cast<T>(fabs(static_cast<float>(other.x_ - x_)) +
+                          fabs(static_cast<float>(other.y_ - y_)));
   }
+
  private:
   T x_, y_;
 };

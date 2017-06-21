@@ -1,8 +1,8 @@
 
 #include "wayland/server.h"
 
-#include <wayland-server.h>
 #include <poll.h>
+#include <wayland-server.h>
 
 #include <cassert>
 #include <cstdint>
@@ -14,8 +14,8 @@
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "base/time.h"
-#include "compositor/compositor.h"
 #include "compositor/buffer.h"
+#include "compositor/compositor.h"
 #include "compositor/region.h"
 #include "compositor/shell_surface.h"
 #include "compositor/subsurface.h"
@@ -30,25 +30,26 @@ namespace wayland {
 
 namespace {
 
-template<class T>
+template <class T>
 T* GetUserDataAs(wl_resource* resource) {
   return static_cast<T*>(wl_resource_get_user_data(resource));
 }
 
-template<class T>
+template <class T>
 std::unique_ptr<T> TakeUserDataAs(wl_resource* resource) {
   std::unique_ptr<T> user_data = std::unique_ptr<T>(GetUserDataAs<T>(resource));
   wl_resource_set_user_data(resource, nullptr);
   return user_data;
 }
 
-template<class T>
+template <class T>
 void DestroyUserData(wl_resource* resource) {
   TakeUserDataAs<T>(resource);
 }
 
-template<class T>
-void SetImplementation(wl_resource* resource, const void* implementation,
+template <class T>
+void SetImplementation(wl_resource* resource,
+                       const void* implementation,
                        std::unique_ptr<T> user_data) {
   wl_resource_set_implementation(resource, implementation, user_data.release(),
                                  DestroyUserData<T>);
@@ -77,15 +78,22 @@ void surface_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void surface_attach(wl_client* client, wl_resource* resource,
-                    wl_resource* buffer, int32_t x, int32_t y) {
+void surface_attach(wl_client* client,
+                    wl_resource* resource,
+                    wl_resource* buffer,
+                    int32_t x,
+                    int32_t y) {
   TRACE();
   GetUserDataAs<Surface>(resource)->Attach(
       buffer ? GetUserDataAs<Buffer>(buffer) : nullptr);
 }
 
-void surface_damage(wl_client* client, wl_resource* resource, int32_t x,
-                    int32_t y, int32_t width, int32_t height) {
+void surface_damage(wl_client* client,
+                    wl_resource* resource,
+                    int32_t x,
+                    int32_t y,
+                    int32_t width,
+                    int32_t height) {
   TRACE();
   GetUserDataAs<Surface>(resource)->Damage(
       base::geometry::Rect(x, y, width, height));
@@ -98,7 +106,8 @@ void HandleSurfaceFrameCallback(wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void surface_frame(wl_client* client, wl_resource* resource,
+void surface_frame(wl_client* client,
+                   wl_resource* resource,
                    uint32_t callback) {
   TRACE();
   wl_resource* callback_resource =
@@ -109,7 +118,8 @@ void surface_frame(wl_client* client, wl_resource* resource,
   SetImplementation(callback_resource, nullptr, std::move(frame_callback));
 }
 
-void surface_set_opaque_region(wl_client* client, wl_resource* resource,
+void surface_set_opaque_region(wl_client* client,
+                               wl_resource* resource,
                                wl_resource* region_resource) {
   TRACE();
   GetUserDataAs<Surface>(resource)->SetOpaqueRegion(
@@ -117,7 +127,8 @@ void surface_set_opaque_region(wl_client* client, wl_resource* resource,
                       : Region::Empty());
 }
 
-void surface_set_input_region(wl_client* client, wl_resource* resource,
+void surface_set_input_region(wl_client* client,
+                              wl_resource* resource,
                               wl_resource* region_resource) {
   TRACE();
   GetUserDataAs<Surface>(resource)->SetInputRegion(
@@ -130,13 +141,15 @@ void surface_commit(wl_client* client, wl_resource* resource) {
   GetUserDataAs<Surface>(resource)->Commit();
 }
 
-void surface_set_buffer_transform(wl_client* client, wl_resource* resource,
+void surface_set_buffer_transform(wl_client* client,
+                                  wl_resource* resource,
                                   int transform) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void surface_set_buffer_scale(wl_client* client, wl_resource* resource,
+void surface_set_buffer_scale(wl_client* client,
+                              wl_resource* resource,
                               int32_t scale) {
   TRACE(" scale: %d", scale);
   if (scale < 1) {
@@ -165,29 +178,39 @@ void region_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void region_add(wl_client* client, wl_resource* resource, int32_t x, int32_t y,
-                int32_t width, int32_t height) {
+void region_add(wl_client* client,
+                wl_resource* resource,
+                int32_t x,
+                int32_t y,
+                int32_t width,
+                int32_t height) {
   TRACE();
   Region region(base::geometry::Rect(x, y, width, height));
   GetUserDataAs<Region>(resource)->Union(region);
 }
 
-void region_subtract(wl_client* client, wl_resource* resource, int32_t x,
-                     int32_t y, int32_t width, int32_t height) {
+void region_subtract(wl_client* client,
+                     wl_resource* resource,
+                     int32_t x,
+                     int32_t y,
+                     int32_t width,
+                     int32_t height) {
   TRACE();
   Region region(base::geometry::Rect(x, y, width, height));
   GetUserDataAs<Region>(resource)->Subtract(region);
 }
 
 const struct wl_region_interface region_implementation = {
-    .add = region_add, .subtract = region_subtract, .destroy = region_destroy};
+    .add = region_add,
+    .subtract = region_subtract,
+    .destroy = region_destroy};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_compositor
 
-void compositor_create_surface(wl_client* client, wl_resource* resource,
+void compositor_create_surface(wl_client* client,
+                               wl_resource* resource,
                                uint32_t id) {
-
   std::unique_ptr<Surface> surface =
       GetUserDataAs<Display>(resource)->CreateSurface();
   wl_resource* surface_resource = wl_resource_create(
@@ -198,7 +221,8 @@ void compositor_create_surface(wl_client* client, wl_resource* resource,
                     std::move(surface));
 }
 
-void compositor_create_region(wl_client* client, wl_resource* resource,
+void compositor_create_region(wl_client* client,
+                              wl_resource* resource,
                               uint32_t id) {
   TRACE();
   wl_resource* region_resource =
@@ -219,18 +243,21 @@ void bind_compositor(wl_client* client,
   TRACE();
   wl_resource* resource =
       wl_resource_create(client, &wl_compositor_interface, version, id);
-  wl_resource_set_implementation(resource,
-                                 &compositor_implementation,
-                                 data,
+  wl_resource_set_implementation(resource, &compositor_implementation, data,
                                  nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shm_pool_interface
 
-void shm_pool_create_buffer(wl_client* client, wl_resource* resource,
-                            uint32_t id, int32_t offset, int32_t width,
-                            int32_t height, int32_t stride, uint32_t format) {
+void shm_pool_create_buffer(wl_client* client,
+                            wl_resource* resource,
+                            uint32_t id,
+                            int32_t offset,
+                            int32_t width,
+                            int32_t height,
+                            int32_t stride,
+                            uint32_t format) {
   TRACE();
   if (format != WL_SHM_FORMAT_XRGB8888 && format != WL_SHM_FORMAT_ARGB8888) {
     std::cerr << "unsupported format " << format;
@@ -246,8 +273,8 @@ void shm_pool_create_buffer(wl_client* client, wl_resource* resource,
 
   wl_resource* buffer_resource =
       wl_resource_create(client, &wl_buffer_interface, 1, id);
-  buffer->set_release_callback(std::bind(&HandleBufferReleaseCallback,
-                                         buffer_resource));
+  buffer->set_release_callback(
+      std::bind(&HandleBufferReleaseCallback, buffer_resource));
   SetImplementation(buffer_resource, &buffer_implementation, std::move(buffer));
 }
 
@@ -269,8 +296,11 @@ const struct wl_shm_pool_interface shm_pool_implementation = {
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shm_interface:
 
-void shm_create_pool(wl_client* client, wl_resource* resource, uint32_t id,
-                     int fd, int32_t size) {
+void shm_create_pool(wl_client* client,
+                     wl_resource* resource,
+                     uint32_t id,
+                     int fd,
+                     int32_t size) {
   TRACE();
   std::unique_ptr<SharedMemory> shared_memory =
       GetUserDataAs<Display>(resource)->CreateSharedMemory(fd, size);
@@ -305,20 +335,24 @@ void subsurface_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void subsurface_set_position(wl_client* client, wl_resource* resource,
-                             int32_t x, int32_t y) {
+void subsurface_set_position(wl_client* client,
+                             wl_resource* resource,
+                             int32_t x,
+                             int32_t y) {
   TRACE();
   GetUserDataAs<SubSurface>(resource)->SetPosition(x, y);
 }
 
-void subsurface_place_above(wl_client* client, wl_resource* resource,
+void subsurface_place_above(wl_client* client,
+                            wl_resource* resource,
                             wl_resource* reference) {
   TRACE();
   GetUserDataAs<SubSurface>(resource)->PlaceAbove(
       GetUserDataAs<Surface>(reference));
 }
 
-void subsurface_place_below(wl_client* client, wl_resource* resource,
+void subsurface_place_below(wl_client* client,
+                            wl_resource* resource,
                             wl_resource* reference) {
   TRACE();
   GetUserDataAs<SubSurface>(resource)->PlaceBelow(
@@ -335,10 +369,10 @@ void subsurface_set_desync(wl_client* client, wl_resource* resource) {
   GetUserDataAs<SubSurface>(resource)->SetCommitBehavior(false);
 }
 
-const struct wl_subsurface_interface subsurface_implementation{
-    .destroy = subsurface_destroy, .set_position = subsurface_set_position,
-    .place_above = subsurface_place_above, .place_below = subsurface_place_below,
-    .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
+const struct wl_subsurface_interface subsurface_implementation {
+  .destroy = subsurface_destroy, .set_position = subsurface_set_position,
+  .place_above = subsurface_place_above, .place_below = subsurface_place_below,
+  .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -349,8 +383,10 @@ void subcompositor_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void subcompositor_get_subsurface(wl_client* client, wl_resource* resource,
-                                  uint32_t id, wl_resource* surface,
+void subcompositor_get_subsurface(wl_client* client,
+                                  wl_resource* resource,
+                                  uint32_t id,
+                                  wl_resource* surface,
                                   wl_resource* parent) {
   TRACE();
   auto subsurface = GetUserDataAs<Display>(resource)->CreateSubSurface(
@@ -371,7 +407,9 @@ void subcompositor_get_subsurface(wl_client* client, wl_resource* resource,
 const struct wl_subcompositor_interface subcompositor_implementation = {
     subcompositor_destroy, subcompositor_get_subsurface};
 
-void bind_subcompositor(wl_client* client, void* data, uint32_t version,
+void bind_subcompositor(wl_client* client,
+                        void* data,
+                        uint32_t version,
                         uint32_t id) {
   TRACE();
   wl_resource* resource =
@@ -383,20 +421,25 @@ void bind_subcompositor(wl_client* client, void* data, uint32_t version,
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shell_surface_interface:
 
-void shell_surface_pong(wl_client* client, wl_resource* resource,
+void shell_surface_pong(wl_client* client,
+                        wl_resource* resource,
                         uint32_t serial) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void shell_surface_move(wl_client* client, wl_resource* resource,
-                        wl_resource* seat_resource, uint32_t serial) {
+void shell_surface_move(wl_client* client,
+                        wl_resource* resource,
+                        wl_resource* seat_resource,
+                        uint32_t serial) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->Move();
 }
 
-void shell_surface_resize(wl_client* client, wl_resource* resource,
-                          wl_resource* seat_resource, uint32_t serial,
+void shell_surface_resize(wl_client* client,
+                          wl_resource* resource,
+                          wl_resource* seat_resource,
+                          uint32_t serial,
                           uint32_t edges) {
   TRACE();
   NOTIMPLEMENTED();
@@ -411,8 +454,11 @@ void shell_surface_set_toplevel(wl_client* client, wl_resource* resource) {
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
-void shell_surface_set_transient(wl_client* client, wl_resource* resource,
-                                 wl_resource* parent_resource, int x, int y,
+void shell_surface_set_transient(wl_client* client,
+                                 wl_resource* resource,
+                                 wl_resource* parent_resource,
+                                 int x,
+                                 int y,
                                  uint32_t flags) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
@@ -422,17 +468,23 @@ void shell_surface_set_transient(wl_client* client, wl_resource* resource,
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
-void shell_surface_set_fullscreen(wl_client* client, wl_resource* resource,
-                                  uint32_t method, uint32_t framerate,
+void shell_surface_set_fullscreen(wl_client* client,
+                                  wl_resource* resource,
+                                  uint32_t method,
+                                  uint32_t framerate,
                                   wl_resource* output_resource) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   shell_surface->window()->set_fullscreen(true);
 }
 
-void shell_surface_set_popup(wl_client* client, wl_resource* resource,
-                             wl_resource* seat_resource, uint32_t serial,
-                             wl_resource* parent_resource, int32_t x, int32_t y,
+void shell_surface_set_popup(wl_client* client,
+                             wl_resource* resource,
+                             wl_resource* seat_resource,
+                             uint32_t serial,
+                             wl_resource* parent_resource,
+                             int32_t x,
+                             int32_t y,
                              uint32_t flags) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
@@ -442,21 +494,24 @@ void shell_surface_set_popup(wl_client* client, wl_resource* resource,
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
-void shell_surface_set_maximized(wl_client* client, wl_resource* resource,
+void shell_surface_set_maximized(wl_client* client,
+                                 wl_resource* resource,
                                  wl_resource* output_resource) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   shell_surface->window()->set_maximized(true);
 }
 
-void shell_surface_set_title(wl_client* client, wl_resource* resource,
+void shell_surface_set_title(wl_client* client,
+                             wl_resource* resource,
                              const char* title) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->window()->set_title(
       std::string(title));
 }
 
-void shell_surface_set_class(wl_client* client, wl_resource* resource,
+void shell_surface_set_class(wl_client* client,
+                             wl_resource* resource,
                              const char* clazz) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->window()->set_class(clazz);
@@ -487,7 +542,8 @@ void HandleShellSurfaceCloseCallback(wl_resource* resource) {
 }
 
 uint32_t HandleShellSurfaceConfigureCallback(wl_resource* resource,
-                                             int32_t width, int32_t height) {
+                                             int32_t width,
+                                             int32_t height) {
   TRACE();
   wl_shell_surface_send_configure(resource, WL_SHELL_SURFACE_RESIZE_NONE, width,
                                   height);
@@ -495,8 +551,10 @@ uint32_t HandleShellSurfaceConfigureCallback(wl_resource* resource,
   return 0;
 }
 
-void shell_get_shell_surface(wl_client* client, wl_resource* resource,
-                             uint32_t id, wl_resource* surface) {
+void shell_get_shell_surface(wl_client* client,
+                             wl_resource* resource,
+                             uint32_t id,
+                             wl_resource* surface) {
   TRACE();
   auto shell_surface = GetUserDataAs<Display>(resource)->CreateShellSurface(
       GetUserDataAs<Surface>(surface));
@@ -549,9 +607,8 @@ void pointer_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_pointer_interface pointer_implementation{
-    .release = pointer_release,
-    .set_cursor = pointer_set_cursor
+const struct wl_pointer_interface pointer_implementation {
+  .release = pointer_release, .set_cursor = pointer_set_cursor
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -561,8 +618,8 @@ void keyboard_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_keyboard_interface keyboard_implementation{
-    .release = keyboard_release
+const struct wl_keyboard_interface keyboard_implementation {
+  .release = keyboard_release
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -570,9 +627,8 @@ const struct wl_keyboard_interface keyboard_implementation{
 
 void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
   TRACE();
-  wl_resource* pointer_resource =
-      wl_resource_create(client, &wl_pointer_interface,
-                         wl_resource_get_version(resource), id);
+  wl_resource* pointer_resource = wl_resource_create(
+      client, &wl_pointer_interface, wl_resource_get_version(resource), id);
   auto pointer = std::make_unique<Pointer>(pointer_resource);
   SetImplementation(pointer_resource, &pointer_implementation,
                     std::move(pointer));
@@ -605,18 +661,17 @@ const struct wl_seat_interface seat_implementation = {
     .get_keyboard = seat_get_keyboard,
     .get_pointer = seat_get_pointer,
     .get_touch = seat_get_touch,
-    .release = seat_release
-};
+    .release = seat_release};
 
 void bind_seat(wl_client* client, void* data, uint32_t version, uint32_t id) {
   TRACE();
-  wl_resource* resource = wl_resource_create(
-      client, &wl_seat_interface, version, id);
+  wl_resource* resource =
+      wl_resource_create(client, &wl_seat_interface, version, id);
   wl_resource_set_implementation(resource, &seat_implementation, data, nullptr);
   wl_seat_send_name(resource, "seat0");
   // TODO: add keyboard
-  uint32_t capabilities = WL_SEAT_CAPABILITY_POINTER
-      | WL_SEAT_CAPABILITY_KEYBOARD;
+  uint32_t capabilities =
+      WL_SEAT_CAPABILITY_POINTER | WL_SEAT_CAPABILITY_KEYBOARD;
   wl_seat_send_capabilities(resource, capabilities);
 }
 
@@ -652,6 +707,7 @@ class WaylandOutput {
       wl_output_send_done(output_resource_);
     }
   }
+
  private:
   wl_resource* output_resource_;
 };
@@ -662,7 +718,6 @@ void bind_output(wl_client* client, void* data, uint32_t version, uint32_t id) {
       wl_resource_create(client, &wl_output_interface, version, id);
   SetImplementation(resource, nullptr,
                     std::make_unique<WaylandOutput>(resource));
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -673,39 +728,50 @@ void xdg_positioner_v6_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void xdg_positioner_v6_set_size(wl_client* client, wl_resource* resource,
-                                int32_t width, int32_t height) {
+void xdg_positioner_v6_set_size(wl_client* client,
+                                wl_resource* resource,
+                                int32_t width,
+                                int32_t height) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_positioner_v6_set_anchor_rect(wl_client* client, wl_resource* resource,
-                                       int32_t x, int32_t y, int32_t width,
+void xdg_positioner_v6_set_anchor_rect(wl_client* client,
+                                       wl_resource* resource,
+                                       int32_t x,
+                                       int32_t y,
+                                       int32_t width,
                                        int32_t height) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_positioner_v6_set_anchor(wl_client* client, wl_resource* resource,
+void xdg_positioner_v6_set_anchor(wl_client* client,
+                                  wl_resource* resource,
                                   uint32_t anchor) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_positioner_v6_set_gravity(wl_client* client, wl_resource* resource,
+void xdg_positioner_v6_set_gravity(wl_client* client,
+                                   wl_resource* resource,
                                    uint32_t gravity) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
 void xdg_positioner_v6_set_constraint_adjustment(
-    wl_client* client, wl_resource* resource, uint32_t constraint_adjustment) {
+    wl_client* client,
+    wl_resource* resource,
+    uint32_t constraint_adjustment) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_positioner_v6_set_offset(wl_client* client, wl_resource* resource,
-                                  int32_t x, int32_t y) {
+void xdg_positioner_v6_set_offset(wl_client* client,
+                                  wl_resource* resource,
+                                  int32_t x,
+                                  int32_t y) {
   TRACE();
   NOTIMPLEMENTED();
 }
@@ -727,7 +793,8 @@ void xdg_toplevel_v6_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void xdg_toplevel_v6_set_parent(wl_client* client, wl_resource* resource,
+void xdg_toplevel_v6_set_parent(wl_client* client,
+                                wl_resource* resource,
                                 wl_resource* parent) {
   TRACE();
   if (!parent) {
@@ -740,49 +807,62 @@ void xdg_toplevel_v6_set_parent(wl_client* client, wl_resource* resource,
         GetUserDataAs<ShellSurface>(parent)->window());
 }
 
-void xdg_toplevel_v6_set_title(wl_client* client, wl_resource* resource,
+void xdg_toplevel_v6_set_title(wl_client* client,
+                               wl_resource* resource,
                                const char* title) {
   TRACE("%s", title);
   GetUserDataAs<ShellSurface>(resource)->window()->set_title(
       std::string(title));
 }
 
-void xdg_toplevel_v6_set_app_id(wl_client* client, wl_resource* resource,
+void xdg_toplevel_v6_set_app_id(wl_client* client,
+                                wl_resource* resource,
                                 const char* app_id) {
   TRACE("%s", app_id);
   GetUserDataAs<ShellSurface>(resource)->window()->set_appid(
       std::string(app_id));
 }
 
-void xdg_toplevel_v6_show_window_menu(wl_client* client, wl_resource* resource,
-                                      wl_resource* seat, uint32_t serial,
-                                      int32_t x, int32_t y) {
+void xdg_toplevel_v6_show_window_menu(wl_client* client,
+                                      wl_resource* resource,
+                                      wl_resource* seat,
+                                      uint32_t serial,
+                                      int32_t x,
+                                      int32_t y) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_toplevel_v6_move(wl_client* client, wl_resource* resource,
-                          wl_resource* seat, uint32_t serial) {
+void xdg_toplevel_v6_move(wl_client* client,
+                          wl_resource* resource,
+                          wl_resource* seat,
+                          uint32_t serial) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->Move();
 }
 
-void xdg_toplevel_v6_resize(wl_client* client, wl_resource* resource,
-                            wl_resource* seat, uint32_t serial,
+void xdg_toplevel_v6_resize(wl_client* client,
+                            wl_resource* resource,
+                            wl_resource* seat,
+                            uint32_t serial,
                             uint32_t edges) {
   TRACE();
   // TODO: Implement resize.
   NOTIMPLEMENTED();
 }
 
-void xdg_toplevel_v6_set_max_size(wl_client* client, wl_resource* resource,
-                                  int32_t width, int32_t height) {
+void xdg_toplevel_v6_set_max_size(wl_client* client,
+                                  wl_resource* resource,
+                                  int32_t width,
+                                  int32_t height) {
   TRACE("maxsize: %d %d", width, height);
   NOTIMPLEMENTED();
 }
 
-void xdg_toplevel_v6_set_min_size(wl_client* client, wl_resource* resource,
-                                  int32_t width, int32_t height) {
+void xdg_toplevel_v6_set_min_size(wl_client* client,
+                                  wl_resource* resource,
+                                  int32_t width,
+                                  int32_t height) {
   TRACE("minsize: %d %d", width, height);
   NOTIMPLEMENTED();
 }
@@ -797,7 +877,8 @@ void xdg_toplevel_v6_unset_maximized(wl_client* client, wl_resource* resource) {
   GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(false);
 }
 
-void xdg_toplevel_v6_set_fullscreen(wl_client* client, wl_resource* resource,
+void xdg_toplevel_v6_set_fullscreen(wl_client* client,
+                                    wl_resource* resource,
                                     wl_resource* output) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(true);
@@ -839,14 +920,17 @@ void xdg_popup_v6_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void xdg_popup_v6_grab(wl_client* client, wl_resource* resource,
-                       wl_resource* seat, uint32_t serial) {
+void xdg_popup_v6_grab(wl_client* client,
+                       wl_resource* resource,
+                       wl_resource* seat,
+                       uint32_t serial) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
 const struct zxdg_popup_v6_interface xdg_popup_v6_implementation = {
-    .destroy = xdg_popup_v6_destroy, .grab = xdg_popup_v6_grab};
+    .destroy = xdg_popup_v6_destroy,
+    .grab = xdg_popup_v6_grab};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_surface_interface:
@@ -866,7 +950,8 @@ void AddXdgToplevelV6State(wl_array* states, zxdg_toplevel_v6_state state) {
 
 uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
                                               wl_resource* surface_resource,
-                                              int32_t width, int32_t height) {
+                                              int32_t width,
+                                              int32_t height) {
   TRACE("configure: %d %d", width, height);
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   wl_array states;
@@ -893,7 +978,8 @@ void xdg_surface_v6_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void xdg_surface_v6_get_toplevel(wl_client* client, wl_resource* resource,
+void xdg_surface_v6_get_toplevel(wl_client* client,
+                                 wl_resource* resource,
                                  uint32_t id) {
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
@@ -909,9 +995,9 @@ if (shell_surface->window()->IsManaged()) {
       wl_resource_create(client, &zxdg_toplevel_v6_interface, 1, id);
   shell_surface->set_close_callback(
       std::bind(&HandleXdgToplevelV6CloseCallback, resource));
-  shell_surface->set_configure_callback(std::bind(
-      &HandleXdgToplevelV6ConfigureCallback, xdg_toplevel_resource, resource,
-      std::placeholders::_1, std::placeholders::_2));
+  shell_surface->set_configure_callback(
+      std::bind(&HandleXdgToplevelV6ConfigureCallback, xdg_toplevel_resource,
+                resource, std::placeholders::_1, std::placeholders::_2));
   wl_resource_set_implementation(xdg_toplevel_resource,
                                  &xdg_toplevel_v6_implementation, shell_surface,
                                  nullptr);
@@ -925,8 +1011,10 @@ void HandleXdgPopupV6CloseCallback(wl_resource* resource) {
   wl_client_flush(wl_resource_get_client(resource));
 }
 
-void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
-                              uint32_t id, wl_resource* parent,
+void xdg_surface_v6_get_popup(wl_client* client,
+                              wl_resource* resource,
+                              uint32_t id,
+                              wl_resource* parent,
                               wl_resource* positioner) {
   TRACE();
   ShellSurface* shell_surface = GetUserDataAs<ShellSurface>(resource);
@@ -950,15 +1038,18 @@ void xdg_surface_v6_get_popup(wl_client* client, wl_resource* resource,
 }
 
 void xdg_surface_v6_set_window_geometry(wl_client* client,
-                                        wl_resource* resource, int32_t x,
-                                        int32_t y, int32_t width,
+                                        wl_resource* resource,
+                                        int32_t x,
+                                        int32_t y,
+                                        int32_t width,
                                         int32_t height) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->SetGeometry(
       base::geometry::Rect(x, y, width, height));
 }
 
-void xdg_surface_v6_ack_configure(wl_client* client, wl_resource* resource,
+void xdg_surface_v6_ack_configure(wl_client* client,
+                                  wl_resource* resource,
                                   uint32_t serial) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->AcknowledgeConfigure(serial);
@@ -979,7 +1070,8 @@ void xdg_shell_v6_destroy(wl_client* client, wl_resource* resource) {
   TRACE();
 }
 
-void xdg_shell_v6_create_positioner(wl_client* client, wl_resource* resource,
+void xdg_shell_v6_create_positioner(wl_client* client,
+                                    wl_resource* resource,
                                     uint32_t id) {
   TRACE();
   wl_resource* xdg_positioner_resource =
@@ -990,8 +1082,10 @@ void xdg_shell_v6_create_positioner(wl_client* client, wl_resource* resource,
                                  nullptr);
 }
 
-void xdg_shell_v6_get_xdg_surface(wl_client* client, wl_resource* resource,
-                                  uint32_t id, wl_resource* surface) {
+void xdg_shell_v6_get_xdg_surface(wl_client* client,
+                                  wl_resource* resource,
+                                  uint32_t id,
+                                  wl_resource* surface) {
   TRACE();
   std::unique_ptr<ShellSurface> shell_surface =
       GetUserDataAs<Display>(resource)->CreateShellSurface(
@@ -1013,7 +1107,8 @@ void xdg_shell_v6_get_xdg_surface(wl_client* client, wl_resource* resource,
                     std::move(shell_surface));
 }
 
-void xdg_shell_v6_pong(wl_client* client, wl_resource* resource,
+void xdg_shell_v6_pong(wl_client* client,
+                       wl_resource* resource,
                        uint32_t serial) {
   TRACE();
   NOTIMPLEMENTED();
@@ -1024,7 +1119,9 @@ const struct zxdg_shell_v6_interface xdg_shell_v6_implementation = {
     xdg_shell_v6_get_xdg_surface, xdg_shell_v6_pong};
 
 void bind_xdg_shell_v6(wl_client* client,
-                       void* data, uint32_t version, uint32_t id) {
+                       void* data,
+                       uint32_t version,
+                       uint32_t id) {
   TRACE();
   wl_resource* resource =
       wl_resource_create(client, &zxdg_shell_v6_interface, 1, id);
@@ -1083,8 +1180,8 @@ void data_device_manager_get_data_device(wl_client* client,
 
 const struct wl_data_device_manager_interface
     data_device_manager_implementation = {
-    data_device_manager_create_data_source,
-    data_device_manager_get_data_device};
+        data_device_manager_create_data_source,
+        data_device_manager_get_data_device};
 
 void bind_data_device_manager(wl_client* client,
                               void* data,
@@ -1101,32 +1198,22 @@ void bind_data_device_manager(wl_client* client,
 
 //////////////////////////////////////////////////////////////////////////////
 // Server
-Server::Server(Display* display)
-    : display_(display) {
+Server::Server(Display* display) : display_(display) {
   wl_display_ = wl_display_create();
   AddSocket();
-  wl_global_create(wl_display_,
-                   &wl_compositor_interface,
-                   3,
-                   display_,
+  wl_global_create(wl_display_, &wl_compositor_interface, 3, display_,
                    &bind_compositor);
-  wl_global_create(wl_display_,
-                   &wl_shm_interface,
-                   1,
-                   display_,
-                   &bind_shm);
+  wl_global_create(wl_display_, &wl_shm_interface, 1, display_, &bind_shm);
   wl_global_create(wl_display_, &wl_subcompositor_interface, 1, display_,
                    &bind_subcompositor);
-  wl_global_create(wl_display_, &wl_shell_interface, 1, display_,
-                   &bind_shell);
-  wl_global_create(wl_display_, &wl_output_interface, 1,
-                   display_, &bind_output);
+  wl_global_create(wl_display_, &wl_shell_interface, 1, display_, &bind_shell);
+  wl_global_create(wl_display_, &wl_output_interface, 1, display_,
+                   &bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
                    &bind_xdg_shell_v6);
-  wl_global_create(wl_display_, &wl_seat_interface, 1, display_,
-                   &bind_seat);
-  wl_global_create(wl_display_, &wl_data_device_manager_interface, 1,
-                   display_, bind_data_device_manager);
+  wl_global_create(wl_display_, &wl_seat_interface, 1, display_, &bind_seat);
+  wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
+                   bind_data_device_manager);
 }
 
 void Server::AddSocket() {

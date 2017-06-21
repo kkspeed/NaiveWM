@@ -17,13 +17,12 @@ class Compositor {
   static Compositor* Get();
 
   Compositor();
-  bool NeedToDraw();
   void Draw();
-
   void DrawPointer();
   void DrawWindowBorder(wm::Window* window);
   void DrawWindowRecursive(wm::Window* window,
-                           int32_t start_x, int32_t start_y);
+                           int32_t start_x,
+                           int32_t start_y);
 
  private:
   static Compositor* g_compositor;

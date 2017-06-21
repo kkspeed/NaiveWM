@@ -26,9 +26,7 @@ class Event {
     return (modifiers_ & event::KeyModifiers::CONTROL) != 0;
   }
 
-  bool alt_pressed() {
-    return (modifiers_ & event::KeyModifiers::ALT) != 0;
-  }
+  bool alt_pressed() { return (modifiers_ & event::KeyModifiers::ALT) != 0; }
 
   bool shift_pressed() {
     return (modifiers_ & event::KeyModifiers::SHIFT) != 0;
@@ -37,6 +35,7 @@ class Event {
   bool super_pressed() {
     return (modifiers_ & event::KeyModifiers::SUPER) != 0;
   }
+
  private:
   Window* window_;
   uint32_t time_;

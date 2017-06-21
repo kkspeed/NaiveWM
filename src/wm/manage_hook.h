@@ -13,7 +13,7 @@ class WMPrimitives;
 class Event;
 class MouseEvent;
 
-class ManageHook: public WmEventObserver {
+class ManageHook : public WmEventObserver {
  public:
   void WindowCreated(Window* window) override;
   void WindowDestroying(Window* window) override;
@@ -24,6 +24,7 @@ class ManageHook: public WmEventObserver {
   void set_wm_primitives(WMPrimitives* primitives) override {
     primitives_ = primitives;
   }
+
  private:
   int32_t width_ = 1280, height_ = 720;
   WMPrimitives* primitives_ = nullptr;

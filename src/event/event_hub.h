@@ -1,9 +1,9 @@
 #ifndef EVENT_EVENT_HUB_H_
 #define EVENT_EVENT_HUB_H_
 
+#include <libinput.h>
 #include <cstdint>
 #include <vector>
-#include <libinput.h>
 
 namespace naive {
 namespace event {
@@ -23,12 +23,18 @@ enum Leds {
 
 class EventObserver {
  public:
-  virtual void OnMouseButton(uint32_t button, bool down,
-                             uint32_t modifiers, Leds locks) = 0;
-  virtual void OnMouseMotion(float dx, float dy, uint32_t modifiers,
+  virtual void OnMouseButton(uint32_t button,
+                             bool down,
+                             uint32_t modifiers,
                              Leds locks) = 0;
-  virtual void OnKey(uint32_t keycode, uint32_t modifiers,
-                     bool key_down, Leds locks) = 0;
+  virtual void OnMouseMotion(float dx,
+                             float dy,
+                             uint32_t modifiers,
+                             Leds locks) = 0;
+  virtual void OnKey(uint32_t keycode,
+                     uint32_t modifiers,
+                     bool key_down,
+                     Leds locks) = 0;
 };
 
 // establishes a connection between libevent and window manager.

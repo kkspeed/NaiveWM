@@ -8,7 +8,8 @@ namespace compositor {
 
 class TextureDelegate {
  public:
-  virtual void Draw(int x, int y) = 0;
+  virtual void Draw(int x, int y, int patch_x, int patch_y,
+                    int width, int height) = 0;
   virtual ~TextureDelegate() = default;
 };
 

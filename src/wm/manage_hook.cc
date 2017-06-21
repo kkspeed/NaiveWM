@@ -49,7 +49,7 @@ void ManageHook::WindowDestroyed(Window* window) {
               width_, height_);
 }
 
-bool ManageHook::OnKey(Event* event) {
+bool ManageHook::OnKey(KeyboardEvent* event) {
   return false;
 }
 
@@ -57,7 +57,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   if (event->type() == MouseEventType::MouseButtonDown &&
     event->window() && event->window() != primitives_->focused_window()) {
     primitives_->FocusWindow(event->window());
-    return true;
+    // return true;
   }
   return false;
 }

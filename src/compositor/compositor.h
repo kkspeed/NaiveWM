@@ -1,6 +1,8 @@
 #ifndef COMPOSITOR_COMPOSITOR_H_
 #define COMPOSITOR_COMPOSITOR_H_
 
+#include <cstdint>
+
 namespace naive {
 
 namespace wm {
@@ -20,7 +22,8 @@ class Compositor {
 
   void DrawPointer();
   void DrawWindowBorder(wm::Window* window);
-  void DrawWindowRecursive(wm::Window* window);
+  void DrawWindowRecursive(wm::Window* window,
+                           int32_t start_x, int32_t start_y);
 
  private:
   static Compositor* g_compositor;

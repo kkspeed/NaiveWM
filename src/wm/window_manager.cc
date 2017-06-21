@@ -24,8 +24,16 @@ Window* FindMouseEventTargetChildWindow(Window* root,
        iter != root->children().rend();
        iter++) {
     Window* current = *iter;
+    LOG_ERROR << "Child: Testing " << current->geometry().x() << " "
+              << current->geometry().y() << " "
+              << current->geometry().width() << " "
+              << current->geometry().height() << " "
+              << " for point " << x << " " << y << std::endl;
     if (current->geometry().ContainsPoint(x, y))
-      return FindMouseEventTargetChildWindow(current, x, y);
+      return FindMouseEventTargetChildWindow(
+          current,
+          x - current->geometry().x(),
+          y - current->geometry().y());
   }
   return candidate;
 }
@@ -199,7 +207,8 @@ Window* WindowManager::FindMouseEventTarget() {
               << rect.width() << " " << rect.height() << " for "
               << mouse_x << " " << mouse_y << std::endl;
     if (rect.ContainsPoint(mouse_x, mouse_y))
-      return FindMouseEventTargetChildWindow(*iter, mouse_x, mouse_y);
+      return FindMouseEventTargetChildWindow(*iter, mouse_x - rect.x_,
+                                             mouse_y - rect.y_);
   }
   return nullptr;
 }
@@ -225,9 +234,11 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
     }
     // TODO: this is dirty.. try a different approach!
     // Finally, window has a transformation
-    coord_x -= window_path[0]->wm_x();
-    coord_y -= window_path[0]->wm_y();
+    coord_x -= window_path.back()->wm_x();
+    coord_y -= window_path.back()->wm_y();
     event->set_coordinates(coord_x, coord_y);
+    LOG_ERROR << " dispatch final coords: " << coord_x << " " << coord_y
+              << std::endl;
     for (auto mouse_observer: mouse_observers_)
       mouse_observer->OnMouseEvent(event.get());
 

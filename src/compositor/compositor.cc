@@ -402,7 +402,7 @@ void Compositor::Draw() {
   glLoadIdentity();
 
   for (auto* window : wm::WindowManager::Get()->windows()) {
-    DrawWindowRecursive(window);
+    DrawWindowRecursive(window, window->wm_x(), window->wm_y());
     DrawWindowBorder(window);
   }
 
@@ -411,14 +411,17 @@ void Compositor::Draw() {
   finalize_draw();
 }
 
-void Compositor::DrawWindowRecursive(wm::Window* window) {
+void Compositor::DrawWindowRecursive(wm::Window* window,
+                                     int32_t start_x,
+                                     int32_t start_y) {
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
     if (!window->surface()->has_commit()
         && window->surface()->cached_texture()) {
-      window->surface()->cached_texture()->Draw(window->wm_x(),
-                                                window->wm_y());
+      window->surface()->cached_texture()
+          ->Draw(start_x + window->geometry().x(),
+                 start_y + window->geometry().y());
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
@@ -426,7 +429,8 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
             buffer->width(), buffer->height(), buffer->format(),
             buffer->data());
         // TODO: We shouldn't create texture each time.
-        texture->Draw(window->wm_x(), window->wm_y());
+        texture->Draw(start_x + window->geometry().x(),
+                      start_y + window->geometry().y());
         window->surface()->cache_texture(std::move(texture));
       }
       window->surface()->clear_commit();
@@ -435,7 +439,9 @@ void Compositor::DrawWindowRecursive(wm::Window* window) {
 
   for (auto* child: window->children()) {
     // TODO: Child widget coordinates might not be alright
-    DrawWindowRecursive(child);
+    DrawWindowRecursive(child,
+                        start_x + window->geometry().x(),
+                        start_y + window->geometry().y());
   }
 }
 

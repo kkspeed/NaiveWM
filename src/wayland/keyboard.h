@@ -20,6 +20,7 @@ class Keyboard: public wm::KeyboardObserver,
 
   // KeyboardObserver overrides
   void OnKey(wm::KeyboardEvent* key_event) override;
+  void OnFocus(wm::Window* wincow) override;
 
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface) override;

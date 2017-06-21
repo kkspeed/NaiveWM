@@ -44,6 +44,7 @@ void Keyboard::SendLayout() {
                     0);
   // TODO: call mumap somewhere?
   memcpy(area, keymap_string, keymap_length);
+  munmap(area, keymap_length);
   wl_keyboard_send_keymap(resource_, XKB_KEYMAP_FORMAT_TEXT_V1,
                           fd, keymap_length);
   shm_unlink("keymap");
@@ -53,6 +54,28 @@ void Keyboard::SendLayout() {
 bool Keyboard::CanReceiveEvent(Surface* surface) {
   return wl_resource_get_client(resource_) ==
       wl_resource_get_client(surface->resource());
+}
+
+void Keyboard::OnFocus(wm::Window* window) {
+  if (window && window->surface() != target_
+      && CanReceiveEvent(window->surface())) {
+    if (target_)
+      wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
+    target_ = window->surface();
+    wl_array keys;
+    wl_array_init(&keys);
+    for (auto key : pressed_keys_) {
+      uint32_t* value = static_cast<uint32_t*>(
+          wl_array_add(&keys, sizeof(uint32_t)));
+      *value = key;
+    }
+    wl_keyboard_send_enter(resource_,
+                           next_serial(),
+                           target_->resource(),
+                           &keys);
+    wl_array_release(&keys);
+    return;
+  }
 }
 
 void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
@@ -78,7 +101,6 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
           wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
-    // TODO: Keys!
     wl_keyboard_send_enter(resource_,
                            next_serial(),
                            target_->resource(),

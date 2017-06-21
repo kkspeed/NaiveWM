@@ -268,8 +268,11 @@ void WindowManager::FocusWindow(Window* window) {
     if (focused_window_)
       focused_window_->LoseFocus();
     focused_window_ = *iter;
-    if (focused_window_)
+    if (focused_window_) {
       focused_window_->TakeFocus();
+      for (auto observer: keyboard_observers_)
+        observer->OnFocus(focused_window_);
+    }
     return;
   }
 

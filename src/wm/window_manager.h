@@ -22,6 +22,7 @@ class MouseObserver {
 
 class KeyboardObserver {
  public:
+  virtual void OnFocus(Window* window) = 0;
   virtual void OnKey(KeyboardEvent* event) = 0;
 };
 

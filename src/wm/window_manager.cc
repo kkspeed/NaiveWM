@@ -183,8 +183,8 @@ Window* WindowManager::FindMouseEventTarget() {
   // We append the focused window to the back of this list for highest priority.
   // during event dispatching.
   std::vector<Window*> temporary_windows(windows_);
-  if (focused_window_)
-    temporary_windows.push_back(focused_window_);
+  // if (focused_window_)
+  //  temporary_windows.push_back(focused_window_);
   for (auto iter = temporary_windows.rbegin(); iter != temporary_windows.rend();
        iter++) {
     auto rect = base::geometry::Rect((*iter)->geometry());

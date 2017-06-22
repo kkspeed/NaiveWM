@@ -12,7 +12,7 @@ Surface::Surface() : window_(std::make_unique<wm::Window>()) {
 }
 
 void Surface::Attach(Buffer* buffer) {
-  LOG_ERROR << "Surface::Attach " << buffer << std::endl;
+  LOG_ERROR << "Surface::Attach " << buffer << " to window " << window() << std::endl;
   if (buffer) {
     buffer->SetOwningSurface(this);
     window_->SetGeometry(base::geometry::Rect(window_->geometry().x(),
@@ -47,6 +47,8 @@ void Surface::Commit() {
   if (state_.buffer && state_.buffer->data()) {
     state_.buffer->CopyLocal();
     state_.buffer->Release();
+  } else {
+    LOG_ERROR << "window: " << window() << " does not have buffer" << std::endl;
   }
   has_commit_ = true;
 

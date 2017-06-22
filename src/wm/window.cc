@@ -131,6 +131,7 @@ void Window::TakeFocus() {
     return;
   }
 
+  // TODO: Revisit focus!
   if (is_popup() || is_transient())
     return;
 

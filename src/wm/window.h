@@ -104,7 +104,7 @@ class Window : public SurfaceObserver {
   Window* parent_;
   Surface* surface_;
   ShellSurface* shell_surface_;
-  int32_t wm_x_, wm_y_;
+  int32_t wm_x_ = 0, wm_y_ = 0;
 };
 
 }  // namespace wm

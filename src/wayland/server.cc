@@ -30,24 +30,24 @@ namespace wayland {
 
 namespace {
 
-template <class T>
+template<class T>
 T* GetUserDataAs(wl_resource* resource) {
   return static_cast<T*>(wl_resource_get_user_data(resource));
 }
 
-template <class T>
+template<class T>
 std::unique_ptr<T> TakeUserDataAs(wl_resource* resource) {
   std::unique_ptr<T> user_data = std::unique_ptr<T>(GetUserDataAs<T>(resource));
   wl_resource_set_user_data(resource, nullptr);
   return user_data;
 }
 
-template <class T>
+template<class T>
 void DestroyUserData(wl_resource* resource) {
   TakeUserDataAs<T>(resource);
 }
 
-template <class T>
+template<class T>
 void SetImplementation(wl_resource* resource,
                        const void* implementation,
                        std::unique_ptr<T> user_data) {
@@ -369,10 +369,10 @@ void subsurface_set_desync(wl_client* client, wl_resource* resource) {
   GetUserDataAs<SubSurface>(resource)->SetCommitBehavior(false);
 }
 
-const struct wl_subsurface_interface subsurface_implementation {
-  .destroy = subsurface_destroy, .set_position = subsurface_set_position,
-  .place_above = subsurface_place_above, .place_below = subsurface_place_below,
-  .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
+const struct wl_subsurface_interface subsurface_implementation{
+    .destroy = subsurface_destroy, .set_position = subsurface_set_position,
+    .place_above = subsurface_place_above, .place_below = subsurface_place_below,
+    .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -607,8 +607,8 @@ void pointer_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_pointer_interface pointer_implementation {
-  .release = pointer_release, .set_cursor = pointer_set_cursor
+const struct wl_pointer_interface pointer_implementation{
+    .release = pointer_release, .set_cursor = pointer_set_cursor
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -618,8 +618,8 @@ void keyboard_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_keyboard_interface keyboard_implementation {
-  .release = keyboard_release
+const struct wl_keyboard_interface keyboard_implementation{
+    .release = keyboard_release
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -723,6 +723,46 @@ void bind_output(wl_client* client, void* data, uint32_t version, uint32_t id) {
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_positioner_interface:
 
+class XdgPositioner {
+ public:
+  XdgPositioner()
+      : width_(0), height_(0), x_(0), y_(0),
+        anchor_rect_(base::geometry::Rect(0, 0, 0, 0)),
+        constraint_adjustment_(0), anchor_(0), gravity_(0) {}
+
+  base::geometry::Rect bounds() {
+    base::geometry::Rect
+        result(anchor_rect_.x() + x_, anchor_rect_.y() + y_, width_, height_);
+    if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_RIGHT)
+      result.y_ += anchor_rect_.width();
+    if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_BOTTOM)
+      result.y_ += anchor_rect_.height();
+    return result;
+  }
+
+  base::geometry::Rect anchor_rect() {
+    return anchor_rect_;
+  }
+  uint32_t anchor() { return anchor_; }
+  void set_offset(int32_t x, int32_t y) {
+    x_ = x;
+    y_ = y;
+  }
+  void set_size(int32_t width, int32_t height) {
+    width_ = width;
+    height_ = height;
+  }
+  void set_anchor_rect(base::geometry::Rect rect) { anchor_rect_ = rect; }
+  void set_anchor(uint32_t anchor) { anchor_ = anchor; }
+  void set_constraint_adjustment(uint32_t c) { constraint_adjustment_ = c; }
+  void set_gravity(uint32_t gravity) { gravity_ = gravity; }
+ private:
+  int32_t width_, height_, x_, y_;
+  base::geometry::Rect anchor_rect_;
+  uint32_t constraint_adjustment_;
+  uint32_t anchor_, gravity_;
+};
+
 void xdg_positioner_v6_destroy(wl_client* client, wl_resource* resource) {
   TRACE();
   wl_resource_destroy(resource);
@@ -733,7 +773,8 @@ void xdg_positioner_v6_set_size(wl_client* client,
                                 int32_t width,
                                 int32_t height) {
   TRACE();
-  NOTIMPLEMENTED();
+  auto* positioner = GetUserDataAs<XdgPositioner>(resource);
+  positioner->set_size(width, height);
 }
 
 void xdg_positioner_v6_set_anchor_rect(wl_client* client,
@@ -743,21 +784,22 @@ void xdg_positioner_v6_set_anchor_rect(wl_client* client,
                                        int32_t width,
                                        int32_t height) {
   TRACE();
-  NOTIMPLEMENTED();
+  GetUserDataAs<XdgPositioner>(resource)->set_anchor_rect(
+      base::geometry::Rect(x, y, width, height));
 }
 
 void xdg_positioner_v6_set_anchor(wl_client* client,
                                   wl_resource* resource,
                                   uint32_t anchor) {
   TRACE();
-  NOTIMPLEMENTED();
+  GetUserDataAs<XdgPositioner>(resource)->set_anchor(anchor);
 }
 
 void xdg_positioner_v6_set_gravity(wl_client* client,
                                    wl_resource* resource,
                                    uint32_t gravity) {
   TRACE();
-  NOTIMPLEMENTED();
+  GetUserDataAs<XdgPositioner>(resource)->set_gravity(gravity);
 }
 
 void xdg_positioner_v6_set_constraint_adjustment(
@@ -765,7 +807,8 @@ void xdg_positioner_v6_set_constraint_adjustment(
     wl_resource* resource,
     uint32_t constraint_adjustment) {
   TRACE();
-  NOTIMPLEMENTED();
+  GetUserDataAs<XdgPositioner>(resource)
+      ->set_constraint_adjustment(constraint_adjustment);
 }
 
 void xdg_positioner_v6_set_offset(wl_client* client,
@@ -773,7 +816,7 @@ void xdg_positioner_v6_set_offset(wl_client* client,
                                   int32_t x,
                                   int32_t y) {
   TRACE();
-  NOTIMPLEMENTED();
+  GetUserDataAs<XdgPositioner>(resource)->set_offset(x, y);
 }
 
 const struct zxdg_positioner_v6_interface xdg_positioner_v6_implementation = {
@@ -925,6 +968,9 @@ void xdg_popup_v6_grab(wl_client* client,
                        wl_resource* seat,
                        uint32_t serial) {
   TRACE();
+  zxdg_surface_v6_send_configure(resource, serial);
+  zxdg_shell_v6_send_ping(resource, serial);
+  // zxdg_popup_v6_send_configure(resource, 0, 0, 300, 300);
   NOTIMPLEMENTED();
 }
 
@@ -1018,14 +1064,18 @@ void xdg_surface_v6_get_popup(wl_client* client,
                               wl_resource* positioner) {
   TRACE();
   ShellSurface* shell_surface = GetUserDataAs<ShellSurface>(resource);
-  if (shell_surface->window()->IsManaged()) {
-    /*
-    wl_resource_post_error(resource, ZXDG_SURFACE_V6_ERROR_ALREADY_CONSTRUCTED,
-                           "surface has already been constructed");*/
-    return;
-  }
+  zxdg_surface_v6_send_configure(
+      resource,
+      wl_display_next_serial(wl_client_get_display(client)));
 
-  shell_surface->window()->set_popup(true);
+  /*
+if (!shell_surface->window()->IsManaged()) {
+  wl_resource_post_error(resource, ZXDG_SURFACE_V6_ERROR_ALREADY_CONSTRUCTED,
+                         "surface has already been constructed");
+    return;
+  }*/
+
+  // shell_surface->window()->set_popup(true);
   wl_resource* xdg_popup_resource =
       wl_resource_create(client, &zxdg_popup_v6_interface, 1, id);
 
@@ -1034,6 +1084,20 @@ void xdg_surface_v6_get_popup(wl_client* client,
 
   wl_resource_set_implementation(
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);
+  auto* xdg_positioner = GetUserDataAs<XdgPositioner>(positioner);
+  auto bounds = xdg_positioner->bounds();
+  shell_surface->SetGeometry(xdg_positioner->bounds());
+
+  ShellSurface* parent_surface = GetUserDataAs<ShellSurface>(parent);
+  auto parent_bounds = parent_surface->window()->geometry();
+  shell_surface->window()->WmSetPosition(parent_bounds.x() + bounds.x(),
+                                         parent_bounds.y() + bounds.y());
+  zxdg_popup_v6_send_configure(
+      xdg_popup_resource,
+      parent_bounds.x() + bounds.x(),
+      parent_bounds.y() + bounds.y(), bounds.width(),
+      bounds.height());
+  shell_surface->window()->set_popup(true);
   wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -1077,9 +1141,8 @@ void xdg_shell_v6_create_positioner(wl_client* client,
   wl_resource* xdg_positioner_resource =
       wl_resource_create(client, &zxdg_positioner_v6_interface, 1, id);
 
-  wl_resource_set_implementation(xdg_positioner_resource,
-                                 &xdg_positioner_v6_implementation, nullptr,
-                                 nullptr);
+  SetImplementation(xdg_positioner_resource, &xdg_positioner_v6_implementation,
+                    std::make_unique<XdgPositioner>());
 }
 
 void xdg_shell_v6_get_xdg_surface(wl_client* client,
@@ -1180,8 +1243,8 @@ void data_device_manager_get_data_device(wl_client* client,
 
 const struct wl_data_device_manager_interface
     data_device_manager_implementation = {
-        data_device_manager_create_data_source,
-        data_device_manager_get_data_device};
+    data_device_manager_create_data_source,
+    data_device_manager_get_data_device};
 
 void bind_data_device_manager(wl_client* client,
                               void* data,

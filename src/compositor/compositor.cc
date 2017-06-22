@@ -453,6 +453,7 @@ void Compositor::Draw() {
 void Compositor::DrawWindowRecursive(wm::Window* window,
                                      int32_t start_x,
                                      int32_t start_y) {
+  TRACE("Drawing Window: %p at %d %d", window, start_x, start_y);
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();

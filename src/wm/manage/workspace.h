@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "base/macros.h"
+#include "base/geometry.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -16,8 +17,13 @@ class ManageWindow {
  public:
   explicit ManageWindow(Window* window, WMPrimitives* primitives);
 
+  bool is_floating() { return is_floating_; }
   Window* window() { return window_; }
   void Show(bool show) { window_->set_visible(show); }
+  void MoveResize(int32_t x, int32_t y, int32_t width, int32_t height) {
+    primitives_->MoveResizeWindow(
+        window_, base::geometry::Rect(x, y, width, height));
+  }
 
  private:
   Window* window_;
@@ -38,7 +44,7 @@ class Workspace {
   ManageWindow* PrevWindow();
   void Show(bool show);
   void SetCurrentWindow(Window* window);
-  void ArrangeWindows();
+  void ArrangeWindows(int32_t width, int32_t height);
   bool HasWindow(Window* window);
   uint32_t tag() { return tag_; }
 

@@ -25,7 +25,7 @@ void ManageHook::WindowCreated(Window* window) {
   auto* workspace = current_workspace();
   workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
-  workspace->ArrangeWindows();
+  workspace->ArrangeWindows(width_, height_);
 }
 
 void ManageHook::WindowDestroying(Window* window) {
@@ -36,7 +36,8 @@ void ManageHook::WindowDestroying(Window* window) {
       if (workspace.tag() == current_workspace_) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);
-        workspace.ArrangeWindows();
+        // TODO: maybe pass this to workspace and coords for multiscreen?
+        workspace.ArrangeWindows(width_, height_);
       }
       break;
     }
@@ -93,7 +94,7 @@ void ManageHook::SelectTag(size_t tag) {
   current_workspace()->Show(false);
   current_workspace_ = tag;
   current_workspace()->Show(true);
-  current_workspace()->ArrangeWindows();
+  current_workspace()->ArrangeWindows(width_, height_);
   auto* manage_window = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(manage_window ? manage_window->window() : nullptr);
 }
@@ -105,7 +106,7 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   assert(manage_window);
   manage_window->Show(false);
   workspaces_[tag].AddWindow(std::move(manage_window));
-  current_workspace()->ArrangeWindows();
+  current_workspace()->ArrangeWindows(width_, height_);
   auto* current_window = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(current_window ? current_window->window() : nullptr);
 }

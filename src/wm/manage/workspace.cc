@@ -1,10 +1,40 @@
 #include "wm/manage/workspace.h"
 
 #include <algorithm>
+#include <deque>
 #include <cassert>
 
 namespace naive {
 namespace wm {
+
+namespace {
+
+void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
+                               int32_t x, int32_t y,
+                               int32_t width, int32_t height,
+                               bool horizontal) {
+  if (candidates.size() == 0)
+    return;
+
+  if (candidates.size() == 1) {
+    candidates.front()->MoveResize(x, y, width, height);
+    return;
+  }
+
+  ManageWindow* front = candidates.front();
+  candidates.pop_front();
+  if (horizontal) {
+    front->MoveResize(x, y, width / 2, height);
+    ArrangeNonFloatingWindows(candidates, x + width / 2, y, width / 2, height,
+                              !horizontal);
+  } else {
+    front->MoveResize(x, y, width, height / 2);
+    ArrangeNonFloatingWindows(candidates, x, y + height / 2, width, height / 2,
+                              !horizontal);
+  }
+}
+
+}  // namespace
 
 ManageWindow::ManageWindow(Window* window, WMPrimitives* primitives)
   : window_(window), primitives_(primitives),
@@ -14,6 +44,7 @@ Workspace::Workspace(uint32_t tag): tag_(tag) {}
 
 void Workspace::AddWindow(std::unique_ptr<ManageWindow> window) {
   windows_.push_back(std::move(window));
+  current_window_ = windows_.size() - 1;
 }
 
 ManageWindow* Workspace::CurrentWindow() {
@@ -68,8 +99,21 @@ void Workspace::SetCurrentWindow(Window* window) {
   }
 }
 
-void Workspace::ArrangeWindows() {
-  // TODO: Tile
+void Workspace::ArrangeWindows(int32_t width, int32_t height) {
+  std::vector<ManageWindow*> floating_windows;
+  std::deque<ManageWindow*> normal_windows;
+
+  for (auto& mw : windows_) {
+    if (mw->is_floating())
+      floating_windows.push_back(mw.get());
+    else
+      normal_windows.push_back(mw.get());
+  }
+
+  ArrangeNonFloatingWindows(normal_windows, 0, 0, width, height, true);
+
+  for (auto* window : floating_windows)
+    window->window()->Raise();
 }
 
 bool Workspace::HasWindow(Window* window) {

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <sys/mman.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
@@ -16,8 +17,10 @@ namespace wayland {
 class ShmPool {
  public:
   ShmPool(uint32_t size, void* data) : size_(size), data_(data) {}
+  ~ShmPool() { munmap(data_, size_); }
   uint32_t size() { return size_; }
   void* data() { return data_; }
+  void set_data(void* data, uint32_t size) { data_ = data; size_ = size; }
 
  private:
   uint32_t size_;
@@ -27,7 +30,8 @@ class ShmPool {
 class SharedMemory {
  public:
   explicit SharedMemory(int fd, uint32_t size);
-  ~SharedMemory() { TRACE(); }
+  ~SharedMemory();
+
   void Resize(uint32_t size);
   std::unique_ptr<Buffer> CreateBuffer(int32_t width,
                                        int32_t height,

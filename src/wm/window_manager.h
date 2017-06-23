@@ -36,6 +36,7 @@ class WMPrimitives {
   virtual void FocusWindow(Window* window) = 0;
   virtual void MoveResizeWindow(Window* window,
                                 base::geometry::Rect resize) = 0;
+  virtual void RaiseWindow(Window* window) = 0;
 };
 
 class WmEventObserver {
@@ -90,6 +91,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   Window* PreviousWindow(Window* window) override;
   void MoveResizeWindow(Window* window, base::geometry::Rect resize) override;
   void FocusWindow(Window* window) override;
+  void RaiseWindow(Window* window) override;
 
  private:
   static WindowManager* g_window_manager;

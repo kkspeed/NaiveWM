@@ -41,6 +41,8 @@ class Window : public SurfaceObserver {
   // SurfaceObserver overrides
   void OnCommit() override;
 
+  void Raise();
+
   Surface* surface() { return surface_; }
   void set_surface(Surface* surface) {
     LOG_ERROR << "Set Surface " << surface << std::endl;

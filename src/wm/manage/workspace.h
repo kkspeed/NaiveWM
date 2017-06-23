@@ -7,19 +7,22 @@
 
 #include "base/macros.h"
 #include "wm/window.h"
+#include "wm/window_manager.h"
 
 namespace naive {
 namespace wm {
 
 class ManageWindow {
  public:
-  explicit ManageWindow(Window* window);
+  explicit ManageWindow(Window* window, WMPrimitives* primitives);
 
   Window* window() { return window_; }
   void Show(bool show) { window_->set_visible(show); }
 
  private:
   Window* window_;
+  WMPrimitives* primitives_;
+  bool is_floating_;
 
   DISALLOW_COPY_AND_ASSIGN(ManageWindow);
 };

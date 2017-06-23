@@ -142,6 +142,11 @@ void Window::TakeFocus() {
   }
 }
 
+void Window::Raise() {
+  auto* window_manager = wm::WindowManager::Get();
+  window_manager->RaiseWindow(this);
+}
+
 void Window::Close() {
   if (!shell_surface_) {
     LOG_ERROR << " only shell surface can call close." << std::endl;

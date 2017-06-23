@@ -288,5 +288,13 @@ void WindowManager::MoveResizeWindow(Window* window,
   window->WmSetSize(resize.width(), resize.height());
 }
 
+void WindowManager::RaiseWindow(Window* window) {
+  auto it = std::find(windows_.begin(), windows_.end(), window);
+  if (it != windows_.end()) {
+    windows_.erase(it);
+    windows_.push_back(window);
+  }
+}
+
 }  // namespace wm
 }  // namespace naive

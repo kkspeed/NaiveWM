@@ -23,7 +23,7 @@ ManageHook::ManageHook() {
 void ManageHook::WindowCreated(Window* window) {
   TRACE();
   auto* workspace = current_workspace();
-  workspace->AddWindow(std::make_unique<ManageWindow>(window));
+  workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
   workspace->ArrangeWindows();
 }

@@ -36,7 +36,13 @@ class Window : public SurfaceObserver {
   void set_class(std::string clazz) { clazz_ = clazz; }
   void set_appid(std::string app_id) { app_id_ = app_id; }
   void set_popup(bool popup) { is_popup_ = popup; }
-  void set_visible(bool visible) { visible_ = visible; }
+  void set_visible(bool visible) {
+    if (parent_ != nullptr) {
+      TRACE("ERROR: shouldn't set visibility on non toplevel surface!");
+      return;
+    }
+    visible_ = visible;
+  }
 
   // SurfaceObserver overrides
   void OnCommit() override;

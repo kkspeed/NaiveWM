@@ -38,13 +38,13 @@ class Workspace {
   ManageWindow* PrevWindow();
   void Show(bool show);
   void SetCurrentWindow(Window* window);
-  void OnWindowDestroyed(Window* window);
   void ArrangeWindows();
   bool HasWindow(Window* window);
   uint32_t tag() { return tag_; }
 
  private:
   uint32_t tag_ = 0;
+  size_t current_window_ = 0;
   std::vector<std::unique_ptr<ManageWindow>> windows_;
 };
 

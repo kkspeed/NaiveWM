@@ -437,6 +437,8 @@ void Compositor::Draw() {
   std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
   if (!committed_windows.empty() || draw_forced_) {
     glLoadIdentity();
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 1.0, 1.0);
     for (auto* window : wm::WindowManager::Get()->windows()) {
       if (window->is_visible()) {
         DrawWindowRecursive(window, window->wm_x(), window->wm_y());

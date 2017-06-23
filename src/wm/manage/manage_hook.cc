@@ -49,9 +49,10 @@ void ManageHook::WindowDestroyed(Window* window) {
 }
 
 bool ManageHook::OnKey(KeyboardEvent* event) {
-  if (!event->pressed() && event->super_pressed()
+  if (event->super_pressed()
       && event->keycode() == KEY_T) {
-    base::LaunchProgram("lxterminal", {});
+    if (!event->pressed())
+      base::LaunchProgram("lxterminal", {});
     return true;
   }
   if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
@@ -59,16 +60,41 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     exit(0);
   }
 
-  if (!event->pressed() && event->super_pressed() &&
+  if (event->super_pressed() &&
       event->keycode() >= KEY_1 && event->keycode() <= KEY_9) {
+    if (event->pressed()) return true;
     size_t tag = event->keycode() - KEY_1;
     if (event->shift_pressed()) {
       ManageWindow* current = current_workspace()->CurrentWindow();
       if (current)
         MoveWindowToTag(current->window(), tag);
+      current = current_workspace()->CurrentWindow();
+      primitives_->FocusWindow(current ? current->window() : nullptr);
       return true;
     }
     SelectTag(tag);
+    return true;
+  }
+
+  if (event->super_pressed() && event->keycode() == KEY_J) {
+    if (event->pressed()) return true;
+    auto* next = current_workspace()->NextWindow();
+    primitives_->FocusWindow(next ? next->window() : nullptr);
+    return true;
+  }
+
+  if (event->super_pressed() && event->keycode() == KEY_K) {
+    if (event->pressed()) return true;
+    auto* prev = current_workspace()->PrevWindow();
+    primitives_->FocusWindow(prev ? prev->window() : nullptr);
+    return true;
+  }
+
+  if (event->super_pressed() && event->keycode() == KEY_F4) {
+    if (event->pressed()) return true;
+    auto* current = current_workspace()->CurrentWindow();
+    if (current)
+      current->window()->Close();
     return true;
   }
 
@@ -94,9 +120,9 @@ void ManageHook::SelectTag(size_t tag) {
   current_workspace()->Show(false);
   current_workspace_ = tag;
   current_workspace()->Show(true);
-  current_workspace()->ArrangeWindows(width_, height_);
   auto* manage_window = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(manage_window ? manage_window->window() : nullptr);
+  current_workspace()->ArrangeWindows(width_, height_);
 }
 
 void ManageHook::MoveWindowToTag(Window* window, size_t tag) {

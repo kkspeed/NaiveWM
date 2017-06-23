@@ -104,10 +104,12 @@ void Workspace::ArrangeWindows(int32_t width, int32_t height) {
   std::deque<ManageWindow*> normal_windows;
 
   for (auto& mw : windows_) {
-    if (mw->is_floating())
-      floating_windows.push_back(mw.get());
-    else
-      normal_windows.push_back(mw.get());
+    if (mw->window()->is_visible()) {
+      if (mw->is_floating())
+        floating_windows.push_back(mw.get());
+      else
+        normal_windows.push_back(mw.get());
+    }
   }
 
   ArrangeNonFloatingWindows(normal_windows, 0, 0, width, height, true);

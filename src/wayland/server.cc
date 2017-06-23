@@ -984,7 +984,6 @@ const struct zxdg_popup_v6_interface xdg_popup_v6_implementation = {
 void HandleXdgToplevelV6CloseCallback(wl_resource* resource) {
   TRACE();
   zxdg_toplevel_v6_send_close(resource);
-  wl_client_flush(wl_resource_get_client(resource));
 }
 
 void AddXdgToplevelV6State(wl_array* states, zxdg_toplevel_v6_state state) {
@@ -1040,7 +1039,7 @@ if (shell_surface->window()->IsManaged()) {
   wl_resource* xdg_toplevel_resource =
       wl_resource_create(client, &zxdg_toplevel_v6_interface, 1, id);
   shell_surface->set_close_callback(
-      std::bind(&HandleXdgToplevelV6CloseCallback, resource));
+      std::bind(&HandleXdgToplevelV6CloseCallback, xdg_toplevel_resource));
   shell_surface->set_configure_callback(
       std::bind(&HandleXdgToplevelV6ConfigureCallback, xdg_toplevel_resource,
                 resource, std::placeholders::_1, std::placeholders::_2));

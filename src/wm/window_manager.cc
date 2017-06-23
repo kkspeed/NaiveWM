@@ -284,7 +284,8 @@ void WindowManager::FocusWindow(Window* window) {
 
 void WindowManager::MoveResizeWindow(Window* window,
                                      base::geometry::Rect resize) {
-  window->SetPosition(resize.x(), resize.y());
+  // window->SetPosition(resize.x(), resize.y());
+  window->WmSetPosition(resize.x(), resize.y());
   window->WmSetSize(resize.width(), resize.height());
 }
 

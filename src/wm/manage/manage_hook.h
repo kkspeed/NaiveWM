@@ -1,8 +1,10 @@
-#ifndef MANAGE_HOOK_H_
-#define MANAGE_HOOK_H_
+#ifndef WM_MANAGE_MANAGE_HOOK_H_
+#define WM_MANAGE_MANAGE_HOOK_H_
 
 #include <cstdint>
+#include <vector>
 
+#include "wm/manage/workspace.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -15,6 +17,8 @@ class MouseEvent;
 
 class ManageHook : public WmEventObserver {
  public:
+  explicit ManageHook();
+
   void WindowCreated(Window* window) override;
   void WindowDestroying(Window* window) override;
   void WindowDestroyed(Window* window) override;
@@ -25,12 +29,20 @@ class ManageHook : public WmEventObserver {
     primitives_ = primitives;
   }
 
+  Workspace* current_workspace() { return &workspaces_[current_workspace_]; }
+
+  void SelectTag(size_t tag);
+  void MoveWindowToTag(Window* window, size_t tag);
+
  private:
-  int32_t width_ = 1280, height_ = 720;
+  std::vector<Workspace> workspaces_;
+  size_t current_workspace_;
+
+  int32_t width_ = 2560, height_ = 1440;
   WMPrimitives* primitives_ = nullptr;
 };
 
 }  // wm
 }  // naive
 
-#endif  // MANAGE_HOOK_H_
+#endif  // WM_MANAGE_MANAGE_HOOK_H_

@@ -50,8 +50,8 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager(WmEventObserver* wm_event_observer)
-    : screen_width_(1280),
-      screen_height_(720),
+    : screen_width_(2560),
+      screen_height_(1440),
       mouse_position_(1280.0f, 720.0f),
       last_mouse_position_(1280.0f, 720.0f),
       wm_event_observer_(wm_event_observer) {
@@ -182,9 +182,12 @@ Window* WindowManager::FindMouseEventTarget() {
 
   // We append the focused window to the back of this list for highest priority.
   // during event dispatching.
+  // Only look for visible windows
   std::vector<Window*> temporary_windows(windows_);
-  // if (focused_window_)
-  //  temporary_windows.push_back(focused_window_);
+  for (auto* w : windows_) {
+    if (w->is_visible())
+      temporary_windows.push_back(w);
+  }
   for (auto iter = temporary_windows.rbegin(); iter != temporary_windows.rend();
        iter++) {
     auto rect = base::geometry::Rect((*iter)->geometry());

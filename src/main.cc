@@ -5,7 +5,7 @@
 
 #include "compositor/compositor.h"
 #include "event/event_hub.h"
-#include "wm/manage_hook.h"
+#include "wm/manage/manage_hook.h"
 #include "wm/window_manager.h"
 
 int main() {

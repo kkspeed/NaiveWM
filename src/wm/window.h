@@ -21,6 +21,13 @@ class Window : public SurfaceObserver {
   ~Window();
 
   bool IsManaged() const { return managed_; }
+  bool is_visible() const { return visible_; }
+  Window* top_level() {
+    Window* result = this;
+    while (result->parent() != nullptr)
+      result = result->parent();
+    return result;
+  }
   void set_parent(Window* parent) { parent_ = parent; }
   void set_transient(bool transient) { is_transient_ = transient; }
   void set_fullscreen(bool fullscreen);
@@ -29,6 +36,7 @@ class Window : public SurfaceObserver {
   void set_class(std::string clazz) { clazz_ = clazz; }
   void set_appid(std::string app_id) { app_id_ = app_id; }
   void set_popup(bool popup) { is_popup_ = popup; }
+  void set_visible(bool visible) { visible_ = visible; }
 
   // SurfaceObserver overrides
   void OnCommit() override;
@@ -91,6 +99,7 @@ class Window : public SurfaceObserver {
  private:
   bool managed_;
   bool focused_ = false;
+  bool visible_ = true;
 
   struct WindowState {
     base::geometry::Rect geometry;
@@ -101,7 +110,7 @@ class Window : public SurfaceObserver {
   WindowState pending_state_, state_;
   std::string title_, clazz_, app_id_;
   std::vector<Window*> children_;
-  Window* parent_;
+  Window* parent_ = nullptr;
   Surface* surface_;
   ShellSurface* shell_surface_;
   int32_t wm_x_ = 0, wm_y_ = 0;

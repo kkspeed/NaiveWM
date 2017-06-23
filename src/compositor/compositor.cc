@@ -438,8 +438,10 @@ void Compositor::Draw() {
   if (!committed_windows.empty() || draw_forced_) {
     glLoadIdentity();
     for (auto* window : wm::WindowManager::Get()->windows()) {
-      DrawWindowRecursive(window, window->wm_x(), window->wm_y());
-      DrawWindowBorder(window);
+      if (window->is_visible()) {
+        DrawWindowRecursive(window, window->wm_x(), window->wm_y());
+        DrawWindowBorder(window);
+      }
     }
     finalize_draw();
   }

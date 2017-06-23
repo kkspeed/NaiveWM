@@ -55,6 +55,8 @@ ManageWindow* Workspace::CurrentWindow() {
 }
 
 std::unique_ptr<ManageWindow> Workspace::PopWindow(Window* window) {
+  if (current_window_ >= windows_.size() - 1)
+    current_window_ = 0;
   auto it = std::find_if(windows_.begin(), windows_.end(),
                          [window](auto& mw) { return mw->window() == window; });
   if (it != windows_.end()) {
@@ -66,8 +68,6 @@ std::unique_ptr<ManageWindow> Workspace::PopWindow(Window* window) {
     windows_.pop_back();
     return std::unique_ptr<ManageWindow>(mw);
   }
-  if (current_window_ >= windows_.size())
-    current_window_ = 0;
   return nullptr;
 }
 

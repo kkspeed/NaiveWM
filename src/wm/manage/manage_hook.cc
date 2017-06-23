@@ -52,7 +52,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed()
       && event->keycode() == KEY_T) {
     if (!event->pressed())
-      base::LaunchProgram("lxterminal", {});
+      base::LaunchProgram("gnome-terminal", {});
     return true;
   }
   if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
@@ -98,7 +98,6 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
-  // TODO: Close
   return false;
 }
 
@@ -132,9 +131,10 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   assert(manage_window);
   manage_window->Show(false);
   workspaces_[tag].AddWindow(std::move(manage_window));
+  TRACE("arrange for workspace %d", current_workspace()->tag());
+  auto* current = current_workspace()->CurrentWindow();
+  primitives_->FocusWindow(current ? current->window() : nullptr);
   current_workspace()->ArrangeWindows(width_, height_);
-  auto* current_window = current_workspace()->CurrentWindow();
-  primitives_->FocusWindow(current_window ? current_window->window() : nullptr);
 }
 
 }  // namespace wm

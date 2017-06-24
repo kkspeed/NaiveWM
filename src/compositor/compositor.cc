@@ -457,25 +457,35 @@ void Compositor::Draw() {
 void Compositor::DrawWindowRecursive(wm::Window* window,
                                      int32_t start_x,
                                      int32_t start_y) {
-  TRACE("Drawing Window: %p at %d %d", window, start_x, start_y);
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
     if (!window->surface()->has_commit() &&
         window->surface()->cached_texture()) {
+      TRACE("Drawing Window: %p at %d %d", window,
+            start_x + window->geometry().x(),
+            start_y + window->geometry().y());
       window->surface()->cached_texture()->Draw(
-          start_x, start_y, window->geometry().x(), window->geometry().y(),
-          window->geometry().width(), window->geometry().height());
+          start_x + window->geometry().x(), start_y + window->geometry().y(),
+          window->GetToDrawRegion().x(),
+          window->GetToDrawRegion().y(),
+          window->GetToDrawRegion().width(),
+          window->GetToDrawRegion().height());
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
                                       buffer->format(), buffer->local_data());
-        // TODO: We shouldn't create texture each time.
-        texture->Draw(start_x, start_y, window->geometry().x(),
-                      window->geometry().y(), window->geometry().width(),
-                      window->geometry().height());
+        TRACE("Drawing Window: %p at %d %d", window,
+              start_x + window->geometry().x(),
+              start_y + window->geometry().y());
+        texture->Draw(start_x + window->geometry().x(),
+                      start_y + window->geometry().y(),
+                      window->GetToDrawRegion().x(),
+                      window->GetToDrawRegion().y(),
+                      window->GetToDrawRegion().width(),
+                      window->GetToDrawRegion().height());
         window->surface()->cache_texture(std::move(texture));
       }
     }

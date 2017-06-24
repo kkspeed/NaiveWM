@@ -21,6 +21,7 @@ class ShellSurface : SurfaceObserver {
 
   void Move();
   void SetGeometry(const base::geometry::Rect& rect);
+  void SetVisibleRegion(const base::geometry::Rect& rect);
   void AcknowledgeConfigure(uint32_t serial);
 
   // SurfaceObserver overrides:

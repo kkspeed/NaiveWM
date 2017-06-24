@@ -33,6 +33,11 @@ void ShellSurface::SetGeometry(const base::geometry::Rect& rect) {
   window_->SetGeometry(rect);
 }
 
+void ShellSurface::SetVisibleRegion(const base::geometry::Rect& rect) {
+  TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
+  window_->SetVisibleRegion(rect);
+}
+
 void ShellSurface::Move() {
   window_->BeginMove();
 }

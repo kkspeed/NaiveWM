@@ -66,6 +66,12 @@ class Window : public SurfaceObserver {
     pending_state_.geometry.y_ = y;
   }
 
+  void SetVisibleRegion(const base::geometry::Rect& rect) {
+    TRACE("visible region %p: %d %d %d %d", this,
+          rect.x(), rect.y(), rect.width(), rect.height());
+    pending_state_.visible_region = rect;
+  }
+
   void SetGeometry(const base::geometry::Rect& rect) {
     TRACE("geometry: %p: %d %d %d %d", this, rect.x(), rect.y(), rect.width(),
           rect.height());
@@ -91,6 +97,12 @@ class Window : public SurfaceObserver {
     wm_y_ = y;
     surface_->force_commit();
   }
+  base::geometry::Rect GetToDrawRegion() {
+    if (state_.visible_region.Empty())
+      return base::geometry::Rect(0, 0, state_.geometry.width(),
+                                  state_.geometry.height());
+    return state_.visible_region;
+  }
   void LoseFocus();
   void TakeFocus();
   void Close();
@@ -101,6 +113,9 @@ class Window : public SurfaceObserver {
   void set_to_be_managed(bool tobe) { to_be_managed_ = true; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
+  base::geometry::Rect visible_region() {
+    return state_.visible_region;
+  }
   base::geometry::Rect geometry() { return state_.geometry; }
   int32_t wm_x() { return wm_x_; }
   int32_t wm_y() { return wm_y_; }
@@ -112,7 +127,8 @@ class Window : public SurfaceObserver {
 
   struct WindowState {
     base::geometry::Rect geometry;
-    WindowState() : geometry({0, 0, 0, 0}) {}
+    base::geometry::Rect visible_region;
+    WindowState() : geometry({0, 0, 0, 0}), visible_region({0, 0, 0, 0}) {}
   };
 
   bool is_popup_ = false, is_transient_ = false;

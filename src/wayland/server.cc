@@ -744,10 +744,10 @@ class XdgPositioner {
       anchor_y = anchor_rect_.y();
 
     if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_RIGHT)
-      anchor_x += anchor_rect_.width();
+      anchor_x = anchor_rect_.x() + anchor_rect_.width();
 
     if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_BOTTOM)
-      anchor_y += anchor_rect_.height();
+      anchor_y = anchor_rect_.y() + anchor_rect_.height();
 
     auto result = base::geometry::Rect(anchor_x - width_ / 2,
                                        anchor_y - height_ / 2, width_, height_);
@@ -763,6 +763,9 @@ class XdgPositioner {
     if (gravity_ & ZXDG_POSITIONER_V6_GRAVITY_LEFT)
       result.x_ = anchor_x - width_;
 
+    result.x_ += x_;
+    result.y_ += y_;
+    TRACE("bounds: %d %d w: %d h: %d", result.x(), result.y(), result.width(), result.height());
     return result;
   }
 
@@ -771,6 +774,7 @@ class XdgPositioner {
   }
   uint32_t anchor() { return anchor_; }
   void set_offset(int32_t x, int32_t y) {
+    TRACE("offset: %d %d", x, y);
     x_ = x;
     y_ = y;
   }
@@ -778,7 +782,10 @@ class XdgPositioner {
     width_ = width;
     height_ = height;
   }
-  void set_anchor_rect(base::geometry::Rect rect) { anchor_rect_ = rect; }
+  void set_anchor_rect(base::geometry::Rect rect) {
+    TRACE("anchor: %d %d, w: %d, h: %d", rect.x(), rect.y(), rect.width(), rect.height());
+    anchor_rect_ = rect;
+  }
   void set_anchor(uint32_t anchor) { anchor_ = anchor; }
   void set_constraint_adjustment(uint32_t c) { constraint_adjustment_ = c; }
   void set_gravity(uint32_t gravity) { gravity_ = gravity; }
@@ -1111,26 +1118,34 @@ if (!shell_surface->window()->IsManaged()) {
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);
   auto* xdg_positioner = GetUserDataAs<XdgPositioner>(positioner);
   auto bounds = xdg_positioner->bounds();
+  TRACE("popup bounds %d %d, w: %d, h: %d", bounds.x(), bounds.y(),
+        bounds.width(), bounds.height());
   shell_surface->SetGeometry(
-      base::geometry::Rect(0,
-                           0,
+      base::geometry::Rect(bounds.x(),
+                           bounds.y(),
                            bounds.width(),
                            bounds.height()));//xdg_positioner->bounds());
 
   ShellSurface* parent_surface = GetUserDataAs<ShellSurface>(parent);
+  parent_surface->window()->AddChild(shell_surface->window());
+  /*
   auto parent_bounds = parent_surface->window()->geometry();
   int32_t parent_x = parent_surface->window()->wm_x();
   int32_t parent_y = parent_surface->window()->wm_y();
   shell_surface->window()->WmSetPosition(
       parent_x + parent_bounds.x() + bounds.x(),
       parent_y + parent_bounds.y() + bounds.y());
-  zxdg_popup_v6_send_configure(
-      xdg_popup_resource,
-      parent_bounds.x() + bounds.x(),
-      parent_bounds.y() + bounds.y(), bounds.width(),
-      bounds.height());
   shell_surface->window()->set_popup(true);
   shell_surface->window()->set_to_be_managed(true);
+   */
+  TRACE("bounds: %d %d, w: %d, h: %d, parent: %p", bounds.x(), bounds.y(),
+        bounds.width(), bounds.height(), parent_surface->window());
+  zxdg_popup_v6_send_configure(
+      xdg_popup_resource,
+      bounds.x(),
+      bounds.y(),
+      bounds.width(),
+      bounds.height());
   // wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -1141,7 +1156,8 @@ void xdg_surface_v6_set_window_geometry(wl_client* client,
                                         int32_t width,
                                         int32_t height) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->SetGeometry(
+  // TODO: we should separate window offset and geometry.
+  GetUserDataAs<ShellSurface>(resource)->SetVisibleRegion(
       base::geometry::Rect(x, y, width, height));
 }
 

@@ -118,6 +118,11 @@ void Workspace::ArrangeWindows(int32_t width, int32_t height) {
     window->window()->Raise();
 }
 
+void Workspace::AddWindowToHead(std::unique_ptr<ManageWindow> window) {
+  windows_.insert(windows_.begin(), std::move(window));
+  current_window_ = 0;
+}
+
 bool Workspace::HasWindow(Window* window) {
   return std::find_if(windows_.begin(), windows_.end(), [window](auto& mw) {
     return mw->window() == window;

@@ -98,6 +98,18 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_ENTER) {
+    if (event->pressed()) return true;
+    auto* current = current_workspace()->CurrentWindow();
+    if (current) {
+      auto poped = current_workspace()->PopWindow(current->window());
+      current_workspace()->AddWindowToHead(std::move(poped));
+      current_workspace()->SetCurrentWindow(current->window());
+      current_workspace()->ArrangeWindows(width_, height_);
+    }
+    return true;
+  }
+
   return false;
 }
 

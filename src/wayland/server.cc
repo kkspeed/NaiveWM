@@ -731,12 +731,35 @@ class XdgPositioner {
         constraint_adjustment_(0), anchor_(0), gravity_(0) {}
 
   base::geometry::Rect bounds() {
-    base::geometry::Rect
-        result(anchor_rect_.x() + x_, anchor_rect_.y() + y_, width_, height_);
+    int32_t anchor_x = anchor_rect_.x() + anchor_rect_.width() / 2;
+    int32_t anchor_y = anchor_rect_.y() + anchor_rect_.height() / 2;
+
+    if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_LEFT)
+      anchor_x = anchor_rect_.x();
+
+    if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_TOP)
+      anchor_y = anchor_rect_.y();
+
     if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_RIGHT)
-      result.y_ += anchor_rect_.width();
+      anchor_x += anchor_rect_.width();
+
     if (anchor_ & ZXDG_POSITIONER_V6_ANCHOR_BOTTOM)
-      result.y_ += anchor_rect_.height();
+      anchor_y += anchor_rect_.height();
+
+    auto result = base::geometry::Rect(anchor_x - width_ / 2,
+                                       anchor_y - height_ / 2, width_, height_);
+    if (gravity_ & ZXDG_POSITIONER_V6_GRAVITY_RIGHT)
+      result.x_ = anchor_x;
+
+    if (gravity_ & ZXDG_POSITIONER_V6_GRAVITY_BOTTOM)
+      result.y_ = anchor_y;
+
+    if (gravity_ & ZXDG_POSITIONER_V6_GRAVITY_TOP)
+      result.y_ = anchor_y - height_;
+
+    if (gravity_ & ZXDG_POSITIONER_V6_GRAVITY_LEFT)
+      result.x_ = anchor_x - width_;
+
     return result;
   }
 
@@ -1085,12 +1108,19 @@ if (!shell_surface->window()->IsManaged()) {
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);
   auto* xdg_positioner = GetUserDataAs<XdgPositioner>(positioner);
   auto bounds = xdg_positioner->bounds();
-  shell_surface->SetGeometry(xdg_positioner->bounds());
+  shell_surface->SetGeometry(
+      base::geometry::Rect(0,
+                           0,
+                           bounds.width(),
+                           bounds.height()));//xdg_positioner->bounds());
 
   ShellSurface* parent_surface = GetUserDataAs<ShellSurface>(parent);
   auto parent_bounds = parent_surface->window()->geometry();
-  shell_surface->window()->WmSetPosition(parent_bounds.x() + bounds.x(),
-                                         parent_bounds.y() + bounds.y());
+  int32_t parent_x = parent_surface->window()->wm_x();
+  int32_t parent_y = parent_surface->window()->wm_y();
+  shell_surface->window()->WmSetPosition(
+      parent_x + parent_bounds.x() + bounds.x(),
+      parent_y + parent_bounds.y() + bounds.y());
   zxdg_popup_v6_send_configure(
       xdg_popup_resource,
       parent_bounds.x() + bounds.x(),

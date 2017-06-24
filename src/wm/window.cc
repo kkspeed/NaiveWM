@@ -17,6 +17,8 @@ Window::Window()
 Window::~Window() {
   TRACE("%p", this);
   wm::WindowManager::Get()->RemoveWindow(this);
+  if (parent_)
+    parent_->RemoveChild(this);
   // Window is destroyed with surface. no need to remove surface observer
 }
 
@@ -87,12 +89,8 @@ void Window::OnCommit() {
     to_be_managed_ = false;
     // Detach this surface from parent since it's going to be managed at top
     // level
-    if (parent_) {
-      is_popup_ = true;
-      parent_->RemoveChild(this);
-      parent_ = nullptr;
-    }
-    wm::WindowManager::Get()->Manage(this);
+    if (!parent_) wm::WindowManager::Get()->Manage(this);
+    else WmSetSize(geometry().width(), geometry().height());
   }
 }
 

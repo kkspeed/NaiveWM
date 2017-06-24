@@ -464,7 +464,7 @@ void shell_surface_set_transient(wl_client* client,
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
-  shell_surface->window()->set_parent(parent_surface->window());
+  parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_transient(true);
   shell_surface->window()->set_to_be_managed(true);
   //wm::WindowManager::Get()->Manage(shell_surface->window());
@@ -491,7 +491,7 @@ void shell_surface_set_popup(wl_client* client,
   TRACE();
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
   auto* parent_surface = GetUserDataAs<Surface>(parent_resource);
-  shell_surface->window()->set_parent(parent_surface->window());
+  parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_popup(true);
   shell_surface->window()->set_to_be_managed(true);
   // wm::WindowManager::Get()->Manage(shell_surface->window());
@@ -871,9 +871,8 @@ void xdg_toplevel_v6_set_parent(wl_client* client,
     return;
   }
 
-  if (GetUserDataAs<ShellSurface>(resource)->window())
-    GetUserDataAs<ShellSurface>(resource)->window()->set_parent(
-        GetUserDataAs<ShellSurface>(parent)->window());
+  GetUserDataAs<ShellSurface>(parent)->window()->AddChild(
+      GetUserDataAs<ShellSurface>(resource)->window());
 }
 
 void xdg_toplevel_v6_set_title(wl_client* client,

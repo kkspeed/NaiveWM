@@ -22,6 +22,10 @@ ManageHook::ManageHook() {
 
 void ManageHook::WindowCreated(Window* window) {
   TRACE();
+  if (window->parent()) {
+    window->WmSetSize(window->geometry().width(), window->geometry().height());
+    return;
+  }
   auto* workspace = current_workspace();
   workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
   primitives_->FocusWindow(workspace->CurrentWindow()->window());

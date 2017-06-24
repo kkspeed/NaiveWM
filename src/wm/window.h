@@ -98,6 +98,7 @@ class Window : public SurfaceObserver {
   bool is_popup() { return is_popup_; }
   bool is_transient() { return is_transient_; }
   void set_managed(bool managed) { managed_ = managed; }
+  void set_to_be_managed(bool tobe) { to_be_managed_ = true; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
   base::geometry::Rect geometry() { return state_.geometry; }
@@ -105,7 +106,7 @@ class Window : public SurfaceObserver {
   int32_t wm_y() { return wm_y_; }
 
  private:
-  bool managed_;
+  bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
   bool visible_ = true;
 

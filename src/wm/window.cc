@@ -83,6 +83,17 @@ void Window::Resize(int32_t width, int32_t height) {
 
 void Window::OnCommit() {
   state_ = pending_state_;
+  if (to_be_managed_ && !managed_) {
+    to_be_managed_ = false;
+    // Detach this surface from parent since it's going to be managed at top
+    // level
+    if (parent_) {
+      is_popup_ = true;
+      parent_->RemoveChild(this);
+      parent_ = nullptr;
+    }
+    wm::WindowManager::Get()->Manage(this);
+  }
 }
 
 void Window::set_fullscreen(bool fullscreen) {

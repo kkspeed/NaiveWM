@@ -67,8 +67,8 @@ class Window : public SurfaceObserver {
   }
 
   void SetVisibleRegion(const base::geometry::Rect& rect) {
-    TRACE("visible region %p: %d %d %d %d", this,
-          rect.x(), rect.y(), rect.width(), rect.height());
+    TRACE("visible region %p: %d %d %d %d", this, rect.x(), rect.y(),
+          rect.width(), rect.height());
     pending_state_.visible_region = rect;
   }
 
@@ -113,9 +113,8 @@ class Window : public SurfaceObserver {
   void set_to_be_managed(bool tobe) { to_be_managed_ = true; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
-  base::geometry::Rect visible_region() {
-    return state_.visible_region;
-  }
+  base::geometry::Rect visible_region() { return state_.visible_region; }
+  base::geometry::Rect pending_geometry() { return pending_state_.geometry; }
   base::geometry::Rect geometry() { return state_.geometry; }
   int32_t wm_x() { return wm_x_; }
   int32_t wm_y() { return wm_y_; }

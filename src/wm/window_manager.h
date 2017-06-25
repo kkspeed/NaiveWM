@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/macros.h"
 #include "base/geometry.h"
+#include "base/macros.h"
 #include "event/event_hub.h"
 #include "wm/mouse_event.h"
 #include "wm/window.h"
@@ -66,6 +66,7 @@ class Layer {
     rect.y_ = y_;
     return rect;
   }
+
  private:
   int32_t x_, y_;
   Window* window_;

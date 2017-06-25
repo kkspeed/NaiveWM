@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "base/utils.h"
-#include "wm/mouse_event.h"
 #include "wm/keyboard_event.h"
+#include "wm/mouse_event.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -53,8 +53,7 @@ void ManageHook::WindowDestroyed(Window* window) {
 }
 
 bool ManageHook::OnKey(KeyboardEvent* event) {
-  if (event->super_pressed()
-      && event->keycode() == KEY_T) {
+  if (event->super_pressed() && event->keycode() == KEY_T) {
     if (!event->pressed())
       base::LaunchProgram("gnome-terminal", {});
     return true;
@@ -64,9 +63,10 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     exit(0);
   }
 
-  if (event->super_pressed() &&
-      event->keycode() >= KEY_1 && event->keycode() <= KEY_9) {
-    if (event->pressed()) return true;
+  if (event->super_pressed() && event->keycode() >= KEY_1 &&
+      event->keycode() <= KEY_9) {
+    if (event->pressed())
+      return true;
     size_t tag = event->keycode() - KEY_1;
     if (event->shift_pressed()) {
       ManageWindow* current = current_workspace()->CurrentWindow();
@@ -81,21 +81,31 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   }
 
   if (event->super_pressed() && event->keycode() == KEY_J) {
-    if (event->pressed()) return true;
+    if (event->pressed())
+      return true;
     auto* next = current_workspace()->NextWindow();
     primitives_->FocusWindow(next ? next->window() : nullptr);
     return true;
   }
 
   if (event->super_pressed() && event->keycode() == KEY_K) {
-    if (event->pressed()) return true;
+    if (event->pressed())
+      return true;
     auto* prev = current_workspace()->PrevWindow();
     primitives_->FocusWindow(prev ? prev->window() : nullptr);
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_C) {
+    if (event->pressed())
+      return true;
+    base::LaunchProgram("epiphany", nullptr);
+    return true;
+  }
+
   if (event->super_pressed() && event->keycode() == KEY_F4) {
-    if (event->pressed()) return true;
+    if (event->pressed())
+      return true;
     auto* current = current_workspace()->CurrentWindow();
     if (current)
       current->window()->Close();
@@ -103,7 +113,8 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   }
 
   if (event->super_pressed() && event->keycode() == KEY_ENTER) {
-    if (event->pressed()) return true;
+    if (event->pressed())
+      return true;
     auto* current = current_workspace()->CurrentWindow();
     if (current) {
       auto poped = current_workspace()->PopWindow(current->window());
@@ -121,10 +132,10 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   auto* current_manage_window = current_workspace()->CurrentWindow();
   if (event->window() && event->type() == MouseEventType::MouseButtonDown) {
     auto* top_level = event->window()->top_level();
-    if (current_workspace()->HasWindow(top_level) && (!current_manage_window ||
-             current_manage_window->window() != top_level)) {
+    if (current_workspace()->HasWindow(top_level) &&
+        (!current_manage_window ||
+         current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
-      TRACE("Focus top level: %p", top_level);
       primitives_->FocusWindow(top_level);
       return true;
     }

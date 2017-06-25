@@ -89,8 +89,10 @@ void Window::OnCommit() {
     to_be_managed_ = false;
     // Detach this surface from parent since it's going to be managed at top
     // level
-    if (!parent_) wm::WindowManager::Get()->Manage(this);
-    else WmSetSize(geometry().width(), geometry().height());
+    if (!parent_)
+      wm::WindowManager::Get()->Manage(this);
+    else
+      WmSetSize(geometry().width(), geometry().height());
   }
 }
 

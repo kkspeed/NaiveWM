@@ -38,7 +38,7 @@ void SubSurface::SetCommitBehavior(bool sync) {
 }
 
 void SubSurface::OnCommit() {
-  TRACE();
+  TRACE("parent: %p, surface: %p", parent_, surface_);
   while (!pending_placement_.empty()) {
     auto placement = pending_placement_.front();
     if (placement.first)

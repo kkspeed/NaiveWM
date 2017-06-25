@@ -1,12 +1,12 @@
 #ifndef WM_MANAGE_WORKSPACE_H_
 #define WM_MANAGE_WORKSPACE_H_
 
+#include <functional>
 #include <memory>
 #include <vector>
-#include <functional>
 
-#include "base/macros.h"
 #include "base/geometry.h"
+#include "base/macros.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -21,8 +21,8 @@ class ManageWindow {
   Window* window() { return window_; }
   void Show(bool show) { window_->set_visible(show); }
   void MoveResize(int32_t x, int32_t y, int32_t width, int32_t height) {
-    primitives_->MoveResizeWindow(
-        window_, base::geometry::Rect(x, y, width, height));
+    primitives_->MoveResizeWindow(window_,
+                                  base::geometry::Rect(x, y, width, height));
   }
 
  private:

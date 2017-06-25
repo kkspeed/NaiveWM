@@ -1,8 +1,8 @@
 #include "wm/manage/workspace.h"
 
 #include <algorithm>
-#include <deque>
 #include <cassert>
+#include <deque>
 
 namespace naive {
 namespace wm {
@@ -10,8 +10,10 @@ namespace wm {
 namespace {
 
 void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
-                               int32_t x, int32_t y,
-                               int32_t width, int32_t height,
+                               int32_t x,
+                               int32_t y,
+                               int32_t width,
+                               int32_t height,
                                bool horizontal) {
   if (candidates.size() == 0)
     return;
@@ -37,10 +39,11 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
 }  // namespace
 
 ManageWindow::ManageWindow(Window* window, WMPrimitives* primitives)
-  : window_(window), primitives_(primitives),
-    is_floating_(window->is_transient() || window->is_popup()) {}
+    : window_(window),
+      primitives_(primitives),
+      is_floating_(window->is_transient() || window->is_popup()) {}
 
-Workspace::Workspace(uint32_t tag): tag_(tag) {}
+Workspace::Workspace(uint32_t tag) : tag_(tag) {}
 
 void Workspace::AddWindow(std::unique_ptr<ManageWindow> window) {
   windows_.push_back(std::move(window));
@@ -125,8 +128,8 @@ void Workspace::AddWindowToHead(std::unique_ptr<ManageWindow> window) {
 
 bool Workspace::HasWindow(Window* window) {
   return std::find_if(windows_.begin(), windows_.end(), [window](auto& mw) {
-    return mw->window() == window;
-  }) != windows_.end();
+           return mw->window() == window;
+         }) != windows_.end();
 }
 
 }  // namespace wm

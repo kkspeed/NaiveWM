@@ -1,9 +1,9 @@
 #ifndef WAYLAND_SHARED_MEMORY_H_
 #define WAYLAND_SHARED_MEMORY_H_
 
+#include <sys/mman.h>
 #include <cstdint>
 #include <memory>
-#include <sys/mman.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
@@ -20,7 +20,10 @@ class ShmPool {
   ~ShmPool() { munmap(data_, size_); }
   uint32_t size() { return size_; }
   void* data() { return data_; }
-  void set_data(void* data, uint32_t size) { data_ = data; size_ = size; }
+  void set_data(void* data, uint32_t size) {
+    data_ = data;
+    size_ = size;
+  }
 
  private:
   uint32_t size_;

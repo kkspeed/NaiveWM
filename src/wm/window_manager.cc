@@ -15,12 +15,13 @@ namespace wm {
 namespace {
 
 void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
-                         Window* window, int32_t start_x, int32_t start_y) {
+                         Window* window,
+                         int32_t start_x,
+                         int32_t start_y) {
   if (window->is_visible())
     accumulator.push_back(std::make_unique<Layer>(window, start_x, start_y));
   for (auto* w : window->children())
-    CollectGlobalLayers(accumulator, w,
-                        start_x + w->geometry().x(),
+    CollectGlobalLayers(accumulator, w, start_x + w->geometry().x(),
                         start_y + w->geometry().y());
 }
 
@@ -167,7 +168,8 @@ void WindowManager::OnKey(uint32_t keycode,
   }
 }
 
-std::vector<std::unique_ptr<Layer>> WindowManager::WindowsInGlobalCoordinates() {
+std::vector<std::unique_ptr<Layer>>
+WindowManager::WindowsInGlobalCoordinates() {
   std::vector<std::unique_ptr<Layer>> result;
   for (auto* w : windows_)
     CollectGlobalLayers(result, w, w->wm_x(), w->wm_y());

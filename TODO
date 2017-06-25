@@ -1,6 +1,7 @@
-mouse relative event dispatching
-keyboard
-popup filtering / interfacing
-tiling
-better compositor
-xwayland
+tooltip
+
+panel
+systray
+notification
+
+scale

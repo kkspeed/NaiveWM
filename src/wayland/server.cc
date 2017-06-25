@@ -467,6 +467,7 @@ void shell_surface_set_transient(wl_client* client,
   parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_transient(true);
   shell_surface->window()->set_to_be_managed(true);
+  shell_surface->window()->SetPosition(x, y);
   //wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 

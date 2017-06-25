@@ -14,22 +14,14 @@ namespace wm {
 
 namespace {
 
-// TODO: convert pointer location to surface local position.
-Window* FindMouseEventTargetChildWindow(Window* root, int32_t x, int32_t y) {
-  TRACE("root window: %p", root);
-  Window* candidate = root;
-  for (auto iter = root->children().rbegin(); iter != root->children().rend();
-       iter++) {
-    Window* current = *iter;
-    LOG_ERROR << "Child: Testing " << current->geometry().x() << " "
-              << current->geometry().y() << " " << current->geometry().width()
-              << " " << current->geometry().height() << " "
-              << " for point " << x << " " << y << std::endl;
-    if (current->geometry().ContainsPoint(x, y))
-      return FindMouseEventTargetChildWindow(
-          current, x - current->geometry().x(), y - current->geometry().y());
-  }
-  return candidate;
+void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
+                         Window* window, int32_t start_x, int32_t start_y) {
+  if (window->is_visible())
+    accumulator.push_back(std::make_unique<Layer>(window, start_x, start_y));
+  for (auto* w : window->children())
+    CollectGlobalLayers(accumulator, w,
+                        start_x + w->geometry().x(),
+                        start_y + w->geometry().y());
 }
 
 }  // namespace
@@ -175,31 +167,27 @@ void WindowManager::OnKey(uint32_t keycode,
   }
 }
 
+std::vector<std::unique_ptr<Layer>> WindowManager::WindowsInGlobalCoordinates() {
+  std::vector<std::unique_ptr<Layer>> result;
+  for (auto* w : windows_)
+    CollectGlobalLayers(result, w, w->wm_x(), w->wm_y());
+  return result;
+}
+
 Window* WindowManager::FindMouseEventTarget() {
-  // TODO: could be simplified to one function!
+  std::vector<std::unique_ptr<Layer>> layers = WindowsInGlobalCoordinates();
   int32_t mouse_x = static_cast<int32_t>(mouse_position_.x());
   int32_t mouse_y = static_cast<int32_t>(mouse_position_.y());
 
-  // We append the focused window to the back of this list for highest priority.
-  // during event dispatching.
-  // Only look for visible windows
-  std::vector<Window*> temporary_windows(windows_);
-  for (auto* w : windows_) {
-    if (w->is_visible())
-      temporary_windows.push_back(w);
+  // TODO: establish popup grab, and send popup done when clicking is outside.
+  for (auto it = layers.rbegin(); it != layers.rend(); it++) {
+    TRACE("Testing %d %d, window: %p, %d %d %d %d", mouse_x, mouse_y,
+          (*it)->window(), (*it)->geometry().x(), (*it)->geometry().y(),
+          (*it)->geometry().width(), (*it)->geometry().height());
+    if ((*it)->geometry().ContainsPoint(mouse_x, mouse_y))
+      return (*it)->window();
   }
-  for (auto iter = temporary_windows.rbegin(); iter != temporary_windows.rend();
-       iter++) {
-    auto rect = base::geometry::Rect((*iter)->geometry());
-    rect.x_ = (*iter)->wm_x();
-    rect.y_ = (*iter)->wm_y();
-    LOG_ERROR << "Test Rect: " << rect.x() << " " << rect.y() << " "
-              << rect.width() << " " << rect.height() << " for " << mouse_x
-              << " " << mouse_y << std::endl;
-    if (rect.ContainsPoint(mouse_x, mouse_y))
-      return FindMouseEventTargetChildWindow(*iter, mouse_x - rect.x_,
-                                             mouse_y - rect.y_);
-  }
+
   return nullptr;
 }
 

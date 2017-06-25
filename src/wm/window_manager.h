@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "base/macros.h"
 #include "base/geometry.h"
 #include "event/event_hub.h"
 #include "wm/mouse_event.h"
@@ -49,6 +50,29 @@ class WmEventObserver {
   virtual void WindowDestroyed(Window* window) = 0;
 };
 
+// Representation of a surface, with coordinates relative to global (0, 0)
+class Layer {
+ public:
+  explicit Layer(Window* window, int32_t x, int32_t y)
+      : window_(window), x_(x), y_(y) {}
+
+  int32_t x() { return x_; }
+  int32_t y() { return y_; }
+
+  Window* window() { return window_; }
+  base::geometry::Rect geometry() {
+    base::geometry::Rect rect(window_->geometry());
+    rect.x_ = x_;
+    rect.y_ = y_;
+    return rect;
+  }
+ private:
+  int32_t x_, y_;
+  Window* window_;
+
+  DISALLOW_COPY_AND_ASSIGN(Layer);
+};
+
 class WindowManager : public event::EventObserver, public WMPrimitives {
  public:
   WindowManager(WmEventObserver* wm_event_observer);
@@ -83,6 +107,8 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
 
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
   Window* FindMouseEventTarget();
+
+  std::vector<std::unique_ptr<Layer>> WindowsInGlobalCoordinates();
 
   // WMPrimitives overrides:
   std::vector<Window*> windows() override { return windows_; }

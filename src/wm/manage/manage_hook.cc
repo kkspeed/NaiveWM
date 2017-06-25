@@ -124,6 +124,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
     if (current_workspace()->HasWindow(top_level) && (!current_manage_window ||
              current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
+      TRACE("Focus top level: %p", top_level);
       primitives_->FocusWindow(top_level);
       return true;
     }

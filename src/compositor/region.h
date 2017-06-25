@@ -1,6 +1,7 @@
 #ifndef _COMPOSITOR_REGION_H_
 #define _COMPOSITOR_REGION_H_
 
+#include <memory>
 #include <pixman.h>
 
 #include "base/geometry.h"
@@ -11,14 +12,14 @@ class Region {
  public:
   static Region Empty();
 
-  explicit Region(const base::geometry::Rect& rect);
+  explicit Region(const base::geometry::Rect &rect);
   ~Region();
 
-  void Union(Region& region);
-  void Subtract(Region& region);
+  void Union(Region &region);
+  void Subtract(Region &region);
 
  private:
-  pixman_region32 pixman_region_;
+  std::shared_ptr<pixman_region32> pixman_region_;
 };
 
 }  // namespace naive

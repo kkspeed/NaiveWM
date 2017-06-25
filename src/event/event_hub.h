@@ -31,6 +31,10 @@ class EventObserver {
                              float dy,
                              uint32_t modifiers,
                              Leds locks) = 0;
+  virtual void OnMouseScroll(float dx,
+                             float dy,
+                             uint32_t modifiers,
+                             Leds locks) = 0;
   virtual void OnKey(uint32_t keycode,
                      uint32_t modifiers,
                      bool key_down,

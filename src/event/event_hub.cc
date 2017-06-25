@@ -131,9 +131,23 @@ void EventHub::HandleEvents() {
                                   modifiers_, static_cast<Leds>(leds_));
         break;
       }
-      case LIBINPUT_EVENT_POINTER_AXIS:
-        LOG_ERROR << "pointer motion axis" << std::endl;
+      case LIBINPUT_EVENT_POINTER_AXIS: {
+        float x_scroll = 0.0;
+        float y_scroll = 0.0;
+        libinput_event_pointer* p = libinput_event_get_pointer_event(ev);
+        if (libinput_event_pointer_has_axis(p, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
+          x_scroll = static_cast<float>(libinput_event_pointer_get_axis_value(
+              p, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL));
+        }
+        if (libinput_event_pointer_has_axis(p, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
+          y_scroll = static_cast<float>(libinput_event_pointer_get_axis_value(
+              p, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL));
+        }
+        for (auto* observer: observers_)
+          observer->OnMouseScroll(x_scroll, y_scroll, modifiers_,
+                                  static_cast<Leds>(leds_));
         break;
+      }
       default:
         break;
     }

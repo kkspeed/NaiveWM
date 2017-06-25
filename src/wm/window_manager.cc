@@ -149,6 +149,21 @@ void WindowManager::OnMouseMotion(float dx,
       leds));
 }
 
+void WindowManager::OnMouseScroll(float x_scroll,
+                                  float y_scroll,
+                                  uint32_t modifiers,
+                                  event::Leds locks) {
+  MouseEventData data;
+  data.scroll[0] = x_scroll;
+  data.scroll[1] = y_scroll;
+  DispatchMouseEvent(std::make_unique<MouseEvent>(
+      FindMouseEventTarget(), MouseEventType::MouseAxis,
+      base::Time::CurrentTimeMilliSeconds(), modifiers, data,
+      mouse_position_.x(),
+      mouse_position_.y(),
+      locks));
+}
+
 void WindowManager::OnKey(uint32_t keycode,
                           uint32_t modifiers,
                           bool key_down,

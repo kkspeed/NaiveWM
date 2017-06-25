@@ -105,6 +105,10 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
              uint32_t modifiers,
              bool key_down,
              event::Leds locks) override;
+  void OnMouseScroll(float x_scroll,
+                     float y_scroll,
+                     uint32_t modifiers,
+                     event::Leds locks) override;
 
   void DispatchMouseEvent(std::unique_ptr<MouseEvent> event);
   Window* FindMouseEventTarget();

@@ -18,7 +18,8 @@ enum class MouseEventType {
 };
 
 union MouseEventData {
-  int32_t delta[2];  // for axis and motion.
+  int32_t delta[2];  // for motion.
+  float scroll[2];   // for scroll.
   uint32_t button;   // for button down and up.
 };
 
@@ -40,9 +41,14 @@ class MouseEvent : public Event {
 
   MouseEventType type() { return type_; }
 
-  void get_delta(int32_t& dx, int32_t dy) {
+  void get_delta(int32_t& dx, int32_t& dy) {
     dx = data_.delta[0];
     dy = data_.delta[1];
+  }
+
+  void get_scroll(float& hscroll, float& vscroll) {
+    hscroll = data_.scroll[0];
+    vscroll = data_.scroll[1];
   }
 
   uint32_t get_button() { return data_.button; }

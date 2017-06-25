@@ -99,7 +99,9 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_C) {
     if (event->pressed())
       return true;
-    base::LaunchProgram("epiphany", nullptr);
+    const char* args[] = {"qutebrowser", "--qt-arg", "platform", "wayland",
+                          nullptr};
+    base::LaunchProgram("qutebrowser", (char**)args);
     return true;
   }
 

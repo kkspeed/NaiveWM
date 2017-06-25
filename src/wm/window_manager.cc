@@ -18,8 +18,10 @@ void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
                          Window* window,
                          int32_t start_x,
                          int32_t start_y) {
-  if (window->is_visible())
-    accumulator.push_back(std::make_unique<Layer>(window, start_x, start_y));
+  // When a window is not visible, its descendants are all considered hidden.
+  if (!window->is_visible())
+    return;
+  accumulator.push_back(std::make_unique<Layer>(window, start_x, start_y));
   for (auto* w : window->children())
     CollectGlobalLayers(accumulator, w, start_x + w->geometry().x(),
                         start_y + w->geometry().y());
@@ -159,9 +161,7 @@ void WindowManager::OnMouseScroll(float x_scroll,
   DispatchMouseEvent(std::make_unique<MouseEvent>(
       FindMouseEventTarget(), MouseEventType::MouseAxis,
       base::Time::CurrentTimeMilliSeconds(), modifiers, data,
-      mouse_position_.x(),
-      mouse_position_.y(),
-      locks));
+      mouse_position_.x(), mouse_position_.y(), locks));
 }
 
 void WindowManager::OnKey(uint32_t keycode,

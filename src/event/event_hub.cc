@@ -96,6 +96,11 @@ void EventHub::HandleEvents() {
         libinput_key_state state = libinput_event_keyboard_get_key_state(p);
         uint32_t key = libinput_event_keyboard_get_key(p);
         uint32_t return_keycode = key;
+        // TODO: Make key code remap
+        if (key == KEY_CAPSLOCK)
+          key = KEY_LEFTCTRL;
+        else if (key == KEY_LEFTCTRL)
+          key = KEY_CAPSLOCK;
         if (state == LIBINPUT_KEY_STATE_RELEASED &&
             MaybeChangeLockStates(device, key)) {
           return_keycode = 0;
@@ -135,15 +140,17 @@ void EventHub::HandleEvents() {
         float x_scroll = 0.0;
         float y_scroll = 0.0;
         libinput_event_pointer* p = libinput_event_get_pointer_event(ev);
-        if (libinput_event_pointer_has_axis(p, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
+        if (libinput_event_pointer_has_axis(
+                p, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL)) {
           x_scroll = static_cast<float>(libinput_event_pointer_get_axis_value(
               p, LIBINPUT_POINTER_AXIS_SCROLL_HORIZONTAL));
         }
-        if (libinput_event_pointer_has_axis(p, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
+        if (libinput_event_pointer_has_axis(
+                p, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL)) {
           y_scroll = static_cast<float>(libinput_event_pointer_get_axis_value(
               p, LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL));
         }
-        for (auto* observer: observers_)
+        for (auto* observer : observers_)
           observer->OnMouseScroll(x_scroll, y_scroll, modifiers_,
                                   static_cast<Leds>(leds_));
         break;

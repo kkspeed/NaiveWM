@@ -79,11 +79,16 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
         case wm::MouseEventType::MouseAxis: {
           float hscroll, vscroll;
           event->get_scroll(hscroll, vscroll);
-          TRACE("send mouse scroll: h: %f v: %f at %u", hscroll, vscroll, event->time());
+          TRACE("send mouse scroll: h: %f v: %f at %u", hscroll, vscroll,
+                event->time());
           if (abs(hscroll) > 0.000001)
-            wl_pointer_send_axis(resource_, event->time(), WL_POINTER_AXIS_HORIZONTAL_SCROLL, wl_fixed_from_double(hscroll));
+            wl_pointer_send_axis(resource_, event->time(),
+                                 WL_POINTER_AXIS_HORIZONTAL_SCROLL,
+                                 wl_fixed_from_double(hscroll));
           if (abs(vscroll) > 0.000001)
-            wl_pointer_send_axis(resource_, event->time(), WL_POINTER_AXIS_VERTICAL_SCROLL, wl_fixed_from_double(vscroll));
+            wl_pointer_send_axis(resource_, event->time(),
+                                 WL_POINTER_AXIS_VERTICAL_SCROLL,
+                                 wl_fixed_from_double(vscroll));
           break;
         }
         default:

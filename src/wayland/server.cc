@@ -1323,7 +1323,7 @@ Server::Server(Display* display) : display_(display) {
   wl_global_create(wl_display_, &wl_subcompositor_interface, 1, display_,
                    &bind_subcompositor);
   wl_global_create(wl_display_, &wl_shell_interface, 1, display_, &bind_shell);
-  wl_global_create(wl_display_, &wl_output_interface, 1, display_,
+  wl_global_create(wl_display_, &wl_output_interface, 2, display_,
                    &bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
                    &bind_xdg_shell_v6);

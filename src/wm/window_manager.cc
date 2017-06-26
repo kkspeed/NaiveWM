@@ -278,6 +278,7 @@ void WindowManager::FocusWindow(Window* window) {
     focused_window_ = *iter;
     if (focused_window_) {
       focused_window_->TakeFocus();
+      RaiseWindow(focused_window_);
       for (auto observer : keyboard_observers_)
         observer->OnFocus(focused_window_);
     }

@@ -15,3 +15,5 @@ improve compositor
 Copy / Paste device
 
 Take screenshot
+
+Out of order closing of multiple windows will crash the compositor

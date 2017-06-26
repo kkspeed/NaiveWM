@@ -149,7 +149,7 @@ void init_gbm() {
                          GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
   gbm.mouse_surface =
       gbm_surface_create(gbm.dev, 64, 64, GBM_FORMAT_ARGB8888,
-                         GBM_BO_USE_CURSOR_64X64 | GBM_BO_USE_RENDERING);
+                         GBM_BO_USE_CURSOR | GBM_BO_USE_RENDERING);
   assert(gbm.surface);
   assert(gbm.mouse_surface);
 }
@@ -160,10 +160,11 @@ void init_gl() {
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
   const EGLint config_attributes[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                                      EGL_RED_SIZE,     8,
-                                      EGL_GREEN_SIZE,   8,
-                                      EGL_BLUE_SIZE,    8,
-                                      EGL_ALPHA_SIZE,   8,
+                                      EGL_RED_SIZE,     1,
+                                      EGL_GREEN_SIZE,   1,
+                                      EGL_BLUE_SIZE,    1,
+                                      EGL_ALPHA_SIZE,   1,
+                                      EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =

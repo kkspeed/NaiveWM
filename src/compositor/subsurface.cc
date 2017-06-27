@@ -6,6 +6,7 @@ namespace naive {
 
 SubSurface::SubSurface(Surface* parent, Surface* surface)
     : parent_(parent), surface_(surface) {
+  TRACE("%p, parent: %p, child: %p", this, parent, surface);
   // TODO: Observe child surface as well!
   parent_->window()->AddChild(surface->window());
   parent_->AddSurfaceObserver(this);

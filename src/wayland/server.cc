@@ -880,7 +880,7 @@ void xdg_toplevel_v6_destroy(wl_client* client, wl_resource* resource) {
 void xdg_toplevel_v6_set_parent(wl_client* client,
                                 wl_resource* resource,
                                 wl_resource* parent) {
-  TRACE();
+  TRACE("%p", parent);
   if (!parent) {
     GetUserDataAs<ShellSurface>(resource)->window()->set_parent(nullptr);
     return;
@@ -1009,7 +1009,6 @@ void xdg_popup_v6_grab(wl_client* client,
                        uint32_t serial) {
   TRACE();
   zxdg_surface_v6_send_configure(resource, serial);
-  zxdg_shell_v6_send_ping(resource, serial);
   // zxdg_popup_v6_send_configure(resource, 0, 0, 300, 300);
   NOTIMPLEMENTED();
 }
@@ -1037,8 +1036,8 @@ uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
                                               wl_resource* surface_resource,
                                               int32_t width,
                                               int32_t height) {
-  TRACE("configure: %d %d", width, height);
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  TRACE("configure: window %p, %d %d", shell_surface->window(), width, height);
   wl_array states;
   wl_array_init(&states);
   // TODO: if window is visible, we'll need maximized state to eliminate window

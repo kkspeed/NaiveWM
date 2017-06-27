@@ -52,15 +52,20 @@ void Surface::Commit() {
   }
   has_commit_ = true;
 
+  /*
   if (state_.frame_callback)
     (*state_.frame_callback)();
+   */
 
-  state_.frame_callback = nullptr;
   pending_state_.frame_callback = nullptr;
   pending_state_.buffer = nullptr;
 
-  for (auto observer : observers_) {
-    LOG_ERROR << "notifying " << observer << " for commit " << std::endl;
+  // TODO: Can't use iterator due to possible iterator invalidation...
+  // needs revisit
+  for (size_t i = 0; i < observers_.size(); i++) {
+    auto* observer = observers_[i];
+    LOG_ERROR << "notifying " << observer
+              << " for commit on surface " << this << std::endl;
     observer->OnCommit();
   }
 }

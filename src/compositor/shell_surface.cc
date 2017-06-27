@@ -9,13 +9,16 @@ namespace naive {
 ShellSurface::ShellSurface(Surface* surface)
     : surface_(surface), window_(surface->window()) {
   window_->SetShellSurface(this);
+  TRACE("add shell %p as observer to %p", this, surface_);
   surface_->AddSurfaceObserver(this);
 }
 
 ShellSurface::~ShellSurface() {
-  if (!window_) return;
-  wm::WindowManager::Get()->RemoveWindow(window_);
-  surface_->RemoveSurfaceObserver(this);
+  TRACE("%p", this);
+  if (window_)
+    wm::WindowManager::Get()->RemoveWindow(window_);
+  if (surface_)
+    surface_->RemoveSurfaceObserver(this);
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {

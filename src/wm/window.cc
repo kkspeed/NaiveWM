@@ -11,7 +11,7 @@ namespace wm {
 
 Window::Window()
     : surface_(nullptr), shell_surface_(nullptr), parent_(nullptr) {
-  TRACE();
+  TRACE("creating %p", this);
 }
 
 Window::~Window() {
@@ -19,6 +19,7 @@ Window::~Window() {
   wm::WindowManager::Get()->RemoveWindow(this);
   if (parent_)
     parent_->RemoveChild(this);
+  surface_->RemoveSurfaceObserver(this);
   // Window is destroyed with surface. no need to remove surface observer
 }
 

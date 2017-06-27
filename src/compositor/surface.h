@@ -55,14 +55,19 @@ class Surface {
   void SetBufferScale(int32_t scale){/* TODO: Implement this */};
 
   void AddSurfaceObserver(SurfaceObserver* observer) {
+    TRACE("Add observer: %p to surface %p", observer, this);
     auto iter = std::find(observers_.begin(), observers_.end(), observer);
     if (iter == observers_.end())
       observers_.push_back(observer);
+    for (auto* observer : observers_)
+      TRACE("   now %p has observers: %p", this, observer);
   }
   void RemoveSurfaceObserver(SurfaceObserver* observer) {
     auto iter = std::find(observers_.begin(), observers_.end(), observer);
-    if (iter != observers_.end())
+    if (iter != observers_.end()) {
+      TRACE("Remove observer: %p from surface %p", observer, this);
       observers_.erase(iter);
+    }
   }
 
   void RunSurfaceCallback() {

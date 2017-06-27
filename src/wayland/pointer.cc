@@ -7,12 +7,12 @@ namespace wayland {
 
 Pointer::Pointer(wl_resource* resource)
     : resource_(resource), target_(nullptr) {
-  TRACE();
+  TRACE("pointer ctor %p", this);
   wm::WindowManager::Get()->AddMouseObserver(this);
 }
 
 Pointer::~Pointer() {
-  TRACE("my pointer dtor %p", this);
+  TRACE("pointer dtor %p", this);
   if (target_)
     target_->RemoveSurfaceObserver(this);
   wm::WindowManager::Get()->RemoveMouseObserver(this);

@@ -258,7 +258,7 @@ void shm_pool_create_buffer(wl_client* client,
                             int32_t height,
                             int32_t stride,
                             uint32_t format) {
-  TRACE();
+  TRACE("create buffer: %d %d %d %d", offset, width, height, stride);
   if (format != WL_SHM_FORMAT_XRGB8888 && format != WL_SHM_FORMAT_ARGB8888) {
     std::cerr << "unsupported format " << format;
     return;

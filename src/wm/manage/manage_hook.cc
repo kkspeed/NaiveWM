@@ -34,6 +34,10 @@ void ManageHook::WindowCreated(Window* window) {
 
 void ManageHook::WindowDestroying(Window* window) {
   TRACE();
+}
+
+void ManageHook::WindowDestroyed(Window* window) {
+  TRACE("window: %p", window);
   for (Workspace& workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
       (workspace.PopWindow(window))->Show(false);
@@ -46,10 +50,6 @@ void ManageHook::WindowDestroying(Window* window) {
       break;
     }
   }
-}
-
-void ManageHook::WindowDestroyed(Window* window) {
-  TRACE();
 }
 
 bool ManageHook::OnKey(KeyboardEvent* event) {

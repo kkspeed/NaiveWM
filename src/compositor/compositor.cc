@@ -160,10 +160,11 @@ void init_gl() {
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
   const EGLint config_attributes[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                                      EGL_RED_SIZE,     8,
-                                      EGL_GREEN_SIZE,   8,
-                                      EGL_BLUE_SIZE,    8,
-                                      EGL_ALPHA_SIZE,   8,
+                                      EGL_RED_SIZE,     1,
+                                      EGL_GREEN_SIZE,   1,
+                                      EGL_BLUE_SIZE,    1,
+                                      EGL_ALPHA_SIZE,   1,
+                                      EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =

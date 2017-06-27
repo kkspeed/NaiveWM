@@ -34,6 +34,10 @@ void ManageHook::WindowCreated(Window* window) {
 
 void ManageHook::WindowDestroying(Window* window) {
   TRACE();
+}
+
+void ManageHook::WindowDestroyed(Window* window) {
+  TRACE("window: %p", window);
   for (Workspace& workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
       (workspace.PopWindow(window))->Show(false);
@@ -48,14 +52,10 @@ void ManageHook::WindowDestroying(Window* window) {
   }
 }
 
-void ManageHook::WindowDestroyed(Window* window) {
-  TRACE();
-}
-
 bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_T) {
     if (!event->pressed())
-      base::LaunchProgram("gnome-terminal", {});
+      base::LaunchProgram("gnome-terminal", nullptr);
     return true;
   }
   if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
@@ -134,11 +134,11 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   auto* current_manage_window = current_workspace()->CurrentWindow();
   if (event->window() && event->type() == MouseEventType::MouseButtonDown) {
     auto* top_level = event->window()->top_level();
+    primitives_->FocusWindow(event->window());
     if (current_workspace()->HasWindow(top_level) &&
         (!current_manage_window ||
          current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
-      primitives_->FocusWindow(top_level);
       return true;
     }
   }

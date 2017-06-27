@@ -26,6 +26,7 @@ class ShellSurface : SurfaceObserver {
 
   // SurfaceObserver overrides:
   void OnCommit() override;
+  void OnSurfaceDestroyed(Surface*) override;
 
   void set_close_callback(std::function<void()> callback) {
     close_callback_ = callback;

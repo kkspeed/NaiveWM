@@ -258,7 +258,7 @@ void shm_pool_create_buffer(wl_client* client,
                             int32_t height,
                             int32_t stride,
                             uint32_t format) {
-  TRACE();
+  TRACE("create buffer: %d %d %d %d", offset, width, height, stride);
   if (format != WL_SHM_FORMAT_XRGB8888 && format != WL_SHM_FORMAT_ARGB8888) {
     std::cerr << "unsupported format " << format;
     return;
@@ -630,10 +630,10 @@ const struct wl_keyboard_interface keyboard_implementation {
 // wl_seat interface:
 
 void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
-  TRACE();
   wl_resource* pointer_resource = wl_resource_create(
       client, &wl_pointer_interface, wl_resource_get_version(resource), id);
   auto pointer = std::make_unique<Pointer>(pointer_resource);
+  TRACE("Getting pointer: %p, client: %p, resource: %p", pointer.get(), client, resource);
   SetImplementation(pointer_resource, &pointer_implementation,
                     std::move(pointer));
 }
@@ -644,6 +644,7 @@ void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* keyboard_resource =
       wl_resource_create(client, &wl_keyboard_interface, version, id);
   auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
+  TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(), client, resource);
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
   if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
@@ -879,7 +880,7 @@ void xdg_toplevel_v6_destroy(wl_client* client, wl_resource* resource) {
 void xdg_toplevel_v6_set_parent(wl_client* client,
                                 wl_resource* resource,
                                 wl_resource* parent) {
-  TRACE();
+  TRACE("%p", parent);
   if (!parent) {
     GetUserDataAs<ShellSurface>(resource)->window()->set_parent(nullptr);
     return;
@@ -1008,7 +1009,6 @@ void xdg_popup_v6_grab(wl_client* client,
                        uint32_t serial) {
   TRACE();
   zxdg_surface_v6_send_configure(resource, serial);
-  zxdg_shell_v6_send_ping(resource, serial);
   // zxdg_popup_v6_send_configure(resource, 0, 0, 300, 300);
   NOTIMPLEMENTED();
 }
@@ -1036,8 +1036,8 @@ uint32_t HandleXdgToplevelV6ConfigureCallback(wl_resource* resource,
                                               wl_resource* surface_resource,
                                               int32_t width,
                                               int32_t height) {
-  TRACE("configure: %d %d", width, height);
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  TRACE("configure: window %p, %d %d", shell_surface->window(), width, height);
   wl_array states;
   wl_array_init(&states);
   // TODO: if window is visible, we'll need maximized state to eliminate window
@@ -1119,6 +1119,7 @@ if (!shell_surface->window()->IsManaged()) {
 
   shell_surface->set_close_callback(
       std::bind(&HandleXdgPopupV6CloseCallback, xdg_popup_resource));
+  shell_surface->set_configure_callback([](uint32_t, uint32_t){TRACE(); return 0; });
 
   wl_resource_set_implementation(
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);

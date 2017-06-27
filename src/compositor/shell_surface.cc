@@ -9,36 +9,46 @@ namespace naive {
 ShellSurface::ShellSurface(Surface* surface)
     : surface_(surface), window_(surface->window()) {
   window_->SetShellSurface(this);
+  TRACE("add shell %p as observer to %p", this, surface_);
   surface_->AddSurfaceObserver(this);
 }
 
 ShellSurface::~ShellSurface() {
-  wm::WindowManager::Get()->RemoveWindow(window_);
-  surface_->RemoveSurfaceObserver(this);
+  TRACE("%p", this);
+  if (window_)
+    wm::WindowManager::Get()->RemoveWindow(window_);
+  if (surface_)
+    surface_->RemoveSurfaceObserver(this);
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {
-  if (window_->is_popup() || window_->is_transient())
+  if (!window_ || window_->is_popup() || window_->is_transient())
     return;
   in_configure_ = true;
   configure_callback_(width, height);
 }
 
 void ShellSurface::Close() {
+  if (!window_) return;
   close_callback_();
+  close_callback_ = [](){};
 }
 
 void ShellSurface::SetGeometry(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
+  if (!window_) return;
   window_->SetGeometry(rect);
 }
 
 void ShellSurface::SetVisibleRegion(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
+  if (!window_) return;
   window_->SetVisibleRegion(rect);
 }
 
 void ShellSurface::Move() {
+  if (!window_) return;
+
   window_->BeginMove();
 }
 
@@ -49,10 +59,21 @@ void ShellSurface::AcknowledgeConfigure(uint32_t serial) {
 }
 
 void ShellSurface::OnCommit() {
+  if (!window_)
+    return;
+
   if (window_->IsManaged() && (!surface_->committed_buffer() ||
                                !surface_->committed_buffer()->data())) {
     // TODO: How to anounce size?
     return;
+  }
+}
+
+void ShellSurface::OnSurfaceDestroyed(Surface* surface) {
+  if (surface == surface_) {
+    wm::WindowManager::Get()->RemoveWindow(window_);
+    surface_ = nullptr;
+    window_ = nullptr;
   }
 }
 

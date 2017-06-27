@@ -1,7 +1,19 @@
+keyboard enter to sub surfaces.
 tooltip
 
-panel
-systray
+panel:
+  workspace indicator:
+    workspace snapshot 
+  systray
+
 notification
 
 scale
+
+improve compositor
+
+Copy / Paste device
+
+Take screenshot
+
+Out of order closing of multiple windows will crash the compositor

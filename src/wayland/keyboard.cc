@@ -13,7 +13,7 @@ namespace wayland {
 
 Keyboard::Keyboard(wl_resource* resource)
     : resource_(resource), xkb_context_(xkb_context_new(XKB_CONTEXT_NO_FLAGS)) {
-  TRACE();
+  TRACE("%p", this);
   // TODO: maybe reconstruct this in SendLayout()?
   xkb_keymap_ = xkb_keymap_new_from_names(
       xkb_context_, NULL, static_cast<xkb_keymap_compile_flags>(0));
@@ -23,9 +23,12 @@ Keyboard::Keyboard(wl_resource* resource)
 }
 
 Keyboard::~Keyboard() {
+  TRACE("%p", this);
   xkb_context_unref(xkb_context_);
   xkb_keymap_unref(xkb_keymap_);
   wm::WindowManager::Get()->RemoveKeyboardObserver(this);
+  if (target_)
+    target_->RemoveSurfaceObserver(this);
 }
 
 void Keyboard::SendLayout() {
@@ -52,10 +55,15 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 }
 
 void Keyboard::OnFocus(wm::Window* window) {
+  TRACE("%p, target: %p", window, target_);
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
-    if (target_)
+    TRACE("Adding %p as surface observer to %p", this, window->surface());
+    window->surface()->AddSurfaceObserver(this);
+    if (target_) {
+      TRACE("sending leave to %p", target_);
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
+    }
     target_ = window->surface();
     wl_array keys;
     wl_array_init(&keys);
@@ -72,6 +80,7 @@ void Keyboard::OnFocus(wm::Window* window) {
 }
 
 void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
+  TRACE();
   UpdateKeyStates(key_event);
 
   if (!key_event->window()) {
@@ -83,10 +92,13 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
   if (!CanReceiveEvent(key_event->window()->surface()))
     return;
 
+
   if (key_event->window()->surface() != target_) {
     if (target_)
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
     target_ = key_event->window()->surface();
+    TRACE("Adding %p as surface observer to %p", this, target_);
+    target_->AddSurfaceObserver(this);
     wl_array keys;
     wl_array_init(&keys);
     for (auto key : pressed_keys_) {
@@ -126,6 +138,7 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
 }
 
 void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {
+  TRACE();
   if (key_event->keycode() != 0) {
     if (key_event->pressed())
       pressed_keys_.insert(key_event->keycode());

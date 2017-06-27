@@ -16,8 +16,10 @@ namespace wayland {
 
 class ShmPool {
  public:
-  ShmPool(uint32_t size, void* data) : size_(size), data_(data) {}
-  ~ShmPool() { munmap(data_, size_); }
+  ShmPool(uint32_t size, void* data) : size_(size), data_(data) {
+    TRACE("%p", this);
+  }
+  ~ShmPool() { TRACE("%p", this); munmap(data_, size_); }
   uint32_t size() { return size_; }
   void* data() { return data_; }
   void set_data(void* data, uint32_t size) {

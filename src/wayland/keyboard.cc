@@ -25,6 +25,8 @@ Keyboard::Keyboard(wl_resource* resource)
 Keyboard::~Keyboard() {
   xkb_context_unref(xkb_context_);
   xkb_keymap_unref(xkb_keymap_);
+  if (target_)
+    target_->RemoveSurfaceObserver(this);
   wm::WindowManager::Get()->RemoveKeyboardObserver(this);
 }
 
@@ -52,10 +54,14 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 }
 
 void Keyboard::OnFocus(wm::Window* window) {
+  TRACE("%p, target: %p", window, target_);
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
-    if (target_)
+    window->surface()->AddSurfaceObserver(this);
+    if (target_) {
+      TRACE("sending leave to %p", target_);
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
+    }
     target_ = window->surface();
     wl_array keys;
     wl_array_init(&keys);
@@ -72,6 +78,7 @@ void Keyboard::OnFocus(wm::Window* window) {
 }
 
 void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
+  TRACE();
   UpdateKeyStates(key_event);
 
   if (!key_event->window()) {
@@ -82,6 +89,8 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
 
   if (!CanReceiveEvent(key_event->window()->surface()))
     return;
+
+  key_event->window()->surface()->AddSurfaceObserver(this);
 
   if (key_event->window()->surface() != target_) {
     if (target_)
@@ -126,6 +135,7 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
 }
 
 void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {
+  TRACE();
   if (key_event->keycode() != 0) {
     if (key_event->pressed())
       pressed_keys_.insert(key_event->keycode());

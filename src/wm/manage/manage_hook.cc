@@ -134,11 +134,11 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   auto* current_manage_window = current_workspace()->CurrentWindow();
   if (event->window() && event->type() == MouseEventType::MouseButtonDown) {
     auto* top_level = event->window()->top_level();
+    primitives_->FocusWindow(event->window());
     if (current_workspace()->HasWindow(top_level) &&
         (!current_manage_window ||
          current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
-      primitives_->FocusWindow(top_level);
       return true;
     }
   }

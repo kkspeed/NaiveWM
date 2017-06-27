@@ -66,17 +66,28 @@ void WindowManager::Manage(Window* window) {
 }
 
 void WindowManager::RemoveWindow(Window* window) {
-  auto iter = std::find(windows_.begin(), windows_.end(), window);
-  if (iter != windows_.end()) {
-    if (*iter == focused_window_) {
-      focused_window_->LoseFocus();
-      auto* next_window = NextWindow(focused_window_);
-      FocusWindow(next_window);
+  auto* top_level = window->top_level();
+  if (top_level == window) {
+    // We are dealing with a top level window
+    auto iter = std::find(windows_.begin(), windows_.end(), window);
+    if (iter != windows_.end()) {
+      if (*iter == focused_window_) {
+        focused_window_->LoseFocus();
+        auto* next_window = NextWindow(focused_window_);
+        FocusWindow(next_window);
+      }
+      wm_event_observer_->WindowDestroying(window);
+      windows_.erase(iter);
+      wm_event_observer_->WindowDestroyed(window);
+      // TODO: compositor needs to be notified of this
     }
-    wm_event_observer_->WindowDestroying(window);
-    windows_.erase(iter);
-    wm_event_observer_->WindowDestroyed(window);
-    // TODO: compositor needs to be notified of this
+  } else {
+    if (window == focused_window_) {
+      LOG_ERROR << "set focus to parent" << std::endl;
+      window->LoseFocus();
+      FocusWindow(window->parent());
+      wm_event_observer_->WindowDestroyed(window);
+    }
   }
 }
 
@@ -260,32 +271,19 @@ Window* WindowManager::PreviousWindow(Window* window) {
 }
 
 void WindowManager::FocusWindow(Window* window) {
-  TRACE();
+  TRACE("%p, current_focus: %p", window, focused_window_);
   if (window == focused_window_)
     return;
 
-  if (!window) {
-    if (focused_window_)
-      focused_window_->LoseFocus();
-    focused_window_ = nullptr;
-    return;
+  if (focused_window_)
+    focused_window_->LoseFocus();
+  focused_window_ = window;
+  for (auto* observer : keyboard_observers_)
+    observer->OnFocus(window);
+  if (window) {
+    window->TakeFocus();
+    TRACE("top_level: %p", window->top_level());
   }
-
-  auto iter = std::find(windows_.begin(), windows_.end(), window);
-  if (iter != windows_.end()) {
-    if (focused_window_)
-      focused_window_->LoseFocus();
-    focused_window_ = *iter;
-    if (focused_window_) {
-      focused_window_->TakeFocus();
-      RaiseWindow(focused_window_);
-      for (auto observer : keyboard_observers_)
-        observer->OnFocus(focused_window_);
-    }
-    return;
-  }
-
-  LOG_ERROR << "window not found!" << std::endl;
 }
 
 void WindowManager::MoveResizeWindow(Window* window,

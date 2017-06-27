@@ -630,10 +630,10 @@ const struct wl_keyboard_interface keyboard_implementation {
 // wl_seat interface:
 
 void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
-  TRACE();
   wl_resource* pointer_resource = wl_resource_create(
       client, &wl_pointer_interface, wl_resource_get_version(resource), id);
   auto pointer = std::make_unique<Pointer>(pointer_resource);
+  TRACE("Getting pointer: %p, client: %p, resource: %p", pointer.get(), client, resource);
   SetImplementation(pointer_resource, &pointer_implementation,
                     std::move(pointer));
 }
@@ -644,6 +644,7 @@ void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* keyboard_resource =
       wl_resource_create(client, &wl_keyboard_interface, version, id);
   auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
+  TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(), client, resource);
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
   if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
@@ -1119,6 +1120,7 @@ if (!shell_surface->window()->IsManaged()) {
 
   shell_surface->set_close_callback(
       std::bind(&HandleXdgPopupV6CloseCallback, xdg_popup_resource));
+  shell_surface->set_configure_callback([](uint32_t, uint32_t){TRACE(); return 0; });
 
   wl_resource_set_implementation(
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);

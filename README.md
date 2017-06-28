@@ -4,7 +4,7 @@ Wayland-based  tiling window manager.
 ## Compilation and Test
 You'll need the following dependencies:
 
-    libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon
+    libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng
 
 Then
 

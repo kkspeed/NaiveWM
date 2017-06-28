@@ -2,6 +2,9 @@
 #define COMPOSITOR_COMPOSITOR_H_
 
 #include <cstdint>
+#include <memory>
+#include <functional>
+#include <vector>
 
 namespace naive {
 
@@ -11,12 +14,18 @@ class Window;
 
 namespace compositor {
 
+using CopyRequest = std::function<void(std::vector<uint8_t>, int32_t, int32_t)>;
+
 class Compositor {
  public:
   static void InitializeCompoistor();
   static Compositor* Get();
 
   Compositor();
+
+  void CopyScreen(std::unique_ptr<CopyRequest> request) {
+    copy_request_ = std::move(request);
+  }
   void Draw();
   void DrawPointer();
   void DrawWindowBorder(wm::Window* window);
@@ -27,6 +36,7 @@ class Compositor {
  private:
   static Compositor* g_compositor;
   bool draw_forced_ = true;
+  std::unique_ptr<CopyRequest> copy_request_;
 };
 
 }  // namespace compositor

@@ -40,3 +40,16 @@ It's recommended that you do the following things:
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!
+
+## Credits
+Sincerely thanks to all the open source libraries that back up this project. 
+
+Part of the Wayland server implementation is heavily based on the 
+[Chromium project](https://www.chromium.org/).
+
+The compositor implementation is heavily based on 
+[kmscube](https://github.com/robclark/kmscube/blob/master/kmscube.c). 
+
+The PNG encoder is almost (shamelessly) copied from
+[https://www.lemoda.net/c/write-png/](https://www.lemoda.net/c/write-png/).
+

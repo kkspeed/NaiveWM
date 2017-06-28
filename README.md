@@ -1,6 +1,8 @@
 # NaiveWM
 Wayland-based  tiling window manager.
 
+![Screenshot](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/screenshot.png)
+
 ## Compilation and Test
 You'll need the following dependencies:
 

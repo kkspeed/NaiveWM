@@ -47,11 +47,13 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 |---------------------|--------------------------------------------------------|
 |Super + C            | Launches browser (default is qutebrowser)              |
 |Super + T            | Launches terminal (default is gnome-terminal           |
+|Super + J            | Focus next window                                      |
+|Super + K            | Focus previous window                                  |
 |Super + Shift + Q    | Exit                                                   |
 |Super + Enter        | Bumps current window to head of the list               |
 |Super + P            | Save screenshot. Currently it saves to /tmp/output.png |
 |Super + 1..9         | Switch workspace to 1..9                               |
-|Super + Shift + 1..9 | Moves current window to workspace 1..9                 |
+|Super + Shift + 1..9 | Move current window to workspace 1..9                  |
 
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know

@@ -3,6 +3,8 @@
 
 #include <cmath>
 #include <cstdint>
+#include <string>
+#include <sstream>
 
 namespace naive {
 namespace base {
@@ -37,6 +39,13 @@ class Rect {
   }
 
   bool Empty() { return width_ == 0 || height_ == 0; }
+
+  std::string ToString() {
+    std::stringstream ss;
+    ss << "x: " << x_ << ", y: " << y_ << ", width: " << width_
+       << ", height: " << height_;
+    return ss.str();
+  }
 
   int32_t x() const { return x_; }
   int32_t y() const { return y_; }

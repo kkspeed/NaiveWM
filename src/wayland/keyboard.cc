@@ -27,8 +27,8 @@ Keyboard::~Keyboard() {
   xkb_context_unref(xkb_context_);
   xkb_keymap_unref(xkb_keymap_);
   wm::WindowManager::Get()->RemoveKeyboardObserver(this);
-  if (target_)
-    target_->RemoveSurfaceObserver(this);
+  for (auto* surface : observed_surfaces_)
+    surface->RemoveSurfaceObserver(this);
 }
 
 void Keyboard::SendLayout() {
@@ -59,7 +59,10 @@ void Keyboard::OnFocus(wm::Window* window) {
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
     TRACE("Adding %p as surface observer to %p", this, window->surface());
-    window->surface()->AddSurfaceObserver(this);
+    if (observed_surfaces_.find(window->surface()) == observed_surfaces_.end()) {
+      window->surface()->AddSurfaceObserver(this);
+      observed_surfaces_.insert(window->surface());
+    }
     if (target_) {
       TRACE("sending leave to %p", target_);
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
@@ -98,7 +101,10 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
     target_ = key_event->window()->surface();
     TRACE("Adding %p as surface observer to %p", this, target_);
-    target_->AddSurfaceObserver(this);
+    if (observed_surfaces_.find(target_) == observed_surfaces_.end()) {
+      target_->AddSurfaceObserver(this);
+      observed_surfaces_.insert(target_);
+    }
     wl_array keys;
     wl_array_init(&keys);
     for (auto key : pressed_keys_) {
@@ -135,6 +141,8 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
   TRACE("%p", surface);
   if (surface == target_)
     target_ = nullptr;
+  if (observed_surfaces_.find(surface) != observed_surfaces_.end())
+    observed_surfaces_.erase(surface);
 }
 
 void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {

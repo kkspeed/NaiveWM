@@ -36,6 +36,7 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   xkb_state* xkb_state_;
   wl_resource* resource_;
   std::set<uint32_t> pressed_keys_;
+  std::set<Surface*> observed_surfaces_;
   Surface* target_ = nullptr;
 };
 

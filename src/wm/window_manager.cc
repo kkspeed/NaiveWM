@@ -282,6 +282,7 @@ void WindowManager::FocusWindow(Window* window) {
     observer->OnFocus(window);
   if (window) {
     window->TakeFocus();
+    RaiseWindow(window);
     TRACE("top_level: %p", window->top_level());
   }
 }

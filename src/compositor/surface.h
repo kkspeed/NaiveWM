@@ -39,7 +39,8 @@ class Surface {
   Surface();
   ~Surface() {
     TRACE("resource %p, window %p", resource(), window());
-    for (auto observer : observers_) {
+    for (size_t i = 0; i < observers_.size(); i++) {
+      auto* observer = observers_[i];
       LOG_ERROR << "surface " << this << " destroyed for " << observer
                 << std::endl;
       observer->OnSurfaceDestroyed(this);

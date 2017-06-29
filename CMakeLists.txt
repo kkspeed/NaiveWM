@@ -16,6 +16,7 @@ INCLUDE(cmake_modules/FindPixman.cmake)
 INCLUDE(cmake_modules/FindUdev.cmake)
 INCLUDE(cmake_modules/FindWayland.cmake)
 INCLUDE(cmake_modules/FindXKBCommon.cmake)
+FIND_PACKAGE(PNG REQUIRED)
 
 INCLUDE_DIRECTORIES(
         ${WAYLAND_SERVER_INCLUDE_DIR}
@@ -27,6 +28,7 @@ INCLUDE_DIRECTORIES(
         ${GBM_INCLUDE_DIRS}
         ${UDEV_INCLUDE_DIRS}
         ${XKBCOMMON_INCLUDE_DIRS}
+        ${PNG_INCLUDE_DIR}
         src)
 
 FILE(GLOB_RECURSE NAIVE_SOURCE src/*.cc)
@@ -48,4 +50,5 @@ TARGET_LINK_LIBRARIES(
         ${LIBINPUT_LIBRARIES}
         ${UDEV_LIBRARIES}
         ${GBM_LIBRARIES}
-        ${XKBCOMMON_LIBRARIES})
+        ${XKBCOMMON_LIBRARIES}
+        ${PNG_LIBRARY})

@@ -4,7 +4,9 @@
 #include <memory>
 #include <vector>
 
+#include "base/image_codec.h"
 #include "base/utils.h"
+#include "compositor/compositor.h"
 #include "wm/keyboard_event.h"
 #include "wm/mouse_event.h"
 #include "wm/window.h"
@@ -38,7 +40,7 @@ void ManageHook::WindowDestroying(Window* window) {
 
 void ManageHook::WindowDestroyed(Window* window) {
   TRACE("window: %p", window);
-  for (Workspace& workspace : workspaces_) {
+  for (Workspace &workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
       (workspace.PopWindow(window))->Show(false);
       if (workspace.tag() == current_workspace_) {
@@ -101,7 +103,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       return true;
     const char* args[] = {"qutebrowser", "--qt-arg", "platform", "wayland",
                           nullptr};
-    base::LaunchProgram("qutebrowser", (char**)args);
+    base::LaunchProgram("qutebrowser", (char**) args);
     return true;
   }
 
@@ -127,6 +129,19 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_P) {
+    if (event->pressed())
+      return true;
+    TRACE("Saving screenshot...");
+    compositor::Compositor::Get()
+        ->CopyScreen(std::make_unique<compositor::CopyRequest>(
+            std::bind(&base::EncodePngToFile, "/tmp/output.png",
+                      std::placeholders::_1, std::placeholders::_2,
+                      std::placeholders::_3)));
+    TRACE("Screenshot saved...");
+    return true;
+  }
+
   return false;
 }
 
@@ -137,7 +152,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
     primitives_->FocusWindow(event->window());
     if (current_workspace()->HasWindow(top_level) &&
         (!current_manage_window ||
-         current_manage_window->window() != top_level)) {
+            current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
       return true;
     }

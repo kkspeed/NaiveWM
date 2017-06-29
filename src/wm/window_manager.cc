@@ -57,6 +57,11 @@ WindowManager::WindowManager(WmEventObserver* wm_event_observer)
 void WindowManager::Manage(Window* window) {
   TRACE("manage: %p", window);
   // TODO: window management policy
+  auto it = std::find(windows_.begin(), windows_.end(), window);
+  if (it != windows_.end()) {
+    TRACE("shouldn't happen. %p is already managed.", window);
+    return;
+  }
   windows_.push_back(window);
   window->set_managed(true);
   // We'll skip popup windows for configure.

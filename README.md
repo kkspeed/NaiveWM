@@ -21,6 +21,9 @@ directory and run <tt>./naive 2> server\_err</tt>. The IO redirection is
 necessary as currently it generates a large amount of logging information,
 which drastically slows down the WM.
 
+If you are unable to move mouse or type anything, it's likely that you are
+not in <tt>input</tt> group. Add yourself by <tt>gpasswd -a your\_name</tt>.
+
 ## Recommended Configurations
 It's recommended that you do the following things:
 

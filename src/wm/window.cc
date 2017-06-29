@@ -81,6 +81,15 @@ void Window::PlaceBelow(Window* window, Window* target) {
   children_.insert(iter, window);
 }
 
+void Window::GrabDone() {
+  if (!is_popup_) {
+    TRACE("not a popup window: %p", this);
+    return;
+  }
+
+  shell_surface_->Ungrab();
+}
+
 void Window::Resize(int32_t width, int32_t height) {
   if (!shell_surface_) {
     LOG_ERROR << " only shell surface can be resized. " << std::endl;

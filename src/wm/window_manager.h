@@ -85,6 +85,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   void RemoveMouseObserver(MouseObserver* observer);
   void AddKeyboardObserver(KeyboardObserver* observer);
   void RemoveKeyboardObserver(KeyboardObserver* observer);
+  void GlobalGrabWindow(Window* window);
 
   bool pointer_moved();
   base::geometry::FloatPoint mouse_position() { return mouse_position_; }
@@ -135,6 +136,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   base::geometry::FloatPoint last_mouse_position_;
 
   Window* focused_window_ = nullptr;
+  Window* global_grab_window_ = nullptr;
   WmEventObserver* wm_event_observer_ = nullptr;
 };
 

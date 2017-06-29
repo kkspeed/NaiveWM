@@ -495,6 +495,14 @@ void shell_surface_set_popup(wl_client* client,
   parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_popup(true);
   shell_surface->window()->set_to_be_managed(true);
+  shell_surface->window()->SetPosition(x, y);
+  shell_surface->set_ungrab_callback(
+      std::bind([](wl_client* c, wl_resource* r) {
+        TRACE("ungrabbing surface");
+        wl_shell_surface_send_popup_done(r);
+        wl_client_flush(c);
+      }, client, resource));
+  wm::WindowManager::Get()->GlobalGrabWindow(shell_surface->window());
   // wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -1009,8 +1017,10 @@ void xdg_popup_v6_grab(wl_client* client,
                        uint32_t serial) {
   TRACE();
   zxdg_surface_v6_send_configure(resource, serial);
-  // zxdg_popup_v6_send_configure(resource, 0, 0, 300, 300);
-  NOTIMPLEMENTED();
+  auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
+  shell_surface->set_ungrab_callback(std::bind(&zxdg_popup_v6_send_popup_done,
+                                               resource));
+  wm::WindowManager::Get()->GlobalGrabWindow(shell_surface->window());
 }
 
 const struct zxdg_popup_v6_interface xdg_popup_v6_implementation = {

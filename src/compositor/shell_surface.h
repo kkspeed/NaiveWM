@@ -38,15 +38,24 @@ class ShellSurface : SurfaceObserver {
       std::function<uint32_t(int32_t, int32_t)> callback) {
     configure_callback_ = callback;
   }
+  void set_ungrab_callback(std::function<void()> callback) {
+    ungrab_callback_ = callback;
+  }
 
   void Configure(int32_t width, int32_t height);
   void Close();
+  void Ungrab() {
+    TRACE("ungrabbing %p", this);
+    ungrab_callback_(); ungrab_callback_ = [](){};
+  }
+
   wm::Window* window() { return window_; }
 
  private:
   std::function<uint32_t(int32_t, int32_t)> configure_callback_;
   std::function<void()> close_callback_;
   std::function<void()> destroy_callback_;
+  std::function<void()> ungrab_callback_ = []() {};
 
   wm::Window* window_;
   Surface* surface_;

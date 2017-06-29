@@ -88,6 +88,8 @@ void WindowManager::RemoveWindow(Window* window) {
       FocusWindow(window->parent());
       wm_event_observer_->WindowDestroyed(window);
     }
+    if (window == global_grab_window_)
+      global_grab_window_ = nullptr;
   }
 }
 
@@ -117,6 +119,12 @@ void WindowManager::RemoveKeyboardObserver(KeyboardObserver* observer) {
                         observer);
   if (iter != keyboard_observers_.end())
     keyboard_observers_.erase(iter);
+}
+
+void WindowManager::GlobalGrabWindow(Window* window) {
+  if (global_grab_window_)
+    global_grab_window_->GrabDone();
+  global_grab_window_ = window;
 }
 
 bool WindowManager::pointer_moved() {
@@ -224,6 +232,12 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
     return;
 
   if (event->window()) {
+    if (global_grab_window_ && event->window() != global_grab_window_
+        && event->type() == MouseEventType::MouseButtonDown) {
+      global_grab_window_->GrabDone();
+      global_grab_window_ = nullptr;
+    }
+
     // Transform pointer location to surface local coordinates.
     std::vector<Window*> window_path;
     Window* window = event->window();

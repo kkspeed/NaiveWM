@@ -88,6 +88,8 @@ class Window : public SurfaceObserver {
   void BeginMove() { /* TODO: implement this */
   }
 
+  void GrabDone();
+
   bool focused() { return focused_; }
   // Sets the window size via window manager.
   // TODO: This needs to commit as well.

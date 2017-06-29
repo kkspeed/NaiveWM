@@ -695,11 +695,11 @@ class WaylandOutput {
     const char* kUnknownModel = "unknown";
 
     // TODO: Get real display information.
-    base::geometry::Rect bounds(0, 0, 2560, 1440);
+    base::geometry::Rect bounds(0, 0, 1366, 768);
     wl_output_send_geometry(
         output_resource_, bounds.x(), bounds.y(),
-        static_cast<int>(kInchInMm * bounds.width() / 200.0),
-        static_cast<int>(kInchInMm * bounds.height() / 200.0),
+        static_cast<int>(kInchInMm * bounds.width() / 100.0),
+        static_cast<int>(kInchInMm * bounds.height() / 100.0),
         WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
         WL_OUTPUT_TRANSFORM_NORMAL);
 

@@ -17,22 +17,31 @@ Window::Window()
 Window::~Window() {
   TRACE("%p", this);
   wm::WindowManager::Get()->RemoveWindow(this);
-  if (parent_)
+  if (parent_) {
+    TRACE("removing window %p from parent: %p", this, parent_);
     parent_->RemoveChild(this);
-  surface_->RemoveSurfaceObserver(this);
+  }
   // Window is destroyed with surface. no need to remove surface observer
 }
 
 void Window::AddChild(Window* child) {
-  children_.push_back(child);
+  TRACE("adding %p as child of %p", child, this);
+  auto iter = std::find(children_.begin(), children_.end(), child);
+  if (iter == children_.end())
+    children_.push_back(child);
   child->set_parent(this);
 }
 
 void Window::RemoveChild(Window* child) {
+  TRACE("removing child %p from parent: %p", child, this);
   auto iter = std::find(children_.begin(), children_.end(), child);
   if (iter != children_.end())
     children_.erase(iter);
   child->set_parent(nullptr);
+
+
+  iter = std::find(children_.begin(), children_.end(), child);
+  assert(iter == children_.end());
 }
 
 bool Window::HasChild(const Window* child) const {

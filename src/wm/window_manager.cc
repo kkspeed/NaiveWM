@@ -45,10 +45,10 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager(WmEventObserver* wm_event_observer)
-    : screen_width_(2560),
-      screen_height_(1440),
-      mouse_position_(1280.0f, 720.0f),
-      last_mouse_position_(1280.0f, 720.0f),
+    : screen_width_(1366),
+      screen_height_(768),
+      mouse_position_(683.0f, 384.0f),
+      last_mouse_position_(683.0f, 384.0f),
       wm_event_observer_(wm_event_observer) {
   wm_event_observer_->set_wm_primitives(this);
   event::EventHub::Get()->AddEventObserver(this);

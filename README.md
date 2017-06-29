@@ -37,7 +37,7 @@ It's recommended that you do the following things:
    <tt>qutebrowser --qt-args platform wayland</tt> in the terminal.
 
 3. It's very likely that your screen resolution is different from mine. unfortunately
-   they are hard coded paramters. Just search for 1366 and 768 in the code and change
+   they are hard coded paramters. Just search for 2560 and 1440 in the code and change
    them to your screen's width and height.
 
 ## Default Configurations

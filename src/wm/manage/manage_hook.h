@@ -38,7 +38,7 @@ class ManageHook : public WmEventObserver {
   std::vector<Workspace> workspaces_;
   size_t current_workspace_;
 
-  int32_t width_ = 1366, height_ = 768;
+  int32_t width_ = 2560, height_ = 1440;
   WMPrimitives* primitives_ = nullptr;
 };
 

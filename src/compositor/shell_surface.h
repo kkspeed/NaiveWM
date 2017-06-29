@@ -46,7 +46,8 @@ class ShellSurface : SurfaceObserver {
   void Close();
   void Ungrab() {
     TRACE("ungrabbing %p", this);
-    ungrab_callback_(); ungrab_callback_ = [](){};
+    ungrab_callback_();
+    ungrab_callback_ = []() {};
   }
 
   wm::Window* window() { return window_; }

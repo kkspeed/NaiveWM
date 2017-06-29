@@ -3,8 +3,8 @@
 
 #include <cmath>
 #include <cstdint>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace naive {
 namespace base {

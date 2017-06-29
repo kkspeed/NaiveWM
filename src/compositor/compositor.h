@@ -2,8 +2,8 @@
 #define COMPOSITOR_COMPOSITOR_H_
 
 #include <cstdint>
-#include <memory>
 #include <functional>
+#include <memory>
 #include <vector>
 
 namespace naive {

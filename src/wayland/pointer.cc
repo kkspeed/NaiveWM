@@ -13,8 +13,8 @@ Pointer::Pointer(wl_resource* resource)
 
 Pointer::~Pointer() {
   TRACE("pointer dtor %p", this);
-  if (target_)
-    target_->RemoveSurfaceObserver(this);
+  for (auto* surface : observing_surfaces_)
+    surface->RemoveSurfaceObserver(this);
   wm::WindowManager::Get()->RemoveMouseObserver(this);
 }
 
@@ -39,7 +39,10 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
   Surface* surface = event->window()->surface();
   assert(surface);
   if (CanReceiveEvent(surface)) {
-    surface->AddSurfaceObserver(this);
+    if (observing_surfaces_.find(surface) != observing_surfaces_.end()) {
+      surface->AddSurfaceObserver(this);
+      observing_surfaces_.insert(surface);
+    }
     if (target_ != surface) {
       LOG_ERROR << "leave surface: " << target_ << std::endl;
       if (target_ && target_->window()) {
@@ -111,6 +114,9 @@ void Pointer::OnSurfaceDestroyed(Surface* surface) {
   TRACE("%p", surface);
   if (surface == target_)
     target_ = nullptr;
+  auto it = observing_surfaces_.find(surface);
+  if (it != observing_surfaces_.end())
+    observing_surfaces_.erase(it);
 }
 
 uint32_t Pointer::next_serial() {

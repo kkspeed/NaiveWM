@@ -1,6 +1,7 @@
 #ifndef WAYLAND_POINTER_H_
 #define WAYLAND_POINTER_H_
 
+#include <set>
 #include <wayland-server.h>
 
 #include "compositor/surface.h"
@@ -30,7 +31,7 @@ class Pointer : public wm::MouseObserver, public SurfaceObserver {
   void OnSurfaceDestroyed(Surface* surface);
 
  private:
-  uint32_t observing_surfaces_ = 0;
+  std::set<Surface*> observing_surfaces_;
   uint32_t next_serial();
 
   wl_resource* resource_;

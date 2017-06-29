@@ -21,6 +21,8 @@ Window::~Window() {
     TRACE("removing window %p from parent: %p", this, parent_);
     parent_->RemoveChild(this);
   }
+  for (auto* child : children_)
+    child->set_parent(nullptr);
   // Window is destroyed with surface. no need to remove surface observer
 }
 

@@ -40,6 +40,19 @@ It's recommended that you do the following things:
    they are hard coded paramters. Just search for 2560 and 1440 in the code and change
    them to your screen's width and height.
 
+## Default Configurations
+Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
+
+| Key                 | Action                                                 |
+|---------------------|--------------------------------------------------------|
+|Super + C            | Launches browser (default is qutebrowser)              |
+|Super + T            | Launches terminal (default is gnome-terminal           |
+|Super + Shift + Q    | Exit                                                   |
+|Super + Enter        | Bumps current window to head of the list               |
+|Super + P            | Save screenshot. Currently it saves to /tmp/output.png |
+|Super + 1..9         | Switch workspace to 1..9                               |
+|Super + Shift + 1..9 | Moves current window to workspace 1..9                 |
+
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!

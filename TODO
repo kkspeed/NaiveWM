@@ -19,3 +19,5 @@ Take screenshot: Has basic support with Super + P
 Out of order closing of multiple windows will crash the compositor
 
 Popup grab and proactive dismiss
+
+Automatically decide screen resolution

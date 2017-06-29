@@ -39,7 +39,7 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
   Surface* surface = event->window()->surface();
   assert(surface);
   if (CanReceiveEvent(surface)) {
-    if (observing_surfaces_.find(surface) != observing_surfaces_.end()) {
+    if (observing_surfaces_.find(surface) == observing_surfaces_.end()) {
       surface->AddSurfaceObserver(this);
       observing_surfaces_.insert(surface);
     }

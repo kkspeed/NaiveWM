@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 
+#include "xdg-shell-unstable-v5.h"
 #include "xdg-shell-unstable-v6.h"
 
 #include "base/geometry.h"
@@ -733,6 +734,138 @@ void bind_output(wl_client* client, void* data, uint32_t version, uint32_t id) {
       wl_resource_create(client, &wl_output_interface, version, id);
   SetImplementation(resource, nullptr,
                     std::make_unique<WaylandOutput>(resource));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// xdg_surface_v5_interface:
+void xdg_surface_v5_destroy(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
+}
+
+void xdg_surface_v5_set_parent(wl_client* client, wl_resource* resource,
+                               wl_resource* parent) {
+  TRACE();
+  auto shell_surface = GetUserDataAs<ShellSurface>(resource);
+  if (!parent) {
+    shell_surface->window()->set_parent(nullptr);
+    return;
+  }
+  auto parent_surface = GetUserDataAs<ShellSurface>(parent);
+  parent_surface->window()->AddChild(shell_surface->window());
+}
+
+void xdg_surface_v5_set_title(wl_client* client, wl_resource* resource,
+                              const char* title) {
+  TRACE("title: %s", title);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_title(title);
+}
+
+void xdg_surface_v5_set_app_id(wl_client* client, wl_resource* resource,
+                               const char* app_id) {
+  TRACE("app id: %s", app_id);
+  GetUserDataAs<ShellSurface>(resource)->window()->set_appid(app_id);
+}
+
+void xdg_surface_v5_show_window_menu(wl_client* client, wl_resource* resource,
+                                     wl_resource* seat, uint32_t serial,
+                                     int32_t x, int32_t y) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+void xdg_surface_v5_move(wl_client* client, wl_resource* resource,
+                         wl_resource* seat, uint32_t serial) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->BeginMove();
+}
+
+void xdg_surface_v5_resize(wl_client* client, wl_resource* resource,
+                           wl_resource* seat, uint32_t serial, uint32_t edges) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+void xdg_surface_v5_ack_configure(wl_client* client, wl_resource* resource,
+                                  uint32_t serial) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+void xdg_surface_v5_set_window_geometry(
+    wl_client* client, wl_resource* resource, int32_t x, int32_t y,
+    int32_t width, int32_t height) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->SetVisibleRegion
+      (base::geometry::Rect(x, y, width, height));
+}
+
+void xdg_surface_v5_set_maximized(wl_client* client, wl_resource* resource) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(true);
+}
+
+void xdg_surface_v5_unset_maximized(wl_client* client, wl_resource* resource) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(false);
+}
+
+void xdg_surface_v5_set_fullscreen(wl_client* client, wl_resource* resource,
+                                   wl_resource* output) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(true);
+}
+
+void xdg_surface_v5_unset_fullscreen(wl_client* client, wl_resource* resource) {
+  TRACE();
+  GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(false);
+}
+
+void xdg_surface_v5_set_minimized(wl_client* client, wl_resource* resource) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+const struct xdg_surface_interface xdg_surface_v5_implementation = {
+    .destroy = xdg_surface_v5_destroy,
+    .set_fullscreen = xdg_surface_v5_set_fullscreen,
+    .unset_fullscreen = xdg_surface_v5_unset_fullscreen,
+    .set_maximized = xdg_surface_v5_set_maximized,
+    .unset_maximized = xdg_surface_v5_unset_maximized,
+    .ack_configure = xdg_surface_v5_ack_configure,
+    .move = xdg_surface_v5_move,
+    .resize = xdg_surface_v5_resize,
+    .set_app_id = xdg_surface_v5_set_app_id,
+    .set_title = xdg_surface_v5_set_title,
+    .set_window_geometry = xdg_surface_v5_set_window_geometry,
+    .set_parent = xdg_surface_v5_set_parent,
+    .show_window_menu = xdg_surface_v5_show_window_menu,
+    .set_minimized = xdg_surface_v5_set_minimized
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// xdg_shell_v5_interface:
+
+void xdg_shell_v5_destroy(wl_client* client, wl_resource* resource) {
+  TRACE();
+  // DO NOTHING.
+}
+
+void xdg_shell_v5_use_unstable_version(wl_client* client,
+                                       wl_resource* resource, int32_t version) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+void xdg_shell_v5_get_xdg_surface(wl_client* client, wl_resource* resource,
+                                  uint32_t id, wl_resource* surface) {
+  TRACE();
+  auto shell_surface = GetUserDataAs<Display>(resource)->CreateShellSurface(
+      GetUserDataAs<Surface>(surface));
+  wl_resource* xdg_surface_resource = wl_resource_create(
+      client, &xdg_surface_interface, 1, id);
+  SetImplementation(xdg_surface_resource, &xdg_surface_v5_implementation,
+                    std::move(shell_surface));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

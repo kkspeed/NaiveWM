@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <compositor/compositor.h>
 
 #include "base/geometry.h"
 #include "base/logging.h"
@@ -14,7 +15,7 @@ namespace wm {
 
 namespace {
 
-void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
+void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>> &accumulator,
                          Window* window,
                          int32_t start_x,
                          int32_t start_y) {
@@ -45,12 +46,16 @@ WindowManager* WindowManager::Get() {
 
 // TODO: use real dimension
 WindowManager::WindowManager(WmEventObserver* wm_event_observer)
-    : screen_width_(2560),
-      screen_height_(1440),
-      mouse_position_(1280.0f, 720.0f),
-      last_mouse_position_(1280.0f, 720.0f),
-      wm_event_observer_(wm_event_observer) {
+    : wm_event_observer_(wm_event_observer) {
+  int32_t metrics[2];
+  compositor::Compositor::Get()->GetDisplayMetrics(metrics);
+  screen_width_ = metrics[0];
+  screen_height_ = metrics[1];
+  mouse_position_ =
+      base::geometry::FloatPoint(screen_width_ / 2, screen_height_ / 2);
+  last_mouse_position_ = mouse_position_;
   wm_event_observer_->set_wm_primitives(this);
+  wm_event_observer_->set_workspace_dimension(screen_width_, screen_height_);
   event::EventHub::Get()->AddEventObserver(this);
 }
 

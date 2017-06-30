@@ -57,8 +57,8 @@ void ManageHook::WindowDestroyed(Window* window) {
 bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_T) {
     if (!event->pressed()) {
-      const char* args[] = {"qterminal", "-platform", "wayland", nullptr};
-      base::LaunchProgram("qterminal", (char**) args);
+      const char* args[] = {"gnome-terminal", nullptr};
+      base::LaunchProgram("gnome-terminal", (char**) args);
     }
     return true;
   }

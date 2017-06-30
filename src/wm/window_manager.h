@@ -43,6 +43,7 @@ class WMPrimitives {
 class WmEventObserver {
  public:
   virtual void set_wm_primitives(WMPrimitives* primitives) = 0;
+  virtual void set_workspace_dimension(int32_t width, int32_t height) = 0;
   virtual bool OnMouseEvent(MouseEvent* event) = 0;
   virtual bool OnKey(KeyboardEvent* event) = 0;
   virtual void WindowCreated(Window* window) = 0;

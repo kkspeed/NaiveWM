@@ -23,6 +23,8 @@ class Compositor {
 
   Compositor();
 
+  void GetDisplayMetrics(int32_t metrics[]);
+
   void CopyScreen(std::unique_ptr<CopyRequest> request) {
     copy_request_ = std::move(request);
   }

@@ -10,8 +10,8 @@
 
 int main() {
   naive::event::EventHub::InitializeEventHub();
-  naive::wm::WindowManager::InitializeWindowManager(new naive::wm::ManageHook);
   naive::compositor::Compositor::InitializeCompoistor();
+  naive::wm::WindowManager::InitializeWindowManager(new naive::wm::ManageHook);
 
   auto display = std::make_unique<naive::wayland::Display>();
   auto server = std::make_unique<naive::wayland::Server>(display.get());

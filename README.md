@@ -37,10 +37,6 @@ It's recommended that you do the following things:
    with Qt5). To launch it, you can press Win + C in the window manager or type
    <tt>qutebrowser --qt-args platform wayland</tt> in the terminal.
 
-3. It's very likely that your screen resolution is different from mine. unfortunately
-   they are hard coded paramters. Just search for 2560 and 1440 in the code and change
-   them to your screen's width and height.
-
 ## Default Configurations
 Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
 

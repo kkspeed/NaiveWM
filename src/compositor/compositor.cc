@@ -434,6 +434,11 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
+void Compositor::GetDisplayMetrics(int32_t* metrics) {
+  metrics[0] = gl.display_width;
+  metrics[1] = gl.display_height;
+}
+
 void Compositor::Draw() {
   std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
   if (!committed_windows.empty() || draw_forced_) {

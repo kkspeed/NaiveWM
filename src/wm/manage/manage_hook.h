@@ -29,6 +29,11 @@ class ManageHook : public WmEventObserver {
     primitives_ = primitives;
   }
 
+  void set_workspace_dimension(int32_t width, int32_t height) override {
+    width_ = width;
+    height_ = height;
+  }
+
   Workspace* current_workspace() { return &workspaces_[current_workspace_]; }
 
   void SelectTag(size_t tag);
@@ -38,7 +43,7 @@ class ManageHook : public WmEventObserver {
   std::vector<Workspace> workspaces_;
   size_t current_workspace_;
 
-  int32_t width_ = 2560, height_ = 1440;
+  int32_t width_, height_;
   WMPrimitives* primitives_ = nullptr;
 };
 

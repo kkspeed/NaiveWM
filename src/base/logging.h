@@ -4,16 +4,19 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <glog/logging.h>
 
 #define __FILENAME__ \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define LOG std::cerr
+//#define LOG std::cerr
 
-#define LOG_ERROR (std::cerr << "[Error] ")
+//#define LOG_ERROR (std::cerr << "[Error] ")
+//
+#define LOG_ERROR LOG(ERROR)
 
 #define NOTIMPLEMENTED() \
-  std::cerr << "Not implemented: " << __PRETTY_FUNCTION__ << std::endl;
+  LOG(ERROR) << "Not implemented: " << __PRETTY_FUNCTION__ << std::endl;
 
 #ifdef __TRACE__
 #define TRACE(format, ...)                                                  \

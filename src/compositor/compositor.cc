@@ -21,6 +21,7 @@
 #include <wayland-server.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
+#include <config.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
@@ -479,15 +480,19 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
+    int32_t physical_x = (start_x + window->geometry().x()) * kScreenScale;
+    int32_t physical_y = (start_y + window->geometry().y()) * kScreenScale;
+    int32_t to_draw_x = window->GetToDrawRegion().x() * kScreenScale;
+    int32_t to_draw_y = window->GetToDrawRegion().y() * kScreenScale;
+    int32_t physical_width = window->GetToDrawRegion().width() * kScreenScale;
+    int32_t physical_height = window->GetToDrawRegion().height() * kScreenScale;
     if (!window->surface()->has_commit() &&
         window->surface()->cached_texture()) {
       TRACE("Drawing Window: %p at %d %d", window,
             start_x + window->geometry().x(), start_y + window->geometry().y());
       window->surface()->cached_texture()->Draw(
-          start_x + window->geometry().x(), start_y + window->geometry().y(),
-          window->GetToDrawRegion().x(), window->GetToDrawRegion().y(),
-          window->GetToDrawRegion().width(),
-          window->GetToDrawRegion().height());
+          physical_x, physical_y,
+          to_draw_x, to_draw_y, physical_width, physical_height);
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
@@ -498,10 +503,8 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
               start_x + window->geometry().x(),
               start_y + window->geometry().y());
         texture->Draw(
-            start_x + window->geometry().x(), start_y + window->geometry().y(),
-            window->GetToDrawRegion().x(), window->GetToDrawRegion().y(),
-            window->GetToDrawRegion().width(),
-            window->GetToDrawRegion().height());
+            physical_x, physical_y,
+            to_draw_x, to_draw_y, physical_width, physical_height);
         window->surface()->cache_texture(std::move(texture));
       }
     }
@@ -521,13 +524,13 @@ void Compositor::DrawWindowBorder(wm::Window* window) {
     glColor3f(1.0, 0.0, 0.0);
   else
     glColor3f(0.0, 1.0, 0.0);
-  int32_t x = window->wm_x(), y = window->wm_y();
+  int32_t x = window->wm_x() * kScreenScale, y = window->wm_y() * kScreenScale;
   auto rect = window->geometry();
   glBegin(GL_LINE_LOOP);
   glVertex2f(x, y);
-  glVertex2f(x + rect.width(), y);
-  glVertex2f(x + rect.width(), y + rect.height());
-  glVertex2f(x, y + rect.height());
+  glVertex2f(x + rect.width() * kScreenScale, y);
+  glVertex2f(x + rect.width() * kScreenScale, y + rect.height() * kScreenScale);
+  glVertex2f(x, y + rect.height() * kScreenScale);
   glEnd();
 }
 

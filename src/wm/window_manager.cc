@@ -7,6 +7,7 @@
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "base/time.h"
+#include "config.h"
 #include "wm/keyboard_event.h"
 #include "wm/mouse_event.h"
 
@@ -49,8 +50,8 @@ WindowManager::WindowManager(WmEventObserver* wm_event_observer)
     : wm_event_observer_(wm_event_observer) {
   int32_t metrics[2];
   compositor::Compositor::Get()->GetDisplayMetrics(metrics);
-  screen_width_ = metrics[0];
-  screen_height_ = metrics[1];
+  screen_width_ = metrics[0] / kScreenScale;
+  screen_height_ = metrics[1] / kScreenScale;
   mouse_position_ =
       base::geometry::FloatPoint(screen_width_ / 2, screen_height_ / 2);
   last_mouse_position_ = mouse_position_;
@@ -162,11 +163,11 @@ void WindowManager::OnMouseMotion(float dx,
                                   event::Leds leds) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
-  if (mouse_position_.x() + dx >= screen_width_)
+  if (mouse_position_.x() + dx >= screen_width_ * kScreenScale)
     new_x = screen_width_ - 0.4f;
   if (mouse_position_.x() + dx < 0.0f)
     new_x = 0.4f;
-  if (mouse_position_.y() + dy >= screen_height_)
+  if (mouse_position_.y() + dy >= screen_height_ * kScreenScale)
     new_y = screen_height_ - 0.4f;
   if (mouse_position_.y() + dy < 0.0f)
     new_y = 0.4f;
@@ -178,7 +179,8 @@ void WindowManager::OnMouseMotion(float dx,
   data.delta[1] = static_cast<int32_t>(new_y - last_mouse_position_.y());
   DispatchMouseEvent(std::make_unique<MouseEvent>(
       FindMouseEventTarget(), MouseEventType::MouseMotion,
-      base::Time::CurrentTimeMilliSeconds(), modifiers, data, new_x, new_y,
+      base::Time::CurrentTimeMilliSeconds(), modifiers, data,
+      new_x / kScreenScale, new_y / kScreenScale,
       leds));
 }
 
@@ -192,7 +194,8 @@ void WindowManager::OnMouseScroll(float x_scroll,
   DispatchMouseEvent(std::make_unique<MouseEvent>(
       FindMouseEventTarget(), MouseEventType::MouseAxis,
       base::Time::CurrentTimeMilliSeconds(), modifiers, data,
-      mouse_position_.x(), mouse_position_.y(), locks));
+      mouse_position_.x() / kScreenScale, mouse_position_.y() / kScreenScale,
+      locks));
 }
 
 void WindowManager::OnKey(uint32_t keycode,
@@ -224,8 +227,8 @@ WindowManager::WindowsInGlobalCoordinates() {
 
 Window* WindowManager::FindMouseEventTarget() {
   std::vector<std::unique_ptr<Layer>> layers = WindowsInGlobalCoordinates();
-  int32_t mouse_x = static_cast<int32_t>(mouse_position_.x());
-  int32_t mouse_y = static_cast<int32_t>(mouse_position_.y());
+  int32_t mouse_x = static_cast<int32_t>(mouse_position_.x()) / kScreenScale;
+  int32_t mouse_y = static_cast<int32_t>(mouse_position_.y()) / kScreenScale;
 
   // TODO: establish popup grab, and send popup done when clicking is outside.
   for (auto it = layers.rbegin(); it != layers.rend(); it++) {

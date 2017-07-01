@@ -843,6 +843,16 @@ const struct xdg_surface_interface xdg_surface_v5_implementation = {
     .set_minimized = xdg_surface_v5_set_minimized
 };
 
+//////////////////////////////////////////////////////////////////////////////
+// xdg_shell_v5_popup_interface:
+void xdg_popup_v5_destroy(wl_client* client, wl_resource* resource) {
+  wl_resource_destroy(resource);
+}
+
+const struct xdg_popup_interface xdg_popup_v5_implementation = {
+    .destroy = xdg_popup_v5_destroy
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_shell_v5_interface:
 
@@ -857,6 +867,34 @@ void xdg_shell_v5_use_unstable_version(wl_client* client,
   NOTIMPLEMENTED();
 }
 
+void HandleXdgSurfaceV5CloseCallback(wl_resource* resource) {
+  xdg_surface_send_close(resource);
+  wl_client_flush(wl_resource_get_client(resource));
+}
+
+void AddXdgSurfaceV5State(wl_array* states, xdg_surface_state state) {
+  xdg_surface_state* value = static_cast<xdg_surface_state*>(
+      wl_array_add(states, sizeof(xdg_surface_state)));
+  assert(value);
+  *value = state;
+}
+
+uint32_t HandleXdgSurfaceV5ConfigureCallback(
+    wl_resource* resource,
+    int32_t width,
+    int32_t height) {
+  wl_array states;
+  wl_array_init(&states);
+  AddXdgSurfaceV5State(&states, XDG_SURFACE_STATE_MAXIMIZED);
+  AddXdgSurfaceV5State(&states, XDG_SURFACE_STATE_ACTIVATED);
+  uint32_t serial = wl_display_next_serial(
+      wl_client_get_display(wl_resource_get_client(resource)));
+  xdg_surface_send_configure(resource, width, height, &states, serial);
+  wl_client_flush(wl_resource_get_client(resource));
+  wl_array_release(&states);
+  return serial;
+}
+
 void xdg_shell_v5_get_xdg_surface(wl_client* client, wl_resource* resource,
                                   uint32_t id, wl_resource* surface) {
   TRACE();
@@ -864,8 +902,70 @@ void xdg_shell_v5_get_xdg_surface(wl_client* client, wl_resource* resource,
       GetUserDataAs<Surface>(surface));
   wl_resource* xdg_surface_resource = wl_resource_create(
       client, &xdg_surface_interface, 1, id);
+  shell_surface->set_close_callback(
+      std::bind(&HandleXdgSurfaceV5CloseCallback, xdg_surface_resource));
+  shell_surface->set_configure_callback(
+      std::bind(&HandleXdgSurfaceV5ConfigureCallback, resource,
+                std::placeholders::_1, std::placeholders::_2));
+
+  shell_surface->window()->set_to_be_managed(true);
   SetImplementation(xdg_surface_resource, &xdg_surface_v5_implementation,
                     std::move(shell_surface));
+}
+
+void HandleXdgPopupV5CloseCallback(wl_resource* resource) {
+  TRACE();
+  xdg_popup_send_popup_done(resource);
+  wl_client_flush(wl_resource_get_client(resource));
+}
+
+void xdg_shell_v5_get_popup(wl_client* client,
+                            wl_resource* resource,
+                            uint32_t id,
+                            wl_resource* surface,
+                            wl_resource* parent,
+                            wl_resource* seat,
+                            uint32_t serial,
+                            int32_t x,
+                            int32_t y) {
+  TRACE();
+  auto* parent_surface = GetUserDataAs<ShellSurface>(parent);
+  wl_resource* xdg_popup_resource =
+      wl_resource_create(client, &xdg_popup_interface, 1, id);
+  auto shell_surface =
+      GetUserDataAs<Display>(resource)
+          ->CreateShellSurface(GetUserDataAs<Surface>(surface));
+  parent_surface->window()->AddChild(shell_surface->window());
+  shell_surface->window()->SetPosition(x, y);
+  shell_surface->set_close_callback(
+      std::bind(HandleXdgPopupV5CloseCallback, xdg_popup_resource));
+  SetImplementation(xdg_popup_resource, &xdg_popup_v5_implementation,
+                    std::move(shell_surface));
+}
+
+void xdg_shell_v5_pong(wl_client* client,
+                       wl_resource* resource,
+                       uint32_t serial) {
+  NOTIMPLEMENTED();
+}
+
+const struct xdg_shell_interface xdg_shell_v5_implementation = {
+    .destroy = xdg_shell_v5_destroy,
+    .use_unstable_version = xdg_shell_v5_use_unstable_version,
+    .get_xdg_surface = xdg_shell_v5_get_xdg_surface,
+    .get_xdg_popup = xdg_shell_v5_get_popup,
+    .pong = xdg_shell_v5_pong
+};
+
+void bind_xdg_shell_v5(wl_client* client,
+                       void* data,
+                       uint32_t version,
+                       uint32_t id) {
+  wl_resource* resource =
+      wl_resource_create(client, &xdg_shell_interface, 1, id);
+
+  wl_resource_set_implementation(resource, &xdg_shell_v5_implementation,
+                                 data, nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1473,6 +1573,8 @@ Server::Server(Display* display) : display_(display) {
                    &bind_output);
   wl_global_create(wl_display_, &zxdg_shell_v6_interface, 1, display_,
                    &bind_xdg_shell_v6);
+  wl_global_create(wl_display_, &xdg_shell_interface, 1, display_,
+                   &bind_xdg_shell_v5);
   wl_global_create(wl_display_, &wl_seat_interface, 1, display_, &bind_seat);
   wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
                    bind_data_device_manager);

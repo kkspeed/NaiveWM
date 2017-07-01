@@ -1,8 +1,8 @@
 #ifndef WAYLAND_POINTER_H_
 #define WAYLAND_POINTER_H_
 
-#include <set>
 #include <wayland-server.h>
+#include <set>
 
 #include "compositor/surface.h"
 #include "wm/window_manager.h"

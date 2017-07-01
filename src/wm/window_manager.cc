@@ -132,8 +132,10 @@ void WindowManager::RemoveKeyboardObserver(KeyboardObserver* observer) {
 }
 
 void WindowManager::GlobalGrabWindow(Window* window) {
-  if (global_grab_window_)
-    global_grab_window_->GrabDone();
+  // TODO: sublevel menu grab..
+  // if (global_grab_window_)
+  // global_grab_window_->GrabDone();
+
   global_grab_window_ = window;
 }
 

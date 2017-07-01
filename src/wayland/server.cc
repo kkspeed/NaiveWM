@@ -2,6 +2,7 @@
 #include "wayland/server.h"
 
 #include <poll.h>
+#include <signal.h>
 #include <wayland-server.h>
 
 #include <cassert>
@@ -548,10 +549,14 @@ const struct wl_shell_surface_interface shell_surface_implementation = {
 
 void HandleShellSurfaceCloseCallback(wl_resource* resource) {
   TRACE();
-  uint32_t serial = wl_display_next_serial(
-      wl_client_get_display(wl_resource_get_client(resource)));
-  // TODO: We probably need to send a sigkill to this process.
-  wl_shell_surface_send_ping(resource, serial);
+  // uint32_t serial = wl_display_next_serial(
+  //     wl_client_get_display(wl_resource_get_client(resource)));
+  // wl_shell_surface_send_ping(resource, serial);
+  pid_t pid;
+  gid_t gid;
+  uid_t uid;
+  wl_client_get_credentials(wl_resource_get_client(resource), &pid, &uid, &gid);
+  kill(pid, SIGTERM);
   wl_client_flush(wl_resource_get_client(resource));
 }
 

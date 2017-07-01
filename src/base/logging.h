@@ -1,10 +1,10 @@
 #ifndef BASE_LOGGING_H_
 #define BASE_LOGGING_H_
 
+#include <glog/logging.h>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include <glog/logging.h>
 
 #define __FILENAME__ \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

@@ -21,11 +21,11 @@
 #include <wayland-server.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
-#include <config.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/surface.h"
+#include "config.h"
 #include "compositor/texture_delegate.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"

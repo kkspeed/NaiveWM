@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "compositor/buffer.h"
+#include "config.h"
 #include "wm/window.h"
 
 namespace naive {
@@ -18,7 +19,7 @@ void Surface::Attach(Buffer* buffer) {
     buffer->SetOwningSurface(this);
     window_->SetGeometry(base::geometry::Rect(
         window_->pending_geometry().x(), window_->pending_geometry().y(),
-        buffer->width(), buffer->height()));
+        buffer->width() / kScreenScale, buffer->height() / kScreenScale));
   }
   pending_state_.buffer = buffer;
 }

@@ -7,6 +7,7 @@
 #include "base/image_codec.h"
 #include "base/utils.h"
 #include "compositor/compositor.h"
+#include "config.h"
 #include "wm/keyboard_event.h"
 #include "wm/mouse_event.h"
 #include "wm/window.h"

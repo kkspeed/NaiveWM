@@ -15,6 +15,7 @@
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "base/time.h"
+#include "config.h"
 #include "compositor/buffer.h"
 #include "compositor/compositor.h"
 #include "compositor/region.h"
@@ -709,11 +710,12 @@ class WaylandOutput {
     base::geometry::Rect bounds(0, 0, metrics[0], metrics[1]);
     wl_output_send_geometry(
         output_resource_, bounds.x(), bounds.y(),
-        static_cast<int>(kInchInMm * bounds.width() / 100.0),
-        static_cast<int>(kInchInMm * bounds.height() / 100.0),
+        static_cast<int>(kInchInMm * bounds.width() / (100.0 * kScreenScale)),
+        static_cast<int>(kInchInMm * bounds.height() / (100.0 * kScreenScale)),
         WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
         WL_OUTPUT_TRANSFORM_NORMAL);
 
+    wl_output_send_scale(output_resource_, kScreenScale);
     wl_output_send_mode(
         output_resource_, WL_OUTPUT_MODE_CURRENT | WL_OUTPUT_MODE_PREFERRED,
         bounds.width(), bounds.height(), static_cast<int>(60000));

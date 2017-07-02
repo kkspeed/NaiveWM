@@ -3,7 +3,8 @@
 #include <algorithm>
 
 #include "compositor/buffer.h"
-#include "config.h"
+#include "compositor/compositor.h"
+#include "wayland/display_metrics.h"
 #include "wm/window.h"
 
 namespace naive {
@@ -15,11 +16,13 @@ Surface::Surface() : window_(std::make_unique<wm::Window>()) {
 void Surface::Attach(Buffer* buffer) {
   LOG_ERROR << "Surface::Attach " << buffer << " to window " << window()
             << std::endl;
+  wayland::DisplayMetrics* metrics =
+      compositor::Compositor::Get()->GetDisplayMetrics();
   if (buffer) {
     buffer->SetOwningSurface(this);
     window_->SetGeometry(base::geometry::Rect(
         window_->pending_geometry().x(), window_->pending_geometry().y(),
-        buffer->width() / kScreenScale, buffer->height() / kScreenScale));
+        buffer->width() / metrics->scale, buffer->height() / metrics->scale));
   }
   pending_state_.buffer = buffer;
 }

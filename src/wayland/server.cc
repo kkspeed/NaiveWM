@@ -16,7 +16,6 @@
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "base/time.h"
-#include "config.h"
 #include "compositor/buffer.h"
 #include "compositor/compositor.h"
 #include "compositor/region.h"
@@ -25,6 +24,7 @@
 #include "compositor/surface.h"
 #include "wayland/display.h"
 #include "wayland/data_device.h"
+#include "wayland/display_metrics.h"
 #include "wayland/keyboard.h"
 #include "wayland/pointer.h"
 #include "wm/window_manager.h"
@@ -711,17 +711,18 @@ class WaylandOutput {
     const char* kUnknownModel = "unknown";
 
     // TODO: Get real display information.
-    int32_t metrics[2];
-    compositor::Compositor::Get()->GetDisplayMetrics(metrics);
-    base::geometry::Rect bounds(0, 0, metrics[0], metrics[1]);
+    wayland::DisplayMetrics* display_metrics =
+        compositor::Compositor::Get()->GetDisplayMetrics();
+    base::geometry::Rect bounds(0, 0, display_metrics->width_pixels,
+                                display_metrics->height_pixels);
     wl_output_send_geometry(
         output_resource_, bounds.x(), bounds.y(),
-        static_cast<int>(kInchInMm * bounds.width() / (100.0 * kScreenScale)),
-        static_cast<int>(kInchInMm * bounds.height() / (100.0 * kScreenScale)),
+        display_metrics->physical_width,
+        display_metrics->physical_height,
         WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
         WL_OUTPUT_TRANSFORM_NORMAL);
 
-    wl_output_send_scale(output_resource_, kScreenScale);
+    wl_output_send_scale(output_resource_, display_metrics->scale);
     wl_output_send_mode(
         output_resource_, WL_OUTPUT_MODE_CURRENT | WL_OUTPUT_MODE_PREFERRED,
         bounds.width(), bounds.height(), static_cast<int>(60000));

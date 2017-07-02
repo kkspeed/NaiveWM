@@ -25,7 +25,6 @@
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/surface.h"
-#include "config.h"
 #include "compositor/texture_delegate.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
@@ -55,6 +54,7 @@ struct {
   drmModeModeInfo* mode;
   uint32_t crtc_id;
   uint32_t connector_id;
+  int32_t physical_height, physical_width;
 } drm;
 
 struct drm_fb {
@@ -139,6 +139,8 @@ void init_drm() {
     drm.crtc_id = static_cast<uint32_t>(crtc_id);
   }
 
+  drm.physical_height = connector->mmHeight;
+  drm.physical_width = connector->mmWidth;
   drm.connector_id = connector->connector_id;
 }
 
@@ -425,6 +427,9 @@ Compositor::Compositor() {
   drm_egl_init();
   int width = gl.display_width;
   int height = gl.display_height;
+  display_metrics_ = std::make_unique<wayland::DisplayMetrics>(
+      gl.display_width, gl.display_height, drm.physical_width,
+      drm.physical_height);
   initialize_cursor();
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
@@ -435,9 +440,8 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
-void Compositor::GetDisplayMetrics(int32_t* metrics) {
-  metrics[0] = gl.display_width;
-  metrics[1] = gl.display_height;
+wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
+  return display_metrics_.get();
 }
 
 void Compositor::Draw() {
@@ -480,12 +484,12 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
-    int32_t physical_x = (start_x + window->geometry().x()) * kScreenScale;
-    int32_t physical_y = (start_y + window->geometry().y()) * kScreenScale;
-    int32_t to_draw_x = window->GetToDrawRegion().x() * kScreenScale;
-    int32_t to_draw_y = window->GetToDrawRegion().y() * kScreenScale;
-    int32_t physical_width = window->GetToDrawRegion().width() * kScreenScale;
-    int32_t physical_height = window->GetToDrawRegion().height() * kScreenScale;
+    int32_t physical_x = (start_x + window->geometry().x()) * display_metrics_->scale;
+    int32_t physical_y = (start_y + window->geometry().y()) * display_metrics_->scale;
+    int32_t to_draw_x = window->GetToDrawRegion().x() * display_metrics_->scale;
+    int32_t to_draw_y = window->GetToDrawRegion().y() * display_metrics_->scale;
+    int32_t physical_width = window->GetToDrawRegion().width() * display_metrics_->scale;
+    int32_t physical_height = window->GetToDrawRegion().height() * display_metrics_->scale;
     if (!window->surface()->has_commit() &&
         window->surface()->cached_texture()) {
       TRACE("Drawing Window: %p at %d %d", window,
@@ -524,13 +528,15 @@ void Compositor::DrawWindowBorder(wm::Window* window) {
     glColor3f(1.0, 0.0, 0.0);
   else
     glColor3f(0.0, 1.0, 0.0);
-  int32_t x = window->wm_x() * kScreenScale, y = window->wm_y() * kScreenScale;
+  int32_t x = window->wm_x() * display_metrics_->scale;
+  int32_t y = window->wm_y() * display_metrics_->scale;
   auto rect = window->geometry();
   glBegin(GL_LINE_LOOP);
   glVertex2f(x, y);
-  glVertex2f(x + rect.width() * kScreenScale, y);
-  glVertex2f(x + rect.width() * kScreenScale, y + rect.height() * kScreenScale);
-  glVertex2f(x, y + rect.height() * kScreenScale);
+  glVertex2f(x + rect.width() * display_metrics_->scale, y);
+  glVertex2f(x + rect.width() * display_metrics_->scale,
+             y + rect.height() * display_metrics_->scale);
+  glVertex2f(x, y + rect.height() * display_metrics_->scale);
   glEnd();
 }
 

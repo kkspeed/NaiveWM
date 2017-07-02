@@ -52,8 +52,7 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 |Super + 1..9         | Switch workspace to 1..9                               |
 |Super + Shift + 1..9 | Move current window to workspace 1..9                  |
 
-The default screen scale is 1x. You can change it in config.h to set it to higher
-value in order to support high resolution screens.
+NaiveWM should be able to guess the scale of your screen for high res screens.
 
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know

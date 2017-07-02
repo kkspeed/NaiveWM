@@ -11,6 +11,12 @@
 #include "wm/window.h"
 
 namespace naive {
+namespace wayland {
+
+struct DisplayMetrics;
+
+}  // namespace wayland
+
 namespace wm {
 
 class MouseEvent;
@@ -139,6 +145,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   Window* focused_window_ = nullptr;
   Window* global_grab_window_ = nullptr;
   WmEventObserver* wm_event_observer_ = nullptr;
+  wayland::DisplayMetrics* display_metrics_;
 };
 
 }  // namespace wm

@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+#include "wayland/display_metrics.h"
+
 namespace naive {
 
 namespace wm {
@@ -23,7 +25,7 @@ class Compositor {
 
   Compositor();
 
-  void GetDisplayMetrics(int32_t metrics[]);
+  wayland::DisplayMetrics* GetDisplayMetrics();
 
   void CopyScreen(std::unique_ptr<CopyRequest> request) {
     copy_request_ = std::move(request);
@@ -37,6 +39,7 @@ class Compositor {
 
  private:
   static Compositor* g_compositor;
+  std::unique_ptr<wayland::DisplayMetrics> display_metrics_;
   bool draw_forced_ = true;
   std::unique_ptr<CopyRequest> copy_request_;
 };

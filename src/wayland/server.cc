@@ -24,6 +24,7 @@
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/display.h"
+#include "wayland/data_device.h"
 #include "wayland/keyboard.h"
 #include "wayland/pointer.h"
 #include "wm/window_manager.h"
@@ -1517,11 +1518,54 @@ void data_device_set_selection(wl_client* client,
                                wl_resource* data_source,
                                uint32_t serial) {
   TRACE();
-  NOTIMPLEMENTED();
+  auto* data_device = GetUserDataAs<DataDevice>(resource);
+  auto* selection = data_source
+                    ? GetUserDataAs<DataSource>(data_source) : nullptr;
+  if (data_device->selection() == selection)
+    return;
+  if (data_device->selection()) {
+    data_device->selection()->Cancel();
+    data_device->selection()->RemoveDataSourceListener(data_device);
+  }
+  data_device->set_selection(selection);
+  if (selection)
+    selection->AddDataSourceListener(data_device);
+}
+
+void data_device_release(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
 }
 
 const struct wl_data_device_interface data_device_implementation = {
-    data_device_start_drag, data_device_set_selection};
+    .release = data_device_release,
+    .start_drag = data_device_start_drag,
+    .set_selection = data_device_set_selection};
+
+//////////////////////////////////////////////////////////////////////////////
+// wl_data_source_interface
+
+void data_source_destroy(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
+}
+
+void data_source_offer(wl_client* client, wl_resource* resource,
+                       const char* mimetype) {
+  TRACE();
+}
+
+void data_source_set_actions(wl_client* client, wl_resource* resource,
+                             uint32_t actions) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+const struct wl_data_source_interface data_source_implementation {
+    .destroy = data_source_destroy,
+    .offer = data_source_offer,
+    .set_actions = data_source_set_actions
+};
 
 //////////////////////////////////////////////////////////////////////////////
 // wl_data_device_manager_interface:
@@ -1529,9 +1573,12 @@ const struct wl_data_device_interface data_device_implementation = {
 void data_device_manager_create_data_source(wl_client* client,
                                             wl_resource* resource,
                                             uint32_t id) {
-  // TODO: implement data source
   TRACE();
-  NOTIMPLEMENTED();
+  // TODO: figure out version
+  wl_resource* data_source_resource = wl_resource_create(
+      client, &wl_data_source_interface, 3, id);
+  SetImplementation(data_source_resource, &data_source_implementation,
+                    std::make_unique<DataSource>(data_source_resource));
 }
 
 void data_device_manager_get_data_device(wl_client* client,
@@ -1549,8 +1596,8 @@ void data_device_manager_get_data_device(wl_client* client,
 
 const struct wl_data_device_manager_interface
     data_device_manager_implementation = {
-        data_device_manager_create_data_source,
-        data_device_manager_get_data_device};
+        .create_data_source = data_device_manager_create_data_source,
+        .get_data_device = data_device_manager_get_data_device};
 
 void bind_data_device_manager(wl_client* client,
                               void* data,

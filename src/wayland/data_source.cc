@@ -3,7 +3,7 @@
 namespace naive {
 namespace wayland {
 
-DataSource::DataSource(wl_resource* resource): resource_(resource) {}
+DataSource::DataSource(wl_resource* resource) : resource_(resource) {}
 
 DataSource::~DataSource() {
   for (auto* listener : listeners_)

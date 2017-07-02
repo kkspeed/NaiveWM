@@ -41,7 +41,6 @@ void Window::RemoveChild(Window* child) {
     children_.erase(iter);
   child->set_parent(nullptr);
 
-
   iter = std::find(children_.begin(), children_.end(), child);
   assert(iter == children_.end());
 }

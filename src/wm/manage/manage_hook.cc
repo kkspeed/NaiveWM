@@ -40,7 +40,7 @@ void ManageHook::WindowDestroying(Window* window) {
 
 void ManageHook::WindowDestroyed(Window* window) {
   TRACE("window: %p", window);
-  for (Workspace &workspace : workspaces_) {
+  for (Workspace& workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
       (workspace.PopWindow(window))->Show(false);
       if (workspace.tag() == current_workspace_) {
@@ -58,7 +58,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_T) {
     if (!event->pressed()) {
       const char* args[] = {"gnome-terminal", nullptr};
-      base::LaunchProgram("gnome-terminal", (char**) args);
+      base::LaunchProgram("gnome-terminal", (char**)args);
     }
     return true;
   }
@@ -105,7 +105,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       return true;
     const char* args[] = {"qutebrowser", "--qt-arg", "platform", "wayland",
                           nullptr};
-    base::LaunchProgram("qutebrowser", (char**) args);
+    base::LaunchProgram("qutebrowser", (char**)args);
     return true;
   }
 
@@ -135,11 +135,10 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     if (event->pressed())
       return true;
     TRACE("Saving screenshot...");
-    compositor::Compositor::Get()
-        ->CopyScreen(std::make_unique<compositor::CopyRequest>(
-            std::bind(&base::EncodePngToFile, "/tmp/output.png",
-                      std::placeholders::_1, std::placeholders::_2,
-                      std::placeholders::_3)));
+    compositor::Compositor::Get()->CopyScreen(
+        std::make_unique<compositor::CopyRequest>(std::bind(
+            &base::EncodePngToFile, "/tmp/output.png", std::placeholders::_1,
+            std::placeholders::_2, std::placeholders::_3)));
     TRACE("Screenshot saved...");
     return true;
   }
@@ -154,7 +153,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
     primitives_->FocusWindow(event->window());
     if (current_workspace()->HasWindow(top_level) &&
         (!current_manage_window ||
-            current_manage_window->window() != top_level)) {
+         current_manage_window->window() != top_level)) {
       current_workspace()->SetCurrentWindow(top_level);
       return true;
     }

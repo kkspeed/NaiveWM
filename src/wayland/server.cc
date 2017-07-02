@@ -22,8 +22,8 @@
 #include "compositor/shell_surface.h"
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
-#include "wayland/display.h"
 #include "wayland/data_device.h"
+#include "wayland/display.h"
 #include "wayland/display_metrics.h"
 #include "wayland/keyboard.h"
 #include "wayland/pointer.h"
@@ -500,12 +500,13 @@ void shell_surface_set_popup(wl_client* client,
   shell_surface->window()->set_popup(true);
   // shell_surface->window()->set_to_be_managed(true);
   shell_surface->window()->SetPosition(x, y);
-  shell_surface->set_ungrab_callback(
-      std::bind([](wl_client* c, wl_resource* r) {
+  shell_surface->set_ungrab_callback(std::bind(
+      [](wl_client* c, wl_resource* r) {
         TRACE("ungrabbing surface");
         wl_shell_surface_send_popup_done(r);
         wl_client_flush(c);
-      }, client, resource));
+      },
+      client, resource));
   wm::WindowManager::Get()->GlobalGrabWindow(shell_surface->window());
   // wm::WindowManager::Get()->Manage(shell_surface->window());
 }
@@ -649,7 +650,8 @@ void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* pointer_resource = wl_resource_create(
       client, &wl_pointer_interface, wl_resource_get_version(resource), id);
   auto pointer = std::make_unique<Pointer>(pointer_resource);
-  TRACE("Getting pointer: %p, client: %p, resource: %p", pointer.get(), client, resource);
+  TRACE("Getting pointer: %p, client: %p, resource: %p", pointer.get(), client,
+        resource);
   SetImplementation(pointer_resource, &pointer_implementation,
                     std::move(pointer));
 }
@@ -660,7 +662,8 @@ void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* keyboard_resource =
       wl_resource_create(client, &wl_keyboard_interface, version, id);
   auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
-  TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(), client, resource);
+  TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(),
+        client, resource);
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
   if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
@@ -715,12 +718,11 @@ class WaylandOutput {
         compositor::Compositor::Get()->GetDisplayMetrics();
     base::geometry::Rect bounds(0, 0, display_metrics->width_pixels,
                                 display_metrics->height_pixels);
-    wl_output_send_geometry(
-        output_resource_, bounds.x(), bounds.y(),
-        display_metrics->physical_width,
-        display_metrics->physical_height,
-        WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake, kUnknownModel,
-        WL_OUTPUT_TRANSFORM_NORMAL);
+    wl_output_send_geometry(output_resource_, bounds.x(), bounds.y(),
+                            display_metrics->physical_width,
+                            display_metrics->physical_height,
+                            WL_OUTPUT_SUBPIXEL_UNKNOWN, kUnknownMake,
+                            kUnknownModel, WL_OUTPUT_TRANSFORM_NORMAL);
 
     wl_output_send_scale(output_resource_, display_metrics->scale);
     wl_output_send_mode(
@@ -752,7 +754,8 @@ void xdg_surface_v5_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void xdg_surface_v5_set_parent(wl_client* client, wl_resource* resource,
+void xdg_surface_v5_set_parent(wl_client* client,
+                               wl_resource* resource,
                                wl_resource* parent) {
   TRACE();
   auto shell_surface = GetUserDataAs<ShellSurface>(resource);
@@ -764,49 +767,63 @@ void xdg_surface_v5_set_parent(wl_client* client, wl_resource* resource,
   parent_surface->window()->AddChild(shell_surface->window());
 }
 
-void xdg_surface_v5_set_title(wl_client* client, wl_resource* resource,
+void xdg_surface_v5_set_title(wl_client* client,
+                              wl_resource* resource,
                               const char* title) {
   TRACE("title: %s", title);
   GetUserDataAs<ShellSurface>(resource)->window()->set_title(title);
 }
 
-void xdg_surface_v5_set_app_id(wl_client* client, wl_resource* resource,
+void xdg_surface_v5_set_app_id(wl_client* client,
+                               wl_resource* resource,
                                const char* app_id) {
   TRACE("app id: %s", app_id);
   GetUserDataAs<ShellSurface>(resource)->window()->set_appid(app_id);
 }
 
-void xdg_surface_v5_show_window_menu(wl_client* client, wl_resource* resource,
-                                     wl_resource* seat, uint32_t serial,
-                                     int32_t x, int32_t y) {
+void xdg_surface_v5_show_window_menu(wl_client* client,
+                                     wl_resource* resource,
+                                     wl_resource* seat,
+                                     uint32_t serial,
+                                     int32_t x,
+                                     int32_t y) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_surface_v5_move(wl_client* client, wl_resource* resource,
-                         wl_resource* seat, uint32_t serial) {
+void xdg_surface_v5_move(wl_client* client,
+                         wl_resource* resource,
+                         wl_resource* seat,
+                         uint32_t serial) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->window()->BeginMove();
 }
 
-void xdg_surface_v5_resize(wl_client* client, wl_resource* resource,
-                           wl_resource* seat, uint32_t serial, uint32_t edges) {
+void xdg_surface_v5_resize(wl_client* client,
+                           wl_resource* resource,
+                           wl_resource* seat,
+                           uint32_t serial,
+                           uint32_t edges) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_surface_v5_ack_configure(wl_client* client, wl_resource* resource,
+void xdg_surface_v5_ack_configure(wl_client* client,
+                                  wl_resource* resource,
                                   uint32_t serial) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
-void xdg_surface_v5_set_window_geometry(
-    wl_client* client, wl_resource* resource, int32_t x, int32_t y,
-    int32_t width, int32_t height) {
+void xdg_surface_v5_set_window_geometry(wl_client* client,
+                                        wl_resource* resource,
+                                        int32_t x,
+                                        int32_t y,
+                                        int32_t width,
+                                        int32_t height) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetVisibleRegion
-      (base::geometry::Rect(x, y, width, height));
+  GetUserDataAs<ShellSurface>(resource)->window()->SetVisibleRegion(
+      base::geometry::Rect(x, y, width, height));
 }
 
 void xdg_surface_v5_set_maximized(wl_client* client, wl_resource* resource) {
@@ -819,7 +836,8 @@ void xdg_surface_v5_unset_maximized(wl_client* client, wl_resource* resource) {
   GetUserDataAs<ShellSurface>(resource)->window()->set_maximized(false);
 }
 
-void xdg_surface_v5_set_fullscreen(wl_client* client, wl_resource* resource,
+void xdg_surface_v5_set_fullscreen(wl_client* client,
+                                   wl_resource* resource,
                                    wl_resource* output) {
   TRACE();
   GetUserDataAs<ShellSurface>(resource)->window()->set_fullscreen(true);
@@ -849,8 +867,7 @@ const struct xdg_surface_interface xdg_surface_v5_implementation = {
     .set_window_geometry = xdg_surface_v5_set_window_geometry,
     .set_parent = xdg_surface_v5_set_parent,
     .show_window_menu = xdg_surface_v5_show_window_menu,
-    .set_minimized = xdg_surface_v5_set_minimized
-};
+    .set_minimized = xdg_surface_v5_set_minimized};
 
 //////////////////////////////////////////////////////////////////////////////
 // xdg_shell_v5_popup_interface:
@@ -859,8 +876,7 @@ void xdg_popup_v5_destroy(wl_client* client, wl_resource* resource) {
 }
 
 const struct xdg_popup_interface xdg_popup_v5_implementation = {
-    .destroy = xdg_popup_v5_destroy
-};
+    .destroy = xdg_popup_v5_destroy};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_shell_v5_interface:
@@ -871,7 +887,8 @@ void xdg_shell_v5_destroy(wl_client* client, wl_resource* resource) {
 }
 
 void xdg_shell_v5_use_unstable_version(wl_client* client,
-                                       wl_resource* resource, int32_t version) {
+                                       wl_resource* resource,
+                                       int32_t version) {
   TRACE();
   NOTIMPLEMENTED();
 }
@@ -888,10 +905,9 @@ void AddXdgSurfaceV5State(wl_array* states, xdg_surface_state state) {
   *value = state;
 }
 
-uint32_t HandleXdgSurfaceV5ConfigureCallback(
-    wl_resource* resource,
-    int32_t width,
-    int32_t height) {
+uint32_t HandleXdgSurfaceV5ConfigureCallback(wl_resource* resource,
+                                             int32_t width,
+                                             int32_t height) {
   wl_array states;
   wl_array_init(&states);
   AddXdgSurfaceV5State(&states, XDG_SURFACE_STATE_MAXIMIZED);
@@ -904,13 +920,15 @@ uint32_t HandleXdgSurfaceV5ConfigureCallback(
   return serial;
 }
 
-void xdg_shell_v5_get_xdg_surface(wl_client* client, wl_resource* resource,
-                                  uint32_t id, wl_resource* surface) {
+void xdg_shell_v5_get_xdg_surface(wl_client* client,
+                                  wl_resource* resource,
+                                  uint32_t id,
+                                  wl_resource* surface) {
   TRACE();
   auto shell_surface = GetUserDataAs<Display>(resource)->CreateShellSurface(
       GetUserDataAs<Surface>(surface));
-  wl_resource* xdg_surface_resource = wl_resource_create(
-      client, &xdg_surface_interface, 1, id);
+  wl_resource* xdg_surface_resource =
+      wl_resource_create(client, &xdg_surface_interface, 1, id);
   shell_surface->set_close_callback(
       std::bind(&HandleXdgSurfaceV5CloseCallback, xdg_surface_resource));
   shell_surface->set_configure_callback(
@@ -941,9 +959,8 @@ void xdg_shell_v5_get_popup(wl_client* client,
   auto* parent_surface = GetUserDataAs<ShellSurface>(parent);
   wl_resource* xdg_popup_resource =
       wl_resource_create(client, &xdg_popup_interface, 1, id);
-  auto shell_surface =
-      GetUserDataAs<Display>(resource)
-          ->CreateShellSurface(GetUserDataAs<Surface>(surface));
+  auto shell_surface = GetUserDataAs<Display>(resource)->CreateShellSurface(
+      GetUserDataAs<Surface>(surface));
   parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->SetPosition(x, y);
   shell_surface->set_close_callback(
@@ -963,8 +980,7 @@ const struct xdg_shell_interface xdg_shell_v5_implementation = {
     .use_unstable_version = xdg_shell_v5_use_unstable_version,
     .get_xdg_surface = xdg_shell_v5_get_xdg_surface,
     .get_xdg_popup = xdg_shell_v5_get_popup,
-    .pong = xdg_shell_v5_pong
-};
+    .pong = xdg_shell_v5_pong};
 
 void bind_xdg_shell_v5(wl_client* client,
                        void* data,
@@ -973,8 +989,8 @@ void bind_xdg_shell_v5(wl_client* client,
   wl_resource* resource =
       wl_resource_create(client, &xdg_shell_interface, 1, id);
 
-  wl_resource_set_implementation(resource, &xdg_shell_v5_implementation,
-                                 data, nullptr);
+  wl_resource_set_implementation(resource, &xdg_shell_v5_implementation, data,
+                                 nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1262,8 +1278,8 @@ void xdg_popup_v6_grab(wl_client* client,
   TRACE();
   zxdg_surface_v6_send_configure(resource, serial);
   auto* shell_surface = GetUserDataAs<ShellSurface>(resource);
-  shell_surface->set_ungrab_callback(std::bind(&zxdg_popup_v6_send_popup_done,
-                                               resource));
+  shell_surface->set_ungrab_callback(
+      std::bind(&zxdg_popup_v6_send_popup_done, resource));
   wm::WindowManager::Get()->GlobalGrabWindow(shell_surface->window());
 }
 
@@ -1373,7 +1389,10 @@ if (!shell_surface->window()->IsManaged()) {
 
   shell_surface->set_close_callback(
       std::bind(&HandleXdgPopupV6CloseCallback, xdg_popup_resource));
-  shell_surface->set_configure_callback([](uint32_t, uint32_t){TRACE(); return 0; });
+  shell_surface->set_configure_callback([](uint32_t, uint32_t) {
+    TRACE();
+    return 0;
+  });
 
   wl_resource_set_implementation(
       xdg_popup_resource, &xdg_popup_v6_implementation, shell_surface, nullptr);
@@ -1520,8 +1539,8 @@ void data_device_set_selection(wl_client* client,
                                uint32_t serial) {
   TRACE();
   auto* data_device = GetUserDataAs<DataDevice>(resource);
-  auto* selection = data_source
-                    ? GetUserDataAs<DataSource>(data_source) : nullptr;
+  auto* selection =
+      data_source ? GetUserDataAs<DataSource>(data_source) : nullptr;
   if (data_device->selection() == selection)
     return;
   if (data_device->selection()) {
@@ -1551,21 +1570,22 @@ void data_source_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-void data_source_offer(wl_client* client, wl_resource* resource,
+void data_source_offer(wl_client* client,
+                       wl_resource* resource,
                        const char* mimetype) {
   TRACE();
 }
 
-void data_source_set_actions(wl_client* client, wl_resource* resource,
+void data_source_set_actions(wl_client* client,
+                             wl_resource* resource,
                              uint32_t actions) {
   TRACE();
   NOTIMPLEMENTED();
 }
 
 const struct wl_data_source_interface data_source_implementation {
-    .destroy = data_source_destroy,
-    .offer = data_source_offer,
-    .set_actions = data_source_set_actions
+  .destroy = data_source_destroy, .offer = data_source_offer,
+  .set_actions = data_source_set_actions
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1576,8 +1596,8 @@ void data_device_manager_create_data_source(wl_client* client,
                                             uint32_t id) {
   TRACE();
   // TODO: figure out version
-  wl_resource* data_source_resource = wl_resource_create(
-      client, &wl_data_source_interface, 3, id);
+  wl_resource* data_source_resource =
+      wl_resource_create(client, &wl_data_source_interface, 3, id);
   SetImplementation(data_source_resource, &data_source_implementation,
                     std::make_unique<DataSource>(data_source_resource));
 }

@@ -1,8 +1,8 @@
 #include "base/image_codec.h"
 
+#include <png.h>
 #include <cstdio>
 #include <cstdlib>
-#include <png.h>
 
 #include "base/logging.h"
 
@@ -28,8 +28,8 @@ void EncodePngToFile(const std::string& path,
     return;
   }
 
-  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr,
-                                    nullptr);
+  png_ptr =
+      png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   if (!png_ptr) {
     TRACE("cannot create png write struct.");
     return;
@@ -48,22 +48,15 @@ void EncodePngToFile(const std::string& path,
 
   /* Set image attributes. */
 
-  png_set_IHDR(png_ptr,
-               info_ptr,
-               width,
-               height,
-               depth,
-               PNG_COLOR_TYPE_RGBA,
-               PNG_INTERLACE_NONE,
-               PNG_COMPRESSION_TYPE_DEFAULT,
+  png_set_IHDR(png_ptr, info_ptr, width, height, depth, PNG_COLOR_TYPE_RGBA,
+               PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
 
   row_pointers =
       static_cast<png_byte**>(png_malloc(png_ptr, height * sizeof(png_byte*)));
   for (y = 0; y < height; y++) {
-    png_byte* row =
-        static_cast<png_byte*>(
-            png_malloc(png_ptr, sizeof(uint8_t) * width * pixel_size));
+    png_byte* row = static_cast<png_byte*>(
+        png_malloc(png_ptr, sizeof(uint8_t) * width * pixel_size));
     // TODO: The inversion needs to passed in as a parameter.
     row_pointers[height - y - 1] = row;
     for (x = 0; x < width; x++) {
@@ -85,8 +78,8 @@ void EncodePngToFile(const std::string& path,
   }
   png_free(png_ptr, row_pointers);
 
-  png_failure:
-  png_create_info_struct_failed:
+png_failure:
+png_create_info_struct_failed:
   png_destroy_write_struct(&png_ptr, &info_ptr);
   fclose(fp);
 }

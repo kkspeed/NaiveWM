@@ -59,7 +59,8 @@ void Keyboard::OnFocus(wm::Window* window) {
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
     TRACE("Adding %p as surface observer to %p", this, window->surface());
-    if (observed_surfaces_.find(window->surface()) == observed_surfaces_.end()) {
+    if (observed_surfaces_.find(window->surface()) ==
+        observed_surfaces_.end()) {
       window->surface()->AddSurfaceObserver(this);
       observed_surfaces_.insert(window->surface());
     }
@@ -94,7 +95,6 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
 
   if (!CanReceiveEvent(key_event->window()->surface()))
     return;
-
 
   if (key_event->window()->surface() != target_) {
     if (target_)

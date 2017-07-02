@@ -1,5 +1,5 @@
-#include "base/logging.h"
 #include "region.h"
+#include "base/logging.h"
 
 namespace naive {
 
@@ -10,8 +10,8 @@ Region Region::Empty() {
 }
 
 Region::Region(const base::geometry::Rect& rect) {
-  pixman_region_ = std::shared_ptr<pixman_region32_t>(
-      new pixman_region32_t(), &pixman_region32_fini);
+  pixman_region_ = std::shared_ptr<pixman_region32_t>(new pixman_region32_t(),
+                                                      &pixman_region32_fini);
   pixman_region32_init(pixman_region_.get());
   pixman_region32_init_rect(pixman_region_.get(), rect.x(), rect.y(),
                             rect.width(), rect.height());

@@ -29,25 +29,29 @@ void ShellSurface::Configure(int32_t width, int32_t height) {
 }
 
 void ShellSurface::Close() {
-  if (!window_) return;
+  if (!window_)
+    return;
   close_callback_();
-  close_callback_ = [](){};
+  close_callback_ = []() {};
 }
 
 void ShellSurface::SetGeometry(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
-  if (!window_) return;
+  if (!window_)
+    return;
   window_->SetGeometry(rect);
 }
 
 void ShellSurface::SetVisibleRegion(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
-  if (!window_) return;
+  if (!window_)
+    return;
   window_->SetVisibleRegion(rect);
 }
 
 void ShellSurface::Move() {
-  if (!window_) return;
+  if (!window_)
+    return;
 
   window_->BeginMove();
 }

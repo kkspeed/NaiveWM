@@ -64,7 +64,7 @@ struct drm_fb {
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
   for (uint32_t i = 0; i < resources->count_crtcs; i++) {
-    const uint32_t crtc_mask = ((uint32_t) 1) << i;
+    const uint32_t crtc_mask = ((uint32_t)1) << i;
     const uint32_t crtc_id = resources->crtcs[i];
     if (encoder->possible_crtcs & crtc_mask)
       return crtc_id;
@@ -162,16 +162,22 @@ void init_gl() {
 
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-  const EGLint config_attributes[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-                                      EGL_RED_SIZE, 1,
-                                      EGL_GREEN_SIZE, 1,
-                                      EGL_BLUE_SIZE, 1,
-                                      EGL_ALPHA_SIZE, 1,
-                                      EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+  const EGLint config_attributes[] = {EGL_SURFACE_TYPE,
+                                      EGL_WINDOW_BIT,
+                                      EGL_RED_SIZE,
+                                      1,
+                                      EGL_GREEN_SIZE,
+                                      1,
+                                      EGL_BLUE_SIZE,
+                                      1,
+                                      EGL_ALPHA_SIZE,
+                                      1,
+                                      EGL_RENDERABLE_TYPE,
+                                      EGL_OPENGL_BIT,
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
-      (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
+      (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
@@ -186,9 +192,9 @@ void init_gl() {
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
-                                      (EGLNativeWindowType) gbm.surface, NULL);
+                                      (EGLNativeWindowType)gbm.surface, NULL);
   gl.mouse_surface = eglCreateWindowSurface(
-      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
+      gl.display, gl.config, (EGLNativeWindowType)gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
 }
 
@@ -336,7 +342,7 @@ class Texture : public TextureDelegate {
   }
 
   void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
-  override {
+      override {
     TRACE("Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d)",
           x, y, patch_x, patch_y, width, height);
     glColor3f(1.0, 1.0, 1.0);
@@ -352,18 +358,18 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
+    GLint vertices[] = {x + patch_x, y + patch_y,         x + patch_x + width,
                         y + patch_y, x + patch_x + width, y + patch_y + height,
                         x + patch_x, y + patch_y + height};
-    float top_left_x = ((float) patch_x) / width_;
-    float top_left_y = ((float) patch_y) / height_;
-    float bottom_right_x = ((float) (patch_x + width)) / width_;
-    float bottom_right_y = ((float) (patch_y + height)) / height_;
+    float top_left_x = ((float)patch_x) / width_;
+    float top_left_y = ((float)patch_y) / height_;
+    float bottom_right_x = ((float)(patch_x + width)) / width_;
+    float bottom_right_y = ((float)(patch_y + height)) / height_;
 
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
-    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
+    GLfloat tex_coords[] = {top_left_x, top_left_y,     bottom_right_x,
                             top_left_y, bottom_right_x, bottom_right_y,
                             top_left_x, bottom_right_y};
 
@@ -461,12 +467,8 @@ void Compositor::Draw() {
   if (copy_request_) {
     std::vector<uint8_t> screen_data;
     screen_data.resize(sizeof(uint32_t) * gl.display_width * gl.display_height);
-    glReadPixels(0,
-                 0,
-                 gl.display_width, gl.display_height,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 screen_data.data());
+    glReadPixels(0, 0, gl.display_width, gl.display_height, GL_RGBA,
+                 GL_UNSIGNED_BYTE, screen_data.data());
     (*copy_request_)(std::move(screen_data), gl.display_width,
                      gl.display_height);
     copy_request_.reset();
@@ -484,19 +486,23 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
   // TODO: child windows needs to be handled as well!
   if (window->surface()->has_commit() || draw_forced_) {
     window->surface()->RunSurfaceCallback();
-    int32_t physical_x = (start_x + window->geometry().x()) * display_metrics_->scale;
-    int32_t physical_y = (start_y + window->geometry().y()) * display_metrics_->scale;
+    int32_t physical_x =
+        (start_x + window->geometry().x()) * display_metrics_->scale;
+    int32_t physical_y =
+        (start_y + window->geometry().y()) * display_metrics_->scale;
     int32_t to_draw_x = window->GetToDrawRegion().x() * display_metrics_->scale;
     int32_t to_draw_y = window->GetToDrawRegion().y() * display_metrics_->scale;
-    int32_t physical_width = window->GetToDrawRegion().width() * display_metrics_->scale;
-    int32_t physical_height = window->GetToDrawRegion().height() * display_metrics_->scale;
+    int32_t physical_width =
+        window->GetToDrawRegion().width() * display_metrics_->scale;
+    int32_t physical_height =
+        window->GetToDrawRegion().height() * display_metrics_->scale;
     if (!window->surface()->has_commit() &&
         window->surface()->cached_texture()) {
       TRACE("Drawing Window: %p at %d %d", window,
             start_x + window->geometry().x(), start_y + window->geometry().y());
       window->surface()->cached_texture()->Draw(
-          physical_x, physical_y,
-          to_draw_x, to_draw_y, physical_width, physical_height);
+          physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
+          physical_height);
     } else {
       auto* buffer = window->surface()->committed_buffer();
       if (buffer && buffer->data()) {
@@ -506,9 +512,8 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
         TRACE("Drawing Window: %p at %d %d", window,
               start_x + window->geometry().x(),
               start_y + window->geometry().y());
-        texture->Draw(
-            physical_x, physical_y,
-            to_draw_x, to_draw_y, physical_width, physical_height);
+        texture->Draw(physical_x, physical_y, to_draw_x, to_draw_y,
+                      physical_width, physical_height);
         window->surface()->cache_texture(std::move(texture));
       }
     }

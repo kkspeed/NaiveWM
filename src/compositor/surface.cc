@@ -68,8 +68,8 @@ void Surface::Commit() {
   // needs revisit
   for (size_t i = 0; i < observers_.size(); i++) {
     auto* observer = observers_[i];
-    LOG_ERROR << "notifying " << observer
-              << " for commit on surface " << this << std::endl;
+    LOG_ERROR << "notifying " << observer << " for commit on surface " << this
+              << std::endl;
     observer->OnCommit();
   }
 }

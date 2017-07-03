@@ -30,18 +30,20 @@ void Seat::OfferSelection() {
   if (focused_keyboard_ == nullptr)
     return;
   DataSource* selection_source = data_device_->selection();
+  auto* device_resource = data_device_->GetBinding(
+      wl_resource_get_client(focused_keyboard_->resource()));
+
+  if (!device_resource)
+    return;
+
   if (!selection_source) {
-    // TODO: send client a nullptr for no selection.
+    wl_data_device_send_selection(device_resource, nullptr);
     return;
   }
 
   DataOffer* offer =
       new_offer_(wl_resource_get_client(focused_keyboard_->resource()),
                  data_device_->selection());
-  auto* device_resource = data_device_->GetBinding(
-      wl_resource_get_client(focused_keyboard_->resource()));
-  if (!device_resource)
-    return;
 
   wl_data_device_send_data_offer(device_resource, offer->resource());
   for (auto& mime : selection_source->mimetypes())

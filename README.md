@@ -58,6 +58,8 @@ NaiveWM should be able to guess the scale of your screen for high res screens.
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!
 
+For a list of things I'm working on, please see <tt>TODO.md</tt>.
+
 ## Credits
 Sincerely thanks to all the open source libraries that back up this project. 
 

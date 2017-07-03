@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 
+#include "base/geometry.h"
+#include "compositor/region.h"
 #include "wayland/display_metrics.h"
 
 namespace naive {
@@ -32,16 +34,20 @@ class Compositor {
   }
   void Draw();
   void DrawPointer();
+  void FillRect(base::geometry::Rect rect, float r, float g, float b);
   void DrawWindowBorder(wm::Window* window);
   void DrawWindowRecursive(wm::Window* window,
                            int32_t start_x,
                            int32_t start_y);
+
+  void AddGlobalDamage(base::geometry::Rect rect);
 
  private:
   static Compositor* g_compositor;
   std::unique_ptr<wayland::DisplayMetrics> display_metrics_;
   bool draw_forced_ = true;
   std::unique_ptr<CopyRequest> copy_request_;
+  Region global_damage_region_ = Region::Empty();
 };
 
 }  // namespace compositor

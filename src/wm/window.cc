@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "base/logging.h"
+#include "compositor/compositor.h"
 #include "compositor/shell_surface.h"
 #include "wm/window_manager.h"
 
@@ -16,6 +17,7 @@ Window::Window()
 
 Window::~Window() {
   TRACE("%p", this);
+  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
   wm::WindowManager::Get()->RemoveWindow(this);
   if (parent_) {
     TRACE("removing window %p from parent: %p", this, parent_);
@@ -184,6 +186,15 @@ void Window::Close() {
     return;
   }
   shell_surface_->Close();
+}
+
+void Window::set_visible(bool visible) {
+  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
+  if (parent_ != nullptr) {
+    TRACE("ERROR: shouldn't set visibility on non toplevel surface!");
+    return;
+  }
+  visible_ = visible;
 }
 
 }  // namespace wm

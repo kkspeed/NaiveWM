@@ -162,12 +162,12 @@ void WindowManager::OnMouseMotion(float dx,
                                   event::Leds leds) {
   float new_x = mouse_position_.x() + dx;
   float new_y = mouse_position_.y() + dy;
-  if (mouse_position_.x() + dx >= screen_width_ * display_metrics_->scale)
-    new_x = screen_width_ - 0.4f;
+  if (mouse_position_.x() + dx >= display_metrics_->width_pixels)
+    new_x = display_metrics_->width_pixels - 0.4f;
   if (mouse_position_.x() + dx < 0.0f)
     new_x = 0.4f;
-  if (mouse_position_.y() + dy >= screen_height_ * display_metrics_->scale)
-    new_y = screen_height_ - 0.4f;
+  if (mouse_position_.y() + dy >= display_metrics_->height_pixels)
+    new_y = display_metrics_->height_pixels - 0.4f;
   if (mouse_position_.y() + dy < 0.0f)
     new_y = 0.4f;
   last_mouse_position_ = mouse_position_;

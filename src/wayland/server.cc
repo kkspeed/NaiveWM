@@ -100,9 +100,10 @@ void surface_damage(wl_client* client,
                     int32_t y,
                     int32_t width,
                     int32_t height) {
-  TRACE();
-  GetUserDataAs<Surface>(resource)->Damage(
-      base::geometry::Rect(x, y, width, height));
+  auto* surface = GetUserDataAs<Surface>(resource);
+  TRACE("Damaging surface: %p, region: %d %d %d %d", surface, x, y, width,
+        height);
+  surface->Damage(base::geometry::Rect(x, y, width, height));
 }
 
 void HandleSurfaceFrameCallback(wl_resource* resource) {

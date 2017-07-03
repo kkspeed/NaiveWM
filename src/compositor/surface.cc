@@ -13,6 +13,20 @@ Surface::Surface() : window_(std::make_unique<wm::Window>()) {
   window_->set_surface(this);
 }
 
+Surface::~Surface() {
+  TRACE("resource %p, window %p", resource(), window());
+
+  if (window()->parent())
+    window()->parent()->surface()->Damage(window()->geometry());
+
+  for (size_t i = 0; i < observers_.size(); i++) {
+    auto* observer = observers_[i];
+    LOG_ERROR << "surface " << this << " destroyed for " << observer
+              << std::endl;
+    observer->OnSurfaceDestroyed(this);
+  }
+}
+
 void Surface::Attach(Buffer* buffer) {
   LOG_ERROR << "Surface::Attach " << buffer << " to window " << window()
             << std::endl;
@@ -63,6 +77,7 @@ void Surface::Commit() {
 
   pending_state_.frame_callback = nullptr;
   pending_state_.buffer = nullptr;
+  pending_state_.damaged_region = Region::Empty();
 
   // TODO: Can't use iterator due to possible iterator invalidation...
   // needs revisit

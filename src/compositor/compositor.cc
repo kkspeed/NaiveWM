@@ -14,7 +14,6 @@
 #include <EGL/eglext.h>
 #include <GL/gl.h>
 #include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 #include <drm_mode.h>
 #include <fcntl.h>
 #include <gbm.h>
@@ -24,6 +23,7 @@
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
+#include "compositor/compositor_view.h"
 #include "compositor/surface.h"
 #include "compositor/texture_delegate.h"
 #include "wm/window.h"
@@ -33,6 +33,10 @@ namespace naive {
 namespace compositor {
 
 namespace {
+
+int waiting_for_flip = 0;
+GLuint framebuffer;
+GLuint renderedTexture;
 
 struct {
   EGLDisplay display;
@@ -59,12 +63,13 @@ struct {
 
 struct drm_fb {
   uint32_t fb_id;
+  bool need_modset = true;
 };
 
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
   for (uint32_t i = 0; i < resources->count_crtcs; i++) {
-    const uint32_t crtc_mask = ((uint32_t)1) << i;
+    const uint32_t crtc_mask = ((uint32_t) 1) << i;
     const uint32_t crtc_id = resources->crtcs[i];
     if (encoder->possible_crtcs & crtc_mask)
       return crtc_id;
@@ -162,26 +167,26 @@ void init_gl() {
 
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-  const EGLint config_attributes[] = {EGL_SURFACE_TYPE,
-                                      EGL_WINDOW_BIT,
-                                      EGL_RED_SIZE,
-                                      1,
-                                      EGL_GREEN_SIZE,
-                                      1,
-                                      EGL_BLUE_SIZE,
-                                      1,
-                                      EGL_ALPHA_SIZE,
-                                      1,
-                                      EGL_RENDERABLE_TYPE,
-                                      EGL_OPENGL_BIT,
-                                      EGL_NONE};
+  const EGLint config_attributes[] = {
+      EGL_SURFACE_TYPE,
+      EGL_WINDOW_BIT,
+      EGL_RED_SIZE,
+      1,
+      EGL_GREEN_SIZE,
+      1,
+      EGL_BLUE_SIZE,
+      1,
+      EGL_ALPHA_SIZE,
+      1,
+      EGL_RENDERABLE_TYPE,
+      EGL_OPENGL_BIT,
+      EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
-      (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
+      (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
-
   assert(eglInitialize(gl.display, &major, &minor));
   assert(eglBindAPI(EGL_OPENGL_API));
   assert(eglChooseConfig(gl.display, config_attributes, &gl.config, 1, &n));
@@ -192,10 +197,11 @@ void init_gl() {
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
-                                      (EGLNativeWindowType)gbm.surface, NULL);
+                                      (EGLNativeWindowType) gbm.surface, NULL);
   gl.mouse_surface = eglCreateWindowSurface(
-      gl.display, gl.config, (EGLNativeWindowType)gbm.mouse_surface, NULL);
+      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
+  eglSwapInterval(gl.display, 1);
 }
 
 void drm_fb_destroy_callback(gbm_bo* bo, void* data) {
@@ -243,7 +249,7 @@ drmEventContext evctx = {
 };
 
 fd_set fds;
-gbm_bo* bo;
+gbm_bo* bo = nullptr;
 drm_fb* fb;
 
 void drm_egl_init() {
@@ -258,11 +264,36 @@ void drm_egl_init() {
   fb = drm_fb_get_from_bo(bo);
   drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1,
                  drm.mode);
+  glGenFramebuffers(1, &framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glGenTextures(1, &renderedTexture);
+  glBindTexture(GL_TEXTURE_2D, renderedTexture);
+  glTexImage2D(GL_TEXTURE_2D,
+               0,
+               GL_RGB,
+               gl.display_width,
+               gl.display_height,
+               0,
+               GL_RGB,
+               GL_UNSIGNED_BYTE,
+               0);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER,
+                         GL_COLOR_ATTACHMENT0,
+                         GL_TEXTURE_2D,
+                         renderedTexture,
+                         0);
+  assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  fb->need_modset = false;
 }
 
 void initialize_cursor() {
   eglMakeCurrent(gl.display, gl.mouse_surface, gl.mouse_surface, gl.context);
-  eglSwapBuffers(gl.display, gl.mouse_surface);
+  // eglSwapBuffers(gl.display, gl.mouse_surface);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -294,29 +325,42 @@ void initialize_cursor() {
     exit(1);
   }
   gbm_surface_release_buffer(gbm.mouse_surface, bo);
-  eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
 }
 
 void move_cursor(int32_t x, int32_t y) {
   drmModeMoveCursor(drm.fd, drm.crtc_id, x, y);
 }
 
-void finalize_draw() {
-  gbm_bo* next_bo;
-  int waiting_for_flip = 1;
-  eglSwapBuffers(gl.display, gl.surface);
-  next_bo = gbm_surface_lock_front_buffer(gbm.surface);
-  fb = drm_fb_get_from_bo(next_bo);
-
-  drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
-                  &waiting_for_flip);
-  while (waiting_for_flip) {
-    select(drm.fd + 1, &fds, nullptr, nullptr, nullptr);
-    drmHandleEvent(drm.fd, &evctx);
+void wait_page_flip() {
+  if (fb) {
+    waiting_for_flip = 1;
+    drmModePageFlip(drm.fd, drm.crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
+                    &waiting_for_flip);
+    while (waiting_for_flip) {
+      select(drm.fd + 1, &fds, nullptr, nullptr, nullptr);
+      drmHandleEvent(drm.fd, &evctx);
+    }
   }
+}
 
-  gbm_surface_release_buffer(gbm.surface, bo);
-  bo = next_bo;
+void finalize_draw(bool did_draw) {
+  if (did_draw) {
+    gbm_bo* next_bo;
+    eglSwapBuffers(gl.display, gl.surface);
+    next_bo = gbm_surface_lock_front_buffer(gbm.surface);
+    fb = drm_fb_get_from_bo(next_bo);
+    if (fb->need_modset) {
+      drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1,
+                     drm.mode);
+      fb->need_modset = false;
+    } else {
+      wait_page_flip();
+    }
+    gbm_surface_release_buffer(gbm.surface, bo);
+    bo = next_bo;
+  } else {
+    wait_page_flip();
+  }
 }
 
 class Texture : public TextureDelegate {
@@ -342,9 +386,17 @@ class Texture : public TextureDelegate {
   }
 
   void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
-      override {
-    TRACE("Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d)",
-          x, y, patch_x, patch_y, width, height);
+  override {
+    TRACE(
+        "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), texture dimension: (%d %d)",
+        x,
+        y,
+        patch_x,
+        patch_y,
+        width,
+        height,
+        width_,
+        height_);
     glColor3f(1.0, 1.0, 1.0);
     if (!identifier_)
       return;
@@ -358,18 +410,18 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {x + patch_x, y + patch_y,         x + patch_x + width,
+    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
                         y + patch_y, x + patch_x + width, y + patch_y + height,
                         x + patch_x, y + patch_y + height};
-    float top_left_x = ((float)patch_x) / width_;
-    float top_left_y = ((float)patch_y) / height_;
-    float bottom_right_x = ((float)(patch_x + width)) / width_;
-    float bottom_right_y = ((float)(patch_y + height)) / height_;
+    float top_left_x = ((float) patch_x) / width_;
+    float top_left_y = ((float) patch_y) / height_;
+    float bottom_right_x = ((float) (patch_x + width)) / width_;
+    float bottom_right_y = ((float) (patch_y + height)) / height_;
 
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
-    GLfloat tex_coords[] = {top_left_x, top_left_y,     bottom_right_x,
+    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
                             top_left_y, bottom_right_x, bottom_right_y,
                             top_left_x, bottom_right_y};
 
@@ -446,24 +498,133 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
+void Compositor::AddGlobalDamage(base::geometry::Rect rect) {
+  Region r(rect);
+  global_damage_region_.Union(r);
+}
+
 wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
   return display_metrics_.get();
 }
 
 void Compositor::Draw() {
-  std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
-  if (!committed_windows.empty() || draw_forced_) {
-    glLoadIdentity();
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(0.0, 0.0, 1.0, 1.0);
-    for (auto* window : wm::WindowManager::Get()->windows()) {
-      if (window->is_visible()) {
-        DrawWindowRecursive(window, window->wm_x(), window->wm_y());
-        DrawWindowBorder(window);
+  eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  CompositorViewList view_list;
+  for (auto* window : wm::WindowManager::Get()->windows()) {
+    window->surface()->RunSurfaceCallback();
+    if (window->is_visible()) {
+      CompositorViewList view_list_window =
+          CompositorView::BuildCompositorViewHierarchyRecursive(window);
+      for (auto &view : view_list_window) {
+        auto* cv = view.release();
+        view_list.push_back(std::unique_ptr<CompositorView>(cv));
       }
     }
-    finalize_draw();
   }
+
+  bool has_global_damage = !global_damage_region_.is_empty();
+
+  for (int i = 0; i < view_list.size(); i++) {
+    if (!global_damage_region_.is_empty()) {
+      auto additional_damage = global_damage_region_.Clone();
+      additional_damage.Intersect(view_list[i]->global_region());
+      view_list[i]->damaged_region().Union(additional_damage);
+    }
+    for (int j = i + 1; j < view_list.size(); j++) {
+      TRACE("subtracting %p: %s, from %p",
+            view_list[j]->window(),
+            view_list[j]->global_bounds().ToString().c_str(),
+            view_list[i]->window());
+      view_list[i]->damaged_region().Subtract(view_list[j]->global_region());
+    }
+  }
+
+  if (!global_damage_region_.is_empty())
+    global_damage_region_.Clear();
+
+  bool did_draw = false;
+  for (auto &view : view_list) {
+    auto* window = view->window();
+    if (window->surface()->has_commit()) {
+      auto* buffer = window->surface()->committed_buffer();
+      if (buffer && buffer->data()) {
+        auto texture =
+            std::make_unique<Texture>(buffer->width(), buffer->height(),
+                                      buffer->format(), buffer->local_data());
+        window->surface()->cache_texture(std::move(texture));
+      }
+    }
+    for (auto &rect : view->damaged_region().rectangles()) {
+      auto bounds = view->global_bounds();
+      TRACE("rectangle: %s, window global bounds: %s",
+            rect.ToString().c_str(),
+            bounds.ToString().c_str());
+      int32_t physical_x = bounds.x() * display_metrics_->scale;
+      int32_t physical_y = bounds.y() * display_metrics_->scale;
+      int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
+      int32_t to_draw_y = (rect.y() - bounds.y()) * display_metrics_->scale;
+      int32_t physical_width = rect.width() * display_metrics_->scale;
+      int32_t physical_height = rect.height() * display_metrics_->scale;
+      window->surface()->cached_texture()->Draw(
+          physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
+          physical_height);
+      did_draw = true;
+    }
+    window->surface()->clear_commit();
+    window->surface()->clear_damage();
+  }
+
+  if (did_draw) {
+    for (int i = 0; i < view_list.size(); i++) {
+      for (int j = i + 1; j < view_list.size(); j++)
+        view_list[i]->border_region().Subtract(view_list[j]->global_region());
+      for (auto rect : view_list[i]->border_region().rectangles()) {
+        if (view_list[i]->window()->focused()
+            && !view_list[i]->window()->parent())
+          FillRect(rect, 1.0, 0.0, 0.0);
+        else
+          FillRect(rect, 0.0, 1.0, 0.0);
+      }
+    }
+  }
+
+  if (has_global_damage) {
+    Region full_screen =
+        Region(base::geometry::Rect(0, 0, display_metrics_->width_dp,
+                                    display_metrics_->height_dp));
+    for (auto &v : view_list)
+      full_screen.Subtract(v->global_region());
+    did_draw = !full_screen.is_empty();
+    for (auto r : full_screen.rectangles()) {
+      TRACE("Fullscreen filling %s", r.ToString().c_str());
+      FillRect(r, 0.0, 0.0, 0.0);
+    }
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  if (did_draw) {
+    GLint vertices[] =
+        {0, 0, gl.display_width, 0, gl.display_width, gl.display_height, 0,
+         gl.display_height};
+    GLfloat tex_coords[] = {0, 1, 1, 1, 1, 0, 0, 0};
+    glEnable(GL_TEXTURE_2D);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glVertexPointer(2, GL_INT, 0, vertices);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex_coords);
+
+    glDrawArrays(GL_QUADS, 0, 4);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_RECTANGLE);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+  }
+
   if (copy_request_) {
     std::vector<uint8_t> screen_data;
     screen_data.resize(sizeof(uint32_t) * gl.display_width * gl.display_height);
@@ -475,6 +636,7 @@ void Compositor::Draw() {
   }
 
   DrawPointer();
+  finalize_draw(did_draw);
   // TODO: still cannot disable this yet, since the surface dependency is not
   // resolved
   draw_forced_ = true;
@@ -525,6 +687,23 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
     DrawWindowRecursive(child, start_x + window->geometry().x(),
                         start_y + window->geometry().y());
   }
+}
+
+void Compositor::FillRect(base::geometry::Rect rect,
+                          float r,
+                          float g,
+                          float b) {
+  glColor3f(r, g, b);
+  int32_t x = rect.x() * display_metrics_->scale;
+  int32_t y = rect.y() * display_metrics_->scale;
+  glBegin(GL_QUADS);
+  glVertex2f(x, y);
+  glVertex2f(x + rect.width() * display_metrics_->scale, y);
+  glVertex2f(x + rect.width() * display_metrics_->scale,
+             y + rect.height() * display_metrics_->scale);
+  glVertex2f(x, y + rect.height() * display_metrics_->scale);
+  glEnd();
+  glColor3f(1.0, 1.0, 1.0);
 }
 
 void Compositor::DrawWindowBorder(wm::Window* window) {

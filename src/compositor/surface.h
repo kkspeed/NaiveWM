@@ -37,16 +37,7 @@ class SurfaceObserver {
 class Surface {
  public:
   Surface();
-  ~Surface() {
-    TRACE("resource %p, window %p", resource(), window());
-    for (size_t i = 0; i < observers_.size(); i++) {
-      auto* observer = observers_[i];
-      LOG_ERROR << "surface " << this << " destroyed for " << observer
-                << std::endl;
-      observer->OnSurfaceDestroyed(this);
-    }
-  }
-
+  ~Surface();
   void Attach(Buffer* buffer);
   void Damage(const base::geometry::Rect& rect);
   void SetOpaqueRegion(const Region region);
@@ -78,11 +69,13 @@ class Surface {
     }
   }
 
+  Region damaged_regoin() { return state_.damaged_region; }
   void set_resource(wl_resource* resource) { resource_ = resource; }
   wl_resource* resource() { return resource_; }
   bool has_commit() { return has_commit_; }
   void force_commit() { has_commit_ = true; }
   void clear_commit() { has_commit_ = false; }
+  void clear_damage() { state_.damaged_region = Region::Empty(); }
   Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() {
     assert(window_);

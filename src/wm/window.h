@@ -36,13 +36,7 @@ class Window : public SurfaceObserver {
   void set_class(std::string clazz) { clazz_ = clazz; }
   void set_appid(std::string app_id) { app_id_ = app_id; }
   void set_popup(bool popup) { is_popup_ = popup; }
-  void set_visible(bool visible) {
-    if (parent_ != nullptr) {
-      TRACE("ERROR: shouldn't set visibility on non toplevel surface!");
-      return;
-    }
-    visible_ = visible;
-  }
+  void set_visible(bool visible);
 
   // SurfaceObserver overrides
   void OnCommit() override;
@@ -120,6 +114,17 @@ class Window : public SurfaceObserver {
   base::geometry::Rect geometry() { return state_.geometry; }
   int32_t wm_x() { return wm_x_; }
   int32_t wm_y() { return wm_y_; }
+  base::geometry::Rect global_bound() {
+    auto rect = geometry();
+    auto* p = parent_;
+    while (p) {
+      // TODO: wm_x / wm_y might have other meaning in the future.
+      rect.x_ += p->geometry().x() + p->wm_x();
+      rect.y_ += p->geometry().y() + p->wm_y();
+      p = p->parent();
+    }
+    return rect;
+  }
 
  private:
   bool managed_ = false, to_be_managed_ = false;

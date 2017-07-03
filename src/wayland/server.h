@@ -1,8 +1,11 @@
 #ifndef WAYLAND_SERVER_H_
 #define WAYLAND_SERVER_H_
 
+#include <memory>
+
 #include "base/macros.h"
 #include "wayland/display.h"
+#include "wayland/seat.h"
 
 extern "C" {
 struct wl_display;
@@ -21,6 +24,7 @@ class Server {
  private:
   Display* display_;
   wl_display* wl_display_;
+  std::unique_ptr<Seat> seat_;
 
   DISALLOW_COPY_AND_ASSIGN(Server);
 };

@@ -23,10 +23,12 @@
 #include "compositor/subsurface.h"
 #include "compositor/surface.h"
 #include "wayland/data_device.h"
+#include "wayland/data_offer.h"
 #include "wayland/display.h"
 #include "wayland/display_metrics.h"
 #include "wayland/keyboard.h"
 #include "wayland/pointer.h"
+#include "wayland/seat.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -658,10 +660,11 @@ void seat_get_pointer(wl_client* client, wl_resource* resource, uint32_t id) {
 
 void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   TRACE();
+  auto* seat = GetUserDataAs<Seat>(resource);
   int version = wl_resource_get_version(resource);
   wl_resource* keyboard_resource =
       wl_resource_create(client, &wl_keyboard_interface, version, id);
-  auto keyboard = std::make_unique<Keyboard>(keyboard_resource);
+  auto keyboard = std::make_unique<Keyboard>(keyboard_resource, seat);
   TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(),
         client, resource);
   SetImplementation(keyboard_resource, &keyboard_implementation,
@@ -1520,7 +1523,48 @@ void bind_xdg_shell_v6(wl_client* client,
                                  nullptr);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//  wl_data_offer_interface:
+void data_offer_accept(wl_client* client,
+                       wl_resource* offer,
+                       uint32_t serial,
+                       const char* mime_type) {
+  TRACE();
+  auto* data_offer = GetUserDataAs<DataOffer>(offer);
+  wl_data_source_send_target(data_offer->source()->resource(), mime_type);
+}
+
+void data_offer_receive(wl_client* client,
+                        wl_resource* offer,
+                        const char* mime_type,
+                        int32_t fd) {
+  TRACE();
+  auto* data_offer = GetUserDataAs<DataOffer>(offer);
+  wl_data_source_send_send(data_offer->source()->resource(), mime_type, fd);
+  close(fd);
+}
+
+void data_offer_destroy(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
+}
+
+const struct wl_data_offer_interface data_offer_implementation = {
+    .accept = data_offer_accept,
+    .receive = data_offer_receive,
+    .destroy = data_offer_destroy,
+};
+
+DataOffer* CreateDataOffer(wl_client* client, DataSource* source) {
+  wl_resource* offer_resource =
+      wl_resource_create(client, &wl_data_offer_interface, 1, 0);
+  auto data_offer = std::make_unique<DataOffer>(offer_resource, source);
+  SetImplementation(offer_resource, &data_offer_implementation,
+                    std::move(data_offer));
+  return GetUserDataAs<DataOffer>(offer_resource);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // wl_data_device_interface:
 
 void data_device_start_drag(wl_client* client,
@@ -1554,6 +1598,8 @@ void data_device_set_selection(wl_client* client,
 
 void data_device_release(wl_client* client, wl_resource* resource) {
   TRACE();
+  auto* device = GetUserDataAs<DataDevice>(resource);
+  device->Unbind(resource);
   wl_resource_destroy(resource);
 }
 
@@ -1574,6 +1620,8 @@ void data_source_offer(wl_client* client,
                        wl_resource* resource,
                        const char* mimetype) {
   TRACE();
+  auto* source = GetUserDataAs<DataSource>(resource);
+  source->AddMimetype(std::string(mimetype));
 }
 
 void data_source_set_actions(wl_client* client,
@@ -1606,13 +1654,15 @@ void data_device_manager_get_data_device(wl_client* client,
                                          wl_resource* resource,
                                          uint32_t id,
                                          wl_resource* seat_resource) {
-  // TODO: implement data device
   TRACE();
-  wl_resource* data_device_resource =
-      wl_resource_create(client, &wl_data_device_interface, 1, id);
+  auto* seat = GetUserDataAs<Seat>(seat_resource);
+  wl_resource* data_device_resource = wl_resource_create(
+      client, &wl_data_device_interface, wl_resource_get_version(resource), id);
 
+  seat->data_device()->AddClient(data_device_resource);
   wl_resource_set_implementation(data_device_resource,
-                                 &data_device_implementation, nullptr, nullptr);
+                                 &data_device_implementation,
+                                 seat->data_device(), nullptr);
 }
 
 const struct wl_data_device_manager_interface
@@ -1625,8 +1675,8 @@ void bind_data_device_manager(wl_client* client,
                               uint32_t version,
                               uint32_t id) {
   TRACE();
-  wl_resource* resource =
-      wl_resource_create(client, &wl_data_device_manager_interface, 1, id);
+  wl_resource* resource = wl_resource_create(
+      client, &wl_data_device_manager_interface, version, id);
   wl_resource_set_implementation(resource, &data_device_manager_implementation,
                                  data, nullptr);
 }
@@ -1635,7 +1685,11 @@ void bind_data_device_manager(wl_client* client,
 
 //////////////////////////////////////////////////////////////////////////////
 // Server
-Server::Server(Display* display) : display_(display) {
+Server::Server(Display* display)
+    : display_(display),
+      seat_(std::make_unique<Seat>(std::bind(&CreateDataOffer,
+                                             std::placeholders::_1,
+                                             std::placeholders::_2))) {
   wl_display_ = wl_display_create();
   AddSocket();
   wl_global_create(wl_display_, &wl_compositor_interface, 3, display_,
@@ -1650,7 +1704,7 @@ Server::Server(Display* display) : display_(display) {
                    &bind_xdg_shell_v6);
   wl_global_create(wl_display_, &xdg_shell_interface, 1, display_,
                    &bind_xdg_shell_v5);
-  wl_global_create(wl_display_, &wl_seat_interface, 1, display_, &bind_seat);
+  wl_global_create(wl_display_, &wl_seat_interface, 1, seat_.get(), &bind_seat);
   wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
                    bind_data_device_manager);
 }

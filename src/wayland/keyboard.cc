@@ -6,13 +6,16 @@
 #include <unistd.h>
 
 #include "base/logging.h"
+#include "wayland/seat.h"
 #include "wm/keyboard_event.h"
 
 namespace naive {
 namespace wayland {
 
-Keyboard::Keyboard(wl_resource* resource)
-    : resource_(resource), xkb_context_(xkb_context_new(XKB_CONTEXT_NO_FLAGS)) {
+Keyboard::Keyboard(wl_resource* resource, Seat* seat)
+    : resource_(resource),
+      xkb_context_(xkb_context_new(XKB_CONTEXT_NO_FLAGS)),
+      seat_(seat) {
   TRACE("%p", this);
   // TODO: maybe reconstruct this in SendLayout()?
   xkb_keymap_ = xkb_keymap_new_from_names(
@@ -29,6 +32,7 @@ Keyboard::~Keyboard() {
   wm::WindowManager::Get()->RemoveKeyboardObserver(this);
   for (auto* surface : observed_surfaces_)
     surface->RemoveSurfaceObserver(this);
+  seat_->NotifyKeyboardDestroyed(this);
 }
 
 void Keyboard::SendLayout() {
@@ -76,6 +80,7 @@ void Keyboard::OnFocus(wm::Window* window) {
           static_cast<uint32_t*>(wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
+    seat_->NotifyKeyboardFocusChanged(this);
     wl_keyboard_send_enter(resource_, next_serial(), target_->resource(),
                            &keys);
     wl_array_release(&keys);
@@ -112,6 +117,7 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
           static_cast<uint32_t*>(wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
+    seat_->NotifyKeyboardFocusChanged(this);
     wl_keyboard_send_enter(resource_, next_serial(), target_->resource(),
                            &keys);
     wl_array_release(&keys);

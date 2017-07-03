@@ -12,9 +12,11 @@
 namespace naive {
 namespace wayland {
 
+class Seat;
+
 class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
  public:
-  explicit Keyboard(wl_resource* resource);
+  explicit Keyboard(wl_resource* resource, Seat* seat);
   ~Keyboard();
 
   // KeyboardObserver overrides
@@ -25,6 +27,8 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   void OnSurfaceDestroyed(Surface* surface) override;
 
   bool CanReceiveEvent(Surface* surface);
+
+  wl_resource* resource() { return resource_; }
 
  private:
   void UpdateKeyStates(wm::KeyboardEvent* key_event);
@@ -38,6 +42,7 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   std::set<uint32_t> pressed_keys_;
   std::set<Surface*> observed_surfaces_;
   Surface* target_ = nullptr;
+  Seat* seat_;
 };
 
 }  // namespace wayland

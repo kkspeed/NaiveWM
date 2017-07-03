@@ -22,5 +22,9 @@ void DataSource::RemoveDataSourceListener(DataSourceListener* listener) {
   listeners_.erase(listener);
 }
 
+void DataSource::AddMimetype(std::string mimetype) {
+  mimetypes_.insert(mimetype);
+}
+
 }  // namespace wayland
 }  // namespace naive

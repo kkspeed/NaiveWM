@@ -18,6 +18,10 @@ DisplayMetrics::DisplayMetrics(int32_t w, int32_t h, int32_t pw, int32_t ph) {
 
   scale = round(sqrt(w * w + h * h) / sqrt(pw * pw + ph * ph) / k1xPixelPerMm);
 
+  // Minimum of 1x scale is expected.
+  if (scale < 1)
+    scale = 1;
+
   width_dp = width_pixels / scale;
   height_dp = height_pixels / scale;
 }

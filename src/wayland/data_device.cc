@@ -4,7 +4,7 @@
 namespace naive {
 namespace wayland {
 
-DataDevice::DataDevice(Seat* seat) : seat_(seat) {}
+DataDevice::DataDevice(Seat* seat) : seat_(seat), selection_(nullptr) {}
 
 DataDevice::~DataDevice() {}
 

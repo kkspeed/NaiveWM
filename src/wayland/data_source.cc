@@ -1,5 +1,7 @@
 #include "wayland/data_source.h"
 
+#include "base/logging.h"
+
 namespace naive {
 namespace wayland {
 
@@ -11,6 +13,7 @@ DataSource::~DataSource() {
 }
 
 void DataSource::Cancel() {
+  TRACE("%p, resource: %p", this, resource_);
   wl_data_source_send_cancelled(resource_);
 }
 

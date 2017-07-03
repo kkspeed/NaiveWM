@@ -1531,16 +1531,18 @@ void data_offer_accept(wl_client* client,
                        const char* mime_type) {
   TRACE();
   auto* data_offer = GetUserDataAs<DataOffer>(offer);
-  wl_data_source_send_target(data_offer->source()->resource(), mime_type);
+  if (data_offer->source())
+    wl_data_source_send_target(data_offer->source()->resource(), mime_type);
 }
 
 void data_offer_receive(wl_client* client,
                         wl_resource* offer,
                         const char* mime_type,
                         int32_t fd) {
-  TRACE();
+  TRACE("offer resource: %p", offer);
   auto* data_offer = GetUserDataAs<DataOffer>(offer);
-  wl_data_source_send_send(data_offer->source()->resource(), mime_type, fd);
+  if (data_offer->source())
+    wl_data_source_send_send(data_offer->source()->resource(), mime_type, fd);
   close(fd);
 }
 
@@ -1558,6 +1560,7 @@ const struct wl_data_offer_interface data_offer_implementation = {
 DataOffer* CreateDataOffer(wl_client* client, DataSource* source) {
   wl_resource* offer_resource =
       wl_resource_create(client, &wl_data_offer_interface, 1, 0);
+  TRACE("source %p, offer_resource: %p", source, offer_resource);
   auto data_offer = std::make_unique<DataOffer>(offer_resource, source);
   SetImplementation(offer_resource, &data_offer_implementation,
                     std::move(data_offer));

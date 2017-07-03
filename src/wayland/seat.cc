@@ -15,8 +15,10 @@ Seat::Seat(
 
 void Seat::NotifyKeyboardFocusChanged(Keyboard* to_keyboard) {
   TRACE();
-  focused_keyboard_ = to_keyboard;
-  OfferSelection();
+  if (focused_keyboard_ != to_keyboard) {
+    focused_keyboard_ = to_keyboard;
+    OfferSelection();
+  }
 }
 
 void Seat::NotifyKeyboardDestroyed(Keyboard* keyboard) {
@@ -41,6 +43,7 @@ void Seat::OfferSelection() {
     return;
   }
 
+  TRACE("send offer to %p", device_resource);
   DataOffer* offer =
       new_offer_(wl_resource_get_client(focused_keyboard_->resource()),
                  data_device_->selection());

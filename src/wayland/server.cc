@@ -1539,7 +1539,7 @@ void data_offer_receive(wl_client* client,
                         wl_resource* offer,
                         const char* mime_type,
                         int32_t fd) {
-  TRACE("offer resource: %p", offer);
+  TRACE("offer resource: %p, mime: %s", offer, mime_type);
   auto* data_offer = GetUserDataAs<DataOffer>(offer);
   if (data_offer->source())
     wl_data_source_send_send(data_offer->source()->resource(), mime_type, fd);

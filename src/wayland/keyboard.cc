@@ -60,6 +60,7 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 
 void Keyboard::OnFocus(wm::Window* window) {
   TRACE("%p, target: %p", window, target_);
+  seat_->NotifyKeyboardFocusChanged(this);
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
     TRACE("Adding %p as surface observer to %p", this, window->surface());
@@ -80,7 +81,6 @@ void Keyboard::OnFocus(wm::Window* window) {
           static_cast<uint32_t*>(wl_array_add(&keys, sizeof(uint32_t)));
       *value = key;
     }
-    seat_->NotifyKeyboardFocusChanged(this);
     wl_keyboard_send_enter(resource_, next_serial(), target_->resource(),
                            &keys);
     wl_array_release(&keys);

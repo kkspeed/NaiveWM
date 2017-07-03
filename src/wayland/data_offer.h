@@ -32,6 +32,7 @@ class DataOffer : DataSourceListener {
       source_ = nullptr;
     }
   }
+
  private:
   wl_resource* resource_;
   DataSource* source_;

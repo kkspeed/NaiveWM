@@ -69,7 +69,7 @@ struct drm_fb {
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
   for (uint32_t i = 0; i < resources->count_crtcs; i++) {
-    const uint32_t crtc_mask = ((uint32_t)1) << i;
+    const uint32_t crtc_mask = ((uint32_t) 1) << i;
     const uint32_t crtc_id = resources->crtcs[i];
     if (encoder->possible_crtcs & crtc_mask)
       return crtc_id;
@@ -182,7 +182,7 @@ void init_gl() {
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
-      (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
+      (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
@@ -196,9 +196,9 @@ void init_gl() {
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
-                                      (EGLNativeWindowType)gbm.surface, NULL);
+                                      (EGLNativeWindowType) gbm.surface, NULL);
   gl.mouse_surface = eglCreateWindowSurface(
-      gl.display, gl.config, (EGLNativeWindowType)gbm.mouse_surface, NULL);
+      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   eglSwapInterval(gl.display, 1);
 }
@@ -334,12 +334,18 @@ void wait_page_flip() {
 
 void finalize_draw(bool did_draw) {
   if (did_draw) {
-    gbm_bo* next_bo;
+    gbm_bo* next_bo = nullptr;
     eglSwapBuffers(gl.display, gl.surface);
     next_bo = gbm_surface_lock_front_buffer(gbm.surface);
     fb = drm_fb_get_from_bo(next_bo);
     if (fb->need_modset) {
-      drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1,
+      drmModeSetCrtc(drm.fd,
+                     drm.crtc_id,
+                     fb->fb_id,
+                     0,
+                     0,
+                     &drm.connector_id,
+                     1,
                      drm.mode);
       fb->need_modset = false;
     } else {
@@ -375,10 +381,10 @@ class Texture : public TextureDelegate {
   }
 
   void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
-      override {
+  override {
     TRACE(
         "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), "
-        "texture dimension: (%d %d)",
+            "texture dimension: (%d %d)",
         x, y, patch_x, patch_y, width, height, width_, height_);
     glColor3f(1.0, 1.0, 1.0);
     if (!identifier_)
@@ -393,18 +399,18 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {x + patch_x, y + patch_y,         x + patch_x + width,
+    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
                         y + patch_y, x + patch_x + width, y + patch_y + height,
                         x + patch_x, y + patch_y + height};
-    float top_left_x = ((float)patch_x) / width_;
-    float top_left_y = ((float)patch_y) / height_;
-    float bottom_right_x = ((float)(patch_x + width)) / width_;
-    float bottom_right_y = ((float)(patch_y + height)) / height_;
+    float top_left_x = ((float) patch_x) / width_;
+    float top_left_y = ((float) patch_y) / height_;
+    float bottom_right_x = ((float) (patch_x + width)) / width_;
+    float bottom_right_y = ((float) (patch_y + height)) / height_;
 
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
-    GLfloat tex_coords[] = {top_left_x, top_left_y,     bottom_right_x,
+    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
                             top_left_y, bottom_right_x, bottom_right_y,
                             top_left_x, bottom_right_y};
 
@@ -490,6 +496,38 @@ wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
   return display_metrics_.get();
 }
 
+#ifdef NAIVE_COMPOSITOR
+void Compositor::Draw() {
+  eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
+  std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
+  if (!committed_windows.empty() || draw_forced_) {
+    glLoadIdentity();
+    glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 1.0, 1.0);
+    for (auto* window : wm::WindowManager::Get()->windows()) {
+      if (window->is_visible()) {
+        DrawWindowRecursive(window, window->wm_x(), window->wm_y());
+        DrawWindowBorder(window);
+      }
+    }
+    finalize_draw(true);
+  }
+  if (copy_request_) {
+    std::vector<uint8_t> screen_data;
+    screen_data.resize(sizeof(uint32_t) * gl.display_width * gl.display_height);
+    glReadPixels(0, 0, gl.display_width, gl.display_height, GL_RGBA,
+                 GL_UNSIGNED_BYTE, screen_data.data());
+    (*copy_request_)(std::move(screen_data), gl.display_width,
+                     gl.display_height);
+    copy_request_.reset();
+  }
+
+  DrawPointer();
+  // TODO: still cannot disable this yet, since the surface dependency is not
+  // resolved
+  draw_forced_ = true;
+}
+#else
 void Compositor::Draw() {
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -626,6 +664,7 @@ void Compositor::Draw() {
   // resolved
   draw_forced_ = true;
 }
+#endif
 
 void Compositor::DrawWindowRecursive(wm::Window* window,
                                      int32_t start_x,

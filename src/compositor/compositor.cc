@@ -69,7 +69,7 @@ struct drm_fb {
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
   for (uint32_t i = 0; i < resources->count_crtcs; i++) {
-    const uint32_t crtc_mask = ((uint32_t) 1) << i;
+    const uint32_t crtc_mask = ((uint32_t)1) << i;
     const uint32_t crtc_id = resources->crtcs[i];
     if (encoder->possible_crtcs & crtc_mask)
       return crtc_id;
@@ -167,23 +167,22 @@ void init_gl() {
 
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
 
-  const EGLint config_attributes[] = {
-      EGL_SURFACE_TYPE,
-      EGL_WINDOW_BIT,
-      EGL_RED_SIZE,
-      1,
-      EGL_GREEN_SIZE,
-      1,
-      EGL_BLUE_SIZE,
-      1,
-      EGL_ALPHA_SIZE,
-      1,
-      EGL_RENDERABLE_TYPE,
-      EGL_OPENGL_BIT,
-      EGL_NONE};
+  const EGLint config_attributes[] = {EGL_SURFACE_TYPE,
+                                      EGL_WINDOW_BIT,
+                                      EGL_RED_SIZE,
+                                      1,
+                                      EGL_GREEN_SIZE,
+                                      1,
+                                      EGL_BLUE_SIZE,
+                                      1,
+                                      EGL_ALPHA_SIZE,
+                                      1,
+                                      EGL_RENDERABLE_TYPE,
+                                      EGL_OPENGL_BIT,
+                                      EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
-      (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
+      (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
@@ -197,9 +196,9 @@ void init_gl() {
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
-                                      (EGLNativeWindowType) gbm.surface, NULL);
+                                      (EGLNativeWindowType)gbm.surface, NULL);
   gl.mouse_surface = eglCreateWindowSurface(
-      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
+      gl.display, gl.config, (EGLNativeWindowType)gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   eglSwapInterval(gl.display, 1);
 }
@@ -268,23 +267,13 @@ void drm_egl_init() {
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   glGenTextures(1, &renderedTexture);
   glBindTexture(GL_TEXTURE_2D, renderedTexture);
-  glTexImage2D(GL_TEXTURE_2D,
-               0,
-               GL_RGB,
-               gl.display_width,
-               gl.display_height,
-               0,
-               GL_RGB,
-               GL_UNSIGNED_BYTE,
-               0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, gl.display_width, gl.display_height, 0,
+               GL_RGB, GL_UNSIGNED_BYTE, 0);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER,
-                         GL_COLOR_ATTACHMENT0,
-                         GL_TEXTURE_2D,
-                         renderedTexture,
-                         0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         renderedTexture, 0);
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -386,17 +375,11 @@ class Texture : public TextureDelegate {
   }
 
   void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
-  override {
+      override {
     TRACE(
-        "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), texture dimension: (%d %d)",
-        x,
-        y,
-        patch_x,
-        patch_y,
-        width,
-        height,
-        width_,
-        height_);
+        "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), "
+        "texture dimension: (%d %d)",
+        x, y, patch_x, patch_y, width, height, width_, height_);
     glColor3f(1.0, 1.0, 1.0);
     if (!identifier_)
       return;
@@ -410,18 +393,18 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
+    GLint vertices[] = {x + patch_x, y + patch_y,         x + patch_x + width,
                         y + patch_y, x + patch_x + width, y + patch_y + height,
                         x + patch_x, y + patch_y + height};
-    float top_left_x = ((float) patch_x) / width_;
-    float top_left_y = ((float) patch_y) / height_;
-    float bottom_right_x = ((float) (patch_x + width)) / width_;
-    float bottom_right_y = ((float) (patch_y + height)) / height_;
+    float top_left_x = ((float)patch_x) / width_;
+    float top_left_y = ((float)patch_y) / height_;
+    float bottom_right_x = ((float)(patch_x + width)) / width_;
+    float bottom_right_y = ((float)(patch_y + height)) / height_;
 
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
-    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
+    GLfloat tex_coords[] = {top_left_x, top_left_y,     bottom_right_x,
                             top_left_y, bottom_right_x, bottom_right_y,
                             top_left_x, bottom_right_y};
 
@@ -516,7 +499,7 @@ void Compositor::Draw() {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
           CompositorView::BuildCompositorViewHierarchyRecursive(window);
-      for (auto &view : view_list_window) {
+      for (auto& view : view_list_window) {
         auto* cv = view.release();
         view_list.push_back(std::unique_ptr<CompositorView>(cv));
       }
@@ -532,8 +515,7 @@ void Compositor::Draw() {
       view_list[i]->damaged_region().Union(additional_damage);
     }
     for (int j = i + 1; j < view_list.size(); j++) {
-      TRACE("subtracting %p: %s, from %p",
-            view_list[j]->window(),
+      TRACE("subtracting %p: %s, from %p", view_list[j]->window(),
             view_list[j]->global_bounds().ToString().c_str(),
             view_list[i]->window());
       view_list[i]->damaged_region().Subtract(view_list[j]->global_region());
@@ -544,7 +526,7 @@ void Compositor::Draw() {
     global_damage_region_.Clear();
 
   bool did_draw = false;
-  for (auto &view : view_list) {
+  for (auto& view : view_list) {
     auto* window = view->window();
     if (window->surface()->has_commit()) {
       auto* buffer = window->surface()->committed_buffer();
@@ -555,10 +537,9 @@ void Compositor::Draw() {
         window->surface()->cache_texture(std::move(texture));
       }
     }
-    for (auto &rect : view->damaged_region().rectangles()) {
+    for (auto& rect : view->damaged_region().rectangles()) {
       auto bounds = view->global_bounds();
-      TRACE("rectangle: %s, window global bounds: %s",
-            rect.ToString().c_str(),
+      TRACE("rectangle: %s, window global bounds: %s", rect.ToString().c_str(),
             bounds.ToString().c_str());
       int32_t physical_x = bounds.x() * display_metrics_->scale;
       int32_t physical_y = bounds.y() * display_metrics_->scale;
@@ -580,8 +561,8 @@ void Compositor::Draw() {
       for (int j = i + 1; j < view_list.size(); j++)
         view_list[i]->border_region().Subtract(view_list[j]->global_region());
       for (auto rect : view_list[i]->border_region().rectangles()) {
-        if (view_list[i]->window()->focused()
-            && !view_list[i]->window()->parent())
+        if (view_list[i]->window()->focused() &&
+            !view_list[i]->window()->parent())
           FillRect(rect, 1.0, 0.0, 0.0);
         else
           FillRect(rect, 0.0, 1.0, 0.0);
@@ -590,10 +571,9 @@ void Compositor::Draw() {
   }
 
   if (has_global_damage) {
-    Region full_screen =
-        Region(base::geometry::Rect(0, 0, display_metrics_->width_dp,
-                                    display_metrics_->height_dp));
-    for (auto &v : view_list)
+    Region full_screen = Region(base::geometry::Rect(
+        0, 0, display_metrics_->width_dp, display_metrics_->height_dp));
+    for (auto& v : view_list)
       full_screen.Subtract(v->global_region());
     did_draw = !full_screen.is_empty();
     for (auto r : full_screen.rectangles()) {
@@ -605,9 +585,14 @@ void Compositor::Draw() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   if (did_draw) {
-    GLint vertices[] =
-        {0, 0, gl.display_width, 0, gl.display_width, gl.display_height, 0,
-         gl.display_height};
+    GLint vertices[] = {0,
+                        0,
+                        gl.display_width,
+                        0,
+                        gl.display_width,
+                        gl.display_height,
+                        0,
+                        gl.display_height};
     GLfloat tex_coords[] = {0, 1, 1, 1, 1, 0, 0, 0};
     glEnable(GL_TEXTURE_2D);
     glEnableClientState(GL_VERTEX_ARRAY);

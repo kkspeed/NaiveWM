@@ -10,7 +10,7 @@ namespace {
 void CollectViewsAt(int32_t x_offset,
                     int32_t y_offset,
                     wm::Window* window,
-                    CompositorViewList &list) {
+                    CompositorViewList& list) {
   auto rect = window->geometry();
   int32_t x = x_offset;
   int32_t y = y_offset;
@@ -45,10 +45,9 @@ CompositorView::CompositorView(wm::Window* window,
   global_bounds_.y_ += y_offset;
   global_region_ = Region(global_bounds_);
   if (!window->parent()) {
-    auto rect = base::geometry::Rect(global_bounds_.x() + 2,
-                                     global_bounds_.y() + 2,
-                                     global_bounds_.width() - 4,
-                                     global_bounds_.height() - 4);
+    auto rect = base::geometry::Rect(
+        global_bounds_.x() + 2, global_bounds_.y() + 2,
+        global_bounds_.width() - 4, global_bounds_.height() - 4);
     Region inner(rect);
     border_region_ = global_region_.Clone();
     border_region_.Subtract(inner);

@@ -36,7 +36,7 @@ void Region::Union(Region& region) {
                         region.pixman_region_.get());
 }
 
-void Region::Intersect(Region &region) {
+void Region::Intersect(Region& region) {
   pixman_region32_intersect(pixman_region_.get(), pixman_region_.get(),
                             region.pixman_region_.get());
 }
@@ -65,7 +65,8 @@ std::vector<base::geometry::Rect> Region::rectangles() {
   std::vector<base::geometry::Rect> result;
 
   for (int i = 0; i < n; i++) {
-    TRACE("boxes: tl (%d %d), br(%d %d)", boxes[i].x1, boxes[i].y1, boxes[i].x2, boxes[i].y2);
+    TRACE("boxes: tl (%d %d), br(%d %d)", boxes[i].x1, boxes[i].y1, boxes[i].x2,
+          boxes[i].y2);
     result.push_back(base::geometry::Rect(boxes[i].x1, boxes[i].y1,
                                           boxes[i].x2 - boxes[i].x1,
                                           boxes[i].y2 - boxes[i].y1));

@@ -45,10 +45,10 @@ CompositorView::CompositorView(wm::Window* window,
   global_bounds_.y_ += y_offset;
   global_region_ = Region(global_bounds_);
   if (!window->parent()) {
-    auto rect = base::geometry::Rect(global_bounds_.x() + 3,
-                                     global_bounds_.y() + 3,
-                                     global_bounds_.width() - 6,
-                                     global_bounds_.height() - 6);
+    auto rect = base::geometry::Rect(global_bounds_.x() + 2,
+                                     global_bounds_.y() + 2,
+                                     global_bounds_.width() - 4,
+                                     global_bounds_.height() - 4);
     Region inner(rect);
     border_region_ = global_region_.Clone();
     border_region_.Subtract(inner);

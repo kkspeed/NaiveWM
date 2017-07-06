@@ -11,7 +11,12 @@ The features on top of my head:
 ## Notification
 
 ## Improve compositor
-Currently it repaints the whole screen.
+Currently repaints damage. But needs a mechanism to force redraw.
+
+1. Uses too much CPU (6%) when drawing border + global damage for popup surfaces
+2. Surfaces not completely rendered (e.g. QT's title bar)
+3. Switching workspace may have a frame remain..
+
 
 ## Out of order closing of multiple windows will crash the compositor
 

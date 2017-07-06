@@ -89,4 +89,10 @@ void Surface::Commit() {
   }
 }
 
+void Surface::ForceDamage(base::geometry::Rect rect) {
+  TRACE("force damage %s on %p", rect.ToString().c_str(), window());
+  Region r = Region(rect);
+  state_.damaged_region.Union(r);
+}
+
 }  // namespace naive

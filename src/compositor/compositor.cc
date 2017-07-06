@@ -13,7 +13,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GL/gl.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
 #include <drm_mode.h>
 #include <fcntl.h>
 #include <gbm.h>
@@ -274,6 +275,8 @@ void drm_egl_init() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          renderedTexture, 0);
+  GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -537,7 +540,7 @@ void Compositor::Draw() {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
           CompositorView::BuildCompositorViewHierarchyRecursive(window);
-      for (auto& view : view_list_window) {
+      for (auto &view : view_list_window) {
         auto* cv = view.release();
         view_list.push_back(std::unique_ptr<CompositorView>(cv));
       }
@@ -564,7 +567,7 @@ void Compositor::Draw() {
     global_damage_region_.Clear();
 
   bool did_draw = false;
-  for (auto& view : view_list) {
+  for (auto &view : view_list) {
     auto* window = view->window();
     if (window->surface()->has_commit()) {
       auto* buffer = window->surface()->committed_buffer();
@@ -575,9 +578,11 @@ void Compositor::Draw() {
         window->surface()->cache_texture(std::move(texture));
       }
     }
-    for (auto& rect : view->damaged_region().rectangles()) {
+    for (auto &rect : view->damaged_region().rectangles()) {
       auto bounds = view->global_bounds();
-      TRACE("rectangle: %s, window global bounds: %s", rect.ToString().c_str(),
+      TRACE("rectangle: %s, window %p, global bounds: %s",
+            rect.ToString().c_str(),
+            view->window(),
             bounds.ToString().c_str());
       int32_t physical_x = bounds.x() * display_metrics_->scale;
       int32_t physical_y = bounds.y() * display_metrics_->scale;
@@ -611,7 +616,7 @@ void Compositor::Draw() {
   if (has_global_damage) {
     Region full_screen = Region(base::geometry::Rect(
         0, 0, display_metrics_->width_dp, display_metrics_->height_dp));
-    for (auto& v : view_list)
+    for (auto &v : view_list)
       full_screen.Subtract(v->global_region());
     did_draw = !full_screen.is_empty();
     for (auto r : full_screen.rectangles()) {
@@ -623,29 +628,19 @@ void Compositor::Draw() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   if (did_draw) {
-    GLint vertices[] = {0,
-                        0,
-                        gl.display_width,
-                        0,
-                        gl.display_width,
-                        gl.display_height,
-                        0,
-                        gl.display_height};
-    GLfloat tex_coords[] = {0, 1, 1, 1, 1, 0, 0, 0};
-    glEnable(GL_TEXTURE_2D);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
-    glVertexPointer(2, GL_INT, 0, vertices);
-    glTexCoordPointer(2, GL_FLOAT, 0, tex_coords);
-
-    glDrawArrays(GL_QUADS, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_RECTANGLE);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(0,
+                      0,
+                      gl.display_width,
+                      gl.display_height,
+                      0,
+                      0,
+                      gl.display_width,
+                      gl.display_height,
+                      GL_COLOR_BUFFER_BIT,
+                      GL_LINEAR);
   }
 
   if (copy_request_) {
@@ -658,8 +653,8 @@ void Compositor::Draw() {
     copy_request_.reset();
   }
 
-  DrawPointer();
   finalize_draw(did_draw);
+  DrawPointer();
   // TODO: still cannot disable this yet, since the surface dependency is not
   // resolved
   draw_forced_ = true;

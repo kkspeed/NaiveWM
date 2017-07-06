@@ -30,6 +30,8 @@ Window::~Window() {
 
 void Window::AddChild(Window* child) {
   TRACE("adding %p as child of %p", child, this);
+  if (child->parent() == nullptr)
+    WindowManager::Get()->RemoveWindow(child);
   auto iter = std::find(children_.begin(), children_.end(), child);
   if (iter == children_.end())
     children_.push_back(child);
@@ -189,11 +191,19 @@ void Window::Close() {
 }
 
 void Window::set_visible(bool visible) {
-  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
+  if (visible_ == visible)
+    return;
+
   if (parent_ != nullptr) {
     TRACE("ERROR: shouldn't set visibility on non toplevel surface!");
     return;
   }
+
+  TRACE("%p -> visible: %d", this, visible);
+  if (visible) {
+    surface()->ForceDamage(geometry());
+  }
+  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
   visible_ = visible;
 }
 

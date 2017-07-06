@@ -69,6 +69,7 @@ class Surface {
     }
   }
 
+  void ForceDamage(base::geometry::Rect rect);
   Region damaged_regoin() { return state_.damaged_region; }
   void set_resource(wl_resource* resource) { resource_ = resource; }
   wl_resource* resource() { return resource_; }

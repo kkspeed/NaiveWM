@@ -4,6 +4,7 @@ Wayland-based  tiling window manager.
 ![Screenshot](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/screenshot.png)
 
 ## Compilation and Test
+### Basics
 You'll need the following dependencies:
 
     libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng, glog
@@ -24,6 +25,13 @@ which drastically slows down the WM.
 If you are unable to move mouse or type anything, it's likely that you are
 not in <tt>input</tt> group. Add yourself by <tt>gpasswd -a your\_name 
 input</tt>.
+
+### Reduce CPU Load by Using More Efficient Compositor
+On my Thinkpad X1 Carbon 2016, it uses roughly 6% CPU when idle. It is
+because that it redraws fullscreen each frame. A more efficient compositor
+is being developed but is currently disabled by default. To enable it, remove
+the <tt>-DNAIVE\_COMPOISTOR</tt> from <tt>CMAKE\_CXX\_FLAGS</tt> in 
+<tt>CMakeLists.txt</tt>.
 
 ## Recommended Configurations
 It's recommended that you do the following things:

@@ -275,8 +275,6 @@ void drm_egl_init() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                          renderedTexture, 0);
-  GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-  glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -580,10 +578,11 @@ void Compositor::Draw() {
     }
     for (auto &rect : view->damaged_region().rectangles()) {
       auto bounds = view->global_bounds();
-      TRACE("rectangle: %s, window %p, global bounds: %s",
+      TRACE("rectangle: %s, window %p, global bounds: %s, did draw: %d",
             rect.ToString().c_str(),
             view->window(),
-            bounds.ToString().c_str());
+            bounds.ToString().c_str(),
+            did_draw);
       int32_t physical_x = bounds.x() * display_metrics_->scale;
       int32_t physical_y = bounds.y() * display_metrics_->scale;
       int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
@@ -618,7 +617,7 @@ void Compositor::Draw() {
         0, 0, display_metrics_->width_dp, display_metrics_->height_dp));
     for (auto &v : view_list)
       full_screen.Subtract(v->global_region());
-    did_draw = !full_screen.is_empty();
+    did_draw = did_draw || !full_screen.is_empty();
     for (auto r : full_screen.rectangles()) {
       TRACE("Fullscreen filling %s", r.ToString().c_str());
       FillRect(r, 0.0, 0.0, 0.0);
@@ -644,6 +643,7 @@ void Compositor::Draw() {
   }
 
   if (copy_request_) {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
     std::vector<uint8_t> screen_data;
     screen_data.resize(sizeof(uint32_t) * gl.display_width * gl.display_height);
     glReadPixels(0, 0, gl.display_width, gl.display_height, GL_RGBA,

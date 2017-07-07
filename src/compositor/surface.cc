@@ -47,8 +47,7 @@ void Surface::SetFrameCallback(std::function<void()>* callback) {
 }
 
 void Surface::Damage(const base::geometry::Rect& rect) {
-  Region region(rect);
-  pending_state_.damaged_region.Union(region);
+  pending_state_.damaged_region.Union(rect);
 }
 
 void Surface::SetOpaqueRegion(const Region region) {

@@ -19,9 +19,12 @@ class Region {
   bool is_empty();
   void Clear();
   void Union(Region& region);
+  void Union(const base::geometry::Rect& rect);
   void Subtract(Region& region);
   void Intersect(Region& region);
+  void Intersect(const base::geometry::Rect& rect);
   Region Translate(int32_t x, int32_t y);
+  void TranslateInPlace(int32_t x, int32_t y);
   Region Clone();
 
   std::vector<base::geometry::Rect> rectangles();

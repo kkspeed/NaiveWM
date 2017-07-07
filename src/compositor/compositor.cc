@@ -488,9 +488,8 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
-void Compositor::AddGlobalDamage(base::geometry::Rect rect) {
-  Region r(rect);
-  global_damage_region_.Union(r);
+void Compositor::AddGlobalDamage(const base::geometry::Rect& rect) {
+  global_damage_region_.Union(rect);
 }
 
 wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
@@ -546,12 +545,15 @@ void Compositor::Draw() {
 
   bool has_global_damage = !global_damage_region_.is_empty();
 
-  for (int i = 0; i < view_list.size(); i++) {
-    if (!global_damage_region_.is_empty()) {
+  if (has_global_damage) {
+    for(auto& v : view_list) {
       auto additional_damage = global_damage_region_.Clone();
-      additional_damage.Intersect(view_list[i]->global_region());
-      view_list[i]->damaged_region().Union(additional_damage);
+      additional_damage.Intersect(v->global_region());
+      v->damaged_region().Union(additional_damage);
     }
+  }
+
+  for (int i = 0; i < view_list.size(); i++) {
     for (int j = i + 1; j < view_list.size(); j++) {
       TRACE("subtracting %p: %s, from %p", view_list[j]->window(),
             view_list[j]->global_bounds().ToString().c_str(),

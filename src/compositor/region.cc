@@ -9,7 +9,7 @@ Region Region::Empty() {
   return Region(rect);
 }
 
-Region::Region(const base::geometry::Rect& rect) {
+Region::Region(const base::geometry::Rect &rect) {
   pixman_region_ = std::shared_ptr<pixman_region32_t>(new pixman_region32_t(),
                                                       &pixman_region32_fini);
   pixman_region32_init(pixman_region_.get());
@@ -31,17 +31,35 @@ void Region::Clear() {
   pixman_region32_clear(pixman_region_.get());
 }
 
-void Region::Union(Region& region) {
+void Region::Union(Region &region) {
   pixman_region32_union(pixman_region_.get(), pixman_region_.get(),
                         region.pixman_region_.get());
 }
 
-void Region::Intersect(Region& region) {
+void Region::Union(const base::geometry::Rect &rect) {
+  pixman_region32_union_rect(pixman_region_.get(),
+                             pixman_region_.get(),
+                             rect.x(),
+                             rect.y(),
+                             static_cast<uint32_t>(rect.width()),
+                             static_cast<uint32_t>(rect.height()));
+}
+
+void Region::Intersect(Region &region) {
   pixman_region32_intersect(pixman_region_.get(), pixman_region_.get(),
                             region.pixman_region_.get());
 }
 
-void Region::Subtract(Region& region) {
+void Region::Intersect(const base::geometry::Rect &rect) {
+  pixman_region32_intersect_rect(pixman_region_.get(),
+                                 pixman_region_.get(),
+                                 rect.x(),
+                                 rect.y(),
+                                 static_cast<uint32_t>(rect.width()),
+                                 static_cast<uint32_t>(rect.height()));
+}
+
+void Region::Subtract(Region &region) {
   pixman_region32_subtract(pixman_region_.get(), pixman_region_.get(),
                            region.pixman_region_.get());
 }
@@ -57,6 +75,11 @@ Region Region::Translate(int32_t x, int32_t y) {
   Region result = Clone();
   pixman_region32_translate(result.pixman_region_.get(), x, y);
   return result;
+}
+
+void Region::TranslateInPlace(int32_t x, int32_t y) {
+  TRACE("translating: %d %d", x, y);
+  pixman_region32_translate(pixman_region_.get(), x, y);
 }
 
 std::vector<base::geometry::Rect> Region::rectangles() {

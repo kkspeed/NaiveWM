@@ -37,14 +37,13 @@ CompositorView::CompositorView(wm::Window* window,
     : window_(window),
       damaged_region_(window->surface()->damaged_regoin()),
       global_bounds_(window->geometry()),
-      global_region_(Region::Empty()) {
-  Region to_draw(window->GetToDrawRegion());
-  damaged_region_.Intersect(to_draw);
-  damaged_region_ = damaged_region_.Translate(x_offset + global_bounds_.x(),
-                                              y_offset + global_bounds_.y());
+      global_region_(Region(window->geometry())) {
+  damaged_region_.Intersect(window->GetToDrawRegion());
+  damaged_region_.TranslateInPlace(x_offset + global_bounds_.x(),
+                                   y_offset + global_bounds_.y());
   global_bounds_.x_ += x_offset;
   global_bounds_.y_ += y_offset;
-  global_region_ = Region(global_bounds_);
+  global_region_.TranslateInPlace(x_offset, y_offset);
   if (!window->parent()) {
     auto rect = base::geometry::Rect(
         global_bounds_.x() + 2, global_bounds_.y() + 2,

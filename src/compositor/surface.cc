@@ -37,6 +37,7 @@ void Surface::Attach(Buffer* buffer) {
     window_->SetGeometry(base::geometry::Rect(
         window_->pending_geometry().x(), window_->pending_geometry().y(),
         buffer->width() / metrics->scale, buffer->height() / metrics->scale));
+    Damage(window_->geometry());
   }
   pending_state_.buffer = buffer;
 }

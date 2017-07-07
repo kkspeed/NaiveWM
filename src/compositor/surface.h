@@ -76,7 +76,7 @@ class Surface {
   bool has_commit() { return has_commit_; }
   void force_commit() { has_commit_ = true; }
   void clear_commit() { has_commit_ = false; }
-  void clear_damage() { state_.damaged_region = Region::Empty(); }
+  void clear_damage() { state_.damaged_region.Clear(); }
   Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() {
     assert(window_);

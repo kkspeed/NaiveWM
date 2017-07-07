@@ -200,9 +200,8 @@ void Window::set_visible(bool visible) {
   }
 
   TRACE("%p -> visible: %d", this, visible);
-  if (visible) {
+  if (visible)
     surface()->ForceDamage(geometry());
-  }
   compositor::Compositor::Get()->AddGlobalDamage(global_bound());
   visible_ = visible;
 }

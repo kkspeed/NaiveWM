@@ -534,7 +534,6 @@ void Compositor::Draw() {
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   CompositorViewList view_list;
   for (auto* window : wm::WindowManager::Get()->windows()) {
-    window->surface()->RunSurfaceCallback();
     if (window->is_visible()) {
       CompositorViewList view_list_window =
           CompositorView::BuildCompositorViewHierarchyRecursive(window);
@@ -569,6 +568,7 @@ void Compositor::Draw() {
     auto* window = view->window();
     if (window->surface()->has_commit()) {
       auto* buffer = window->surface()->committed_buffer();
+      window->surface()->RunSurfaceCallback();
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
@@ -583,16 +583,18 @@ void Compositor::Draw() {
             view->window(),
             bounds.ToString().c_str(),
             did_draw);
-      int32_t physical_x = bounds.x() * display_metrics_->scale;
-      int32_t physical_y = bounds.y() * display_metrics_->scale;
-      int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
-      int32_t to_draw_y = (rect.y() - bounds.y()) * display_metrics_->scale;
-      int32_t physical_width = rect.width() * display_metrics_->scale;
-      int32_t physical_height = rect.height() * display_metrics_->scale;
-      window->surface()->cached_texture()->Draw(
-          physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
-          physical_height);
-      did_draw = true;
+      if (window->surface()->cached_texture()) {
+        int32_t physical_x = bounds.x() * display_metrics_->scale;
+        int32_t physical_y = bounds.y() * display_metrics_->scale;
+        int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
+        int32_t to_draw_y = (rect.y() - bounds.y()) * display_metrics_->scale;
+        int32_t physical_width = rect.width() * display_metrics_->scale;
+        int32_t physical_height = rect.height() * display_metrics_->scale;
+        window->surface()->cached_texture()->Draw(
+            physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
+            physical_height);
+        did_draw = true;
+      }
     }
     window->surface()->clear_commit();
     window->surface()->clear_damage();
@@ -602,7 +604,7 @@ void Compositor::Draw() {
     for (int i = 0; i < view_list.size(); i++) {
       for (int j = i + 1; j < view_list.size(); j++)
         view_list[i]->border_region().Subtract(view_list[j]->global_region());
-      for (auto rect : view_list[i]->border_region().rectangles()) {
+      for (auto &rect : view_list[i]->border_region().rectangles()) {
         if (view_list[i]->window()->focused() &&
             !view_list[i]->window()->parent())
           FillRect(rect, 1.0, 0.0, 0.0);
@@ -618,7 +620,7 @@ void Compositor::Draw() {
     for (auto &v : view_list)
       full_screen.Subtract(v->global_region());
     did_draw = did_draw || !full_screen.is_empty();
-    for (auto r : full_screen.rectangles()) {
+    for (auto &r : full_screen.rectangles()) {
       TRACE("Fullscreen filling %s", r.ToString().c_str());
       FillRect(r, 0.0, 0.0, 0.0);
     }
@@ -643,7 +645,6 @@ void Compositor::Draw() {
   }
 
   if (copy_request_) {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
     std::vector<uint8_t> screen_data;
     screen_data.resize(sizeof(uint32_t) * gl.display_width * gl.display_height);
     glReadPixels(0, 0, gl.display_width, gl.display_height, GL_RGBA,

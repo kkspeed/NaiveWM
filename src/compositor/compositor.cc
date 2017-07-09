@@ -21,12 +21,14 @@
 #include <wayland-server.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
+#include <sys/mman.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/compositor_view.h"
 #include "compositor/surface.h"
 #include "compositor/texture_delegate.h"
+#include "resources/cursor.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 
@@ -44,14 +46,13 @@ struct {
   EGLConfig config;
   EGLContext context;
   EGLSurface surface;
-  EGLSurface mouse_surface;
+  void* mouse_surface_data;
   int32_t display_width, display_height;
 } gl;
 
 struct {
   gbm_device* dev;
   gbm_surface* surface;
-  gbm_surface* mouse_surface;
 } gbm;
 
 struct {
@@ -155,12 +156,8 @@ void init_gbm() {
   gbm.surface =
       gbm_surface_create(gbm.dev, drm.mode->hdisplay, drm.mode->vdisplay,
                          GBM_FORMAT_ARGB8888,  // TODO: ARGB?
-                         GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
-  gbm.mouse_surface =
-      gbm_surface_create(gbm.dev, 64, 64, GBM_FORMAT_ARGB8888,
-                         GBM_BO_USE_CURSOR | GBM_BO_USE_RENDERING);
+                         GBM_BO_USE_RENDERING | GBM_BO_USE_SCANOUT);
   assert(gbm.surface);
-  assert(gbm.mouse_surface);
 }
 
 void init_gl() {
@@ -198,8 +195,6 @@ void init_gl() {
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
                                       (EGLNativeWindowType) gbm.surface, NULL);
-  gl.mouse_surface = eglCreateWindowSurface(
-      gl.display, gl.config, (EGLNativeWindowType) gbm.mouse_surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   eglSwapInterval(gl.display, 1);
 }
@@ -282,39 +277,41 @@ void drm_egl_init() {
 }
 
 void initialize_cursor() {
-  eglMakeCurrent(gl.display, gl.mouse_surface, gl.mouse_surface, gl.context);
-  // eglSwapBuffers(gl.display, gl.mouse_surface);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  drm_mode_create_dumb creq;
+  drm_mode_map_dumb mreq;
+  memset(&creq, 0, sizeof(creq));
+  creq.width = 64;
+  creq.height = 64;
+  creq.bpp = 32;
+  assert(drmIoctl(drm.fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) >= 0);
+  uint32_t handle = creq.handle;
 
-  glViewport(0, 0, 64, 64);
-  glMatrixMode(GL_PROJECTION);
-  glOrtho(0, 64, 64, 0, 1, -1);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glColor4f(0.0, 0.0, 0.0, 1.0);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(0.0f, 0.0f);
-  glVertex2f(20.0f, 0.0f);
-  glVertex2f(0.0f, 20.0f);
-  glEnd();
-  glColor4f(1.0, 1.0, 1.0, 1.0);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(2.0f, 2.0f);
-  glVertex2f(22.0f, 2.0f);
-  glVertex2f(2.0f, 22.0f);
-  glEnd();
-
-  eglSwapBuffers(gl.display, gl.mouse_surface);
-  gbm_bo* bo = gbm_surface_lock_front_buffer(gbm.mouse_surface);
   int result =
-      drmModeSetCursor(drm.fd, drm.crtc_id, gbm_bo_get_handle(bo).u32, 64, 64);
+      drmModeSetCursor(drm.fd, drm.crtc_id, handle, 64, 64);
   if (result < 0) {
     LOG_ERROR << "unable to set cusror " << strerror(errno) << std::endl;
     exit(1);
   }
-  gbm_surface_release_buffer(gbm.mouse_surface, bo);
+
+  memset(&mreq, 0, sizeof(mreq));
+  mreq.handle = handle;
+  assert(drmIoctl(drm.fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) == 0);
+  gl.mouse_surface_data = mmap(0,
+                               creq.size,
+                               PROT_READ | PROT_WRITE,
+                               MAP_SHARED,
+                               drm.fd,
+                               mreq.offset);
+
+  if (gl.mouse_surface_data == MAP_FAILED) {
+    LOG_ERROR << "cannot map mouse surface";
+    exit(1);
+  }
+  memset(gl.mouse_surface_data, 0, creq.size);
+  memcpy(gl.mouse_surface_data, cursor_image.pixel_data,
+         cursor_image.width * cursor_image.height *
+             cursor_image.bytes_per_pixel);
+
 }
 
 void move_cursor(int32_t x, int32_t y) {
@@ -488,7 +485,7 @@ Compositor::Compositor() {
   glEnable(GL_BLEND);
 }
 
-void Compositor::AddGlobalDamage(const base::geometry::Rect& rect) {
+void Compositor::AddGlobalDamage(const base::geometry::Rect &rect) {
   global_damage_region_.Union(rect);
 }
 
@@ -546,7 +543,7 @@ void Compositor::Draw() {
   bool has_global_damage = !global_damage_region_.is_empty();
 
   if (has_global_damage) {
-    for(auto& v : view_list) {
+    for (auto &v : view_list) {
       auto additional_damage = global_damage_region_.Clone();
       additional_damage.Intersect(v->global_region());
       v->damaged_region().Union(additional_damage);

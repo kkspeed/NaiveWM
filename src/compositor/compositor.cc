@@ -744,13 +744,13 @@ void Compositor::DrawPointer() {
   auto pointer = wm::WindowManager::Get()->mouse_position();
   if (wm::WindowManager::Get()->pointer_updated()) {
     auto* pointer_window = wm::WindowManager::Get()->mouse_pointer();
-    if (pointer_window && pointer_window->surface()->committed_buffer() != nullptr) {
+    if (pointer_window && pointer_window->surface()->committed_buffer()) {
       auto* buffer = pointer_window->surface()->committed_buffer();
       memset(gl.mouse_surface_data, 0, 64 * 64 * 4);
-      uint32_t* mouse_data = (uint32_t*)buffer->data();
+      uint8_t* mouse_data = (uint8_t*)buffer->data();
       for (size_t height = 0; height < buffer->height(); height++) {
-        for (size_t width = 0; width < buffer->width(); width++) {
-          ((uint32_t*)gl.mouse_surface_data)[height * buffer->stride() +
+        for (size_t width = 0; width < buffer->stride(); width++) {
+          ((uint8_t*)gl.mouse_surface_data)[height * 256 +
               width] = mouse_data[height * buffer->stride() + width];
         }
       }
@@ -759,6 +759,7 @@ void Compositor::DrawPointer() {
              cursor_image.bytes_per_pixel * cursor_image.height *
                  cursor_image.width);
     }
+    wm::WindowManager::Get()->clear_pointer_update();
   }
   move_cursor(static_cast<int32_t>(pointer.x()),
               static_cast<int32_t>(pointer.y()));

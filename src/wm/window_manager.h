@@ -132,6 +132,14 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   void FocusWindow(Window* window) override;
   void RaiseWindow(Window* window) override;
 
+  void set_mouse_pointer(Window* pointer) {
+    mouse_pointer_ = pointer;
+    pointer_updated_ = true;
+  }
+  Window* mouse_pointer() { return mouse_pointer_; }
+  bool pointer_updated() { return pointer_updated_; }
+  void clear_pointer_update() { pointer_updated_ = false; }
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
@@ -146,6 +154,9 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   Window* global_grab_window_ = nullptr;
   WmEventObserver* wm_event_observer_ = nullptr;
   wayland::DisplayMetrics* display_metrics_;
+
+  Window* mouse_pointer_ = nullptr;
+  bool pointer_updated_ = false;
 };
 
 }  // namespace wm

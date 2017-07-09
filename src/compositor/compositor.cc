@@ -22,6 +22,7 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <sys/mman.h>
+#include <resources/cursor.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"
@@ -296,12 +297,8 @@ void initialize_cursor() {
   memset(&mreq, 0, sizeof(mreq));
   mreq.handle = handle;
   assert(drmIoctl(drm.fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq) == 0);
-  gl.mouse_surface_data = mmap(0,
-                               creq.size,
-                               PROT_READ | PROT_WRITE,
-                               MAP_SHARED,
-                               drm.fd,
-                               mreq.offset);
+  gl.mouse_surface_data = mmap(0, creq.size, PROT_READ | PROT_WRITE, MAP_SHARED,
+                               drm.fd, mreq.offset);
 
   if (gl.mouse_surface_data == MAP_FAILED) {
     LOG_ERROR << "cannot map mouse surface";
@@ -745,6 +742,24 @@ void Compositor::DrawWindowBorder(wm::Window* window) {
 
 void Compositor::DrawPointer() {
   auto pointer = wm::WindowManager::Get()->mouse_position();
+  if (wm::WindowManager::Get()->pointer_updated()) {
+    auto* pointer_window = wm::WindowManager::Get()->mouse_pointer();
+    if (pointer_window && pointer_window->surface()->committed_buffer() != nullptr) {
+      auto* buffer = pointer_window->surface()->committed_buffer();
+      memset(gl.mouse_surface_data, 0, 64 * 64 * 4);
+      uint32_t* mouse_data = (uint32_t*)buffer->data();
+      for (size_t height = 0; height < buffer->height(); height++) {
+        for (size_t width = 0; width < buffer->width(); width++) {
+          ((uint32_t*)gl.mouse_surface_data)[height * buffer->stride() +
+              width] = mouse_data[height * buffer->stride() + width];
+        }
+      }
+    } else {
+      memcpy((uint8_t*)(gl.mouse_surface_data), cursor_image.pixel_data,
+             cursor_image.bytes_per_pixel * cursor_image.height *
+                 cursor_image.width);
+    }
+  }
   move_cursor(static_cast<int32_t>(pointer.x()),
               static_cast<int32_t>(pointer.y()));
 }

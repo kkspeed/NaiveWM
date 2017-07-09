@@ -76,6 +76,11 @@ void WindowManager::Manage(Window* window) {
 }
 
 void WindowManager::RemoveWindow(Window* window) {
+  if (window == mouse_pointer_) {
+    set_mouse_pointer(nullptr);
+    return;
+  }
+
   auto* top_level = window->top_level();
   if (top_level == window) {
     // We are dealing with a top level window

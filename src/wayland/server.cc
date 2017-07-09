@@ -618,12 +618,16 @@ void bind_shell(wl_client* client, void* data, uint32_t version, uint32_t id) {
 void pointer_set_cursor(wl_client* client,
                         wl_resource* resource,
                         uint32_t serial,
-                        wl_resource* surface,
+                        wl_resource* surface_resource,
                         int32_t hotspot_x,
                         int32_t hotspoy_y) {
   TRACE();
-  // TODO: implement set cursor.
-  NOTIMPLEMENTED();
+  if (!surface_resource) {
+    wm::WindowManager::Get()->set_mouse_pointer(nullptr);
+    return;
+  }
+  auto* surface = GetUserDataAs<Surface>(surface_resource);
+  wm::WindowManager::Get()->set_mouse_pointer(surface->window());
 }
 
 void pointer_release(wl_client* client, wl_resource* resource) {

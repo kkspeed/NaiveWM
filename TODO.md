@@ -14,9 +14,15 @@ The features on top of my head:
 Currently repaints damage. But needs a mechanism to force redraw.
 
 1. Uses too much CPU (6%) when drawing border + global damage for popup surfaces
-2. Surfaces not completely rendered (e.g. QT's title bar)
-3. Switching workspace may have a frame remain..
+- Cut by half but still needs improvement.
 
+2. Currently a memcpy is issued each time a surface is committed. Needs a way
+   to actually only upload texture when necessary aka when surface is absolutely
+   visible.
+
+## Improve model
+- Pointer / keyboard model could be improved by using seat to track focus instead
+  of on per client basis. So that pointer won't remain when leaving the surface.
 
 ## Out of order closing of multiple windows will crash the compositor
 
@@ -27,3 +33,5 @@ Currently repaints damage. But needs a mechanism to force redraw.
 - Automatically decide screen resolution: partly done, needs code refactor
 - scale: partly done, needs to test for non-scalable apps
 - keyboard enter to sub surfaces: not perfect.. subsurface is not focused by default
+- Surfaces not completely rendered (e.g. QT's title bar)
+- Switching workspace may have a frame remain..

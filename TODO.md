@@ -24,6 +24,9 @@ Currently repaints damage. But needs a mechanism to force redraw.
 - Pointer / keyboard model could be improved by using seat to track focus instead
   of on per client basis. So that pointer won't remain when leaving the surface.
 
+## Other feature
+- Input method support.
+
 ## Out of order closing of multiple windows will crash the compositor
 
 # Done / Partially Done:

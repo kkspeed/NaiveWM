@@ -14,25 +14,36 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
                                int32_t y,
                                int32_t width,
                                int32_t height,
+                               int32_t screen_width_,
+                               int32_t screen_height_,
                                bool horizontal) {
   if (candidates.size() == 0)
     return;
 
   if (candidates.size() == 1) {
-    candidates.front()->MoveResize(x, y, width, height);
+    if (candidates.front()->is_maximized())
+      candidates.front()->MoveResize(0, 0, screen_width_, screen_height_);
+    else
+      candidates.front()->MoveResize(x, y, width, height);
     return;
   }
 
   ManageWindow* front = candidates.front();
   candidates.pop_front();
   if (horizontal) {
-    front->MoveResize(x, y, width / 2, height);
+    if (front->is_maximized())
+      front->MoveResize(0, 0, screen_width_, screen_height_);
+    else
+      front->MoveResize(x, y, width / 2, height);
     ArrangeNonFloatingWindows(candidates, x + width / 2, y, width / 2, height,
-                              !horizontal);
+                              screen_width_, screen_height_, !horizontal);
   } else {
-    front->MoveResize(x, y, width, height / 2);
+    if (front->is_maximized())
+      front->MoveResize(0, 0, screen_width_, screen_height_);
+    else
+      front->MoveResize(x, y, width, height / 2);
     ArrangeNonFloatingWindows(candidates, x, y + height / 2, width, height / 2,
-                              !horizontal);
+                              screen_width_, screen_height_, !horizontal);
   }
 }
 
@@ -115,7 +126,8 @@ void Workspace::ArrangeWindows(int32_t width, int32_t height) {
     }
   }
 
-  ArrangeNonFloatingWindows(normal_windows, 0, 0, width, height, true);
+  ArrangeNonFloatingWindows(normal_windows, 0, 0, width, height,
+                            width, height, true);
 
   for (auto* window : floating_windows)
     window->window()->Raise();

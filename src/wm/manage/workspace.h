@@ -25,10 +25,14 @@ class ManageWindow {
                                   base::geometry::Rect(x, y, width, height));
   }
 
+  void set_maximized(bool maximized) { maximized_ = maximized; }
+  bool is_maximized() { return maximized_; }
+
  private:
   Window* window_;
   WMPrimitives* primitives_;
   bool is_floating_;
+  bool maximized_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(ManageWindow);
 };

@@ -568,7 +568,7 @@ void Compositor::Draw() {
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->local_data());
+                                      buffer->format(), buffer->data());
         window->surface()->cache_texture(std::move(texture));
       }
     }
@@ -686,7 +686,7 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->local_data());
+                                      buffer->format(), buffer->data());
         TRACE("Drawing Window: %p at %d %d", window,
               start_x + window->geometry().x(),
               start_y + window->geometry().y());

@@ -9,6 +9,11 @@ You'll need the following dependencies:
 
     libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng, glog
 
+The packages needed under Fedora are:
+
+    libdrm, egl-utils, mesa-libGLES-devel, libinput-devel, mesa-libwayland-egl, 
+	pixman, systemd-udev, libxkbcommon, glog-devel, mesa-libgbm-devel, glflags-devel
+
 Then
 
     mkdir build && cd build

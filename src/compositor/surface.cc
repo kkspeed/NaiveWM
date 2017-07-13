@@ -59,21 +59,13 @@ void Surface::SetInputRegion(const Region region) {
 }
 
 void Surface::Commit() {
-  LOG_ERROR << "calling Surface::Commit on window " << window()
-            << " surface: " << this << std::endl;
-  state_ = pending_state_;
-  if (state_.buffer && state_.buffer->data()) {
-    state_.buffer->CopyLocal();
+  TRACE("window: %p, surface: %p", window(), this);
+  if (pending_state_.buffer != state_.buffer && state_.buffer)
     state_.buffer->Release();
-  } else {
-    LOG_ERROR << "window: " << window() << " does not have buffer" << std::endl;
-  }
+  state_ = pending_state_;
+  if (!state_.buffer || !state_.buffer->data())
+    TRACE("window: %p does not have buffer", window());
   has_commit_ = true;
-
-  /*
-  if (state_.frame_callback)
-    (*state_.frame_callback)();
-   */
 
   pending_state_.frame_callback = nullptr;
   pending_state_.buffer = nullptr;
@@ -83,8 +75,7 @@ void Surface::Commit() {
   // needs revisit
   for (size_t i = 0; i < observers_.size(); i++) {
     auto* observer = observers_[i];
-    LOG_ERROR << "notifying " << observer << " for commit on surface " << this
-              << std::endl;
+    TRACE("notifying %p for commit", observer);
     observer->OnCommit();
   }
 }

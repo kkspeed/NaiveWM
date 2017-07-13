@@ -118,6 +118,17 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_M) {
+    if (event->pressed())
+      return true;
+    auto* current = current_workspace()->CurrentWindow();
+    if (current) {
+      current->set_maximized(!current->is_maximized());
+      current_workspace()->ArrangeWindows(width_, height_);
+    }
+    return true;
+  }
+
   if (event->super_pressed() && event->keycode() == KEY_ENTER) {
     if (event->pressed())
       return true;

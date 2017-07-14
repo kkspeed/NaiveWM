@@ -317,6 +317,7 @@ void WindowManager::FocusWindow(Window* window) {
   if (window) {
     window->TakeFocus();
     RaiseWindow(window);
+    compositor::Compositor::Get()->AddGlobalDamage(window->global_bound());
     TRACE("top_level: %p", window->top_level());
   }
 }

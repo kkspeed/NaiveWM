@@ -116,6 +116,8 @@ class Window : public SurfaceObserver {
   int32_t wm_y() { return wm_y_; }
   base::geometry::Rect global_bound() {
     auto rect = geometry();
+    rect.x_ += wm_x();
+    rect.y_ += wm_y();
     auto* p = parent_;
     while (p) {
       // TODO: wm_x / wm_y might have other meaning in the future.

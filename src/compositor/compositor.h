@@ -18,6 +18,8 @@ class Window;
 
 namespace compositor {
 
+class GlRenderer;
+
 using CopyRequest = std::function<void(std::vector<uint8_t>, int32_t, int32_t)>;
 
 class Compositor {
@@ -48,6 +50,7 @@ class Compositor {
   bool draw_forced_ = true;
   std::unique_ptr<CopyRequest> copy_request_;
   Region global_damage_region_ = Region::Empty();
+  std::unique_ptr<GlRenderer> renderer_;
 };
 
 }  // namespace compositor

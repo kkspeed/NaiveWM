@@ -12,7 +12,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GL/gl.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 #include <drm_mode.h>
@@ -27,6 +26,7 @@
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/compositor_view.h"
+#include "compositor/gl_renderer.h"
 #include "compositor/surface.h"
 #include "compositor/texture_delegate.h"
 #include "resources/cursor.h"
@@ -355,8 +355,8 @@ void finalize_draw(bool did_draw) {
 
 class Texture : public TextureDelegate {
  public:
-  Texture(int width, int height, int32_t format, void* data)
-      : width_(width), height_(height), identifier_(0) {
+  Texture(int width, int height, int32_t format, void* data, GlRenderer* renderer)
+      : width_(width), height_(height), identifier_(0), renderer_(renderer) {
     if (format != WL_SHM_FORMAT_ARGB8888 && format != WL_SHM_FORMAT_XRGB8888) {
       TRACE("buffer format not WL_SHM_FORMAT_ARGB8888");
     }
@@ -364,7 +364,7 @@ class Texture : public TextureDelegate {
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_BGRA,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, data);
     glBindTexture(GL_TEXTURE_2D, 0);
   }
@@ -381,7 +381,6 @@ class Texture : public TextureDelegate {
         "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), "
             "texture dimension: (%d %d)",
         x, y, patch_x, patch_y, width, height, width_, height_);
-    glColor3f(1.0, 1.0, 1.0);
     if (!identifier_)
       return;
 
@@ -394,9 +393,12 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {x + patch_x, y + patch_y, x + patch_x + width,
-                        y + patch_y, x + patch_x + width, y + patch_y + height,
-                        x + patch_x, y + patch_y + height};
+    GLint vertices[] = {
+        x + patch_x, y + patch_y + height,
+        x + patch_x, y + patch_y,
+        x + patch_x + width, y + patch_y,
+        x + patch_x + width, y + patch_y + height
+    };
     float top_left_x = ((float) patch_x) / width_;
     float top_left_y = ((float) patch_y) / height_;
     float bottom_right_x = ((float) (patch_x + width)) / width_;
@@ -405,28 +407,19 @@ class Texture : public TextureDelegate {
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
-    GLfloat tex_coords[] = {top_left_x, top_left_y, bottom_right_x,
-                            top_left_y, bottom_right_x, bottom_right_y,
-                            top_left_x, bottom_right_y};
+    GLfloat tex_coords[] = {
+        top_left_x, bottom_right_y,
+        top_left_x, top_left_y,
+        bottom_right_x, top_left_y,
+        bottom_right_x, bottom_right_y,
+    };
 
-    glEnable(GL_TEXTURE_2D);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glBindTexture(GL_TEXTURE_2D, identifier_);
-    glVertexPointer(2, GL_INT, 0, vertices);
-    glTexCoordPointer(2, GL_FLOAT, 0, tex_coords);
-
-    glDrawArrays(GL_QUADS, 0, 4);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_RECTANGLE);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
   }
 
  private:
   GLuint identifier_;
+  GlRenderer* renderer_;
   int32_t width_, height_;
 };
 
@@ -473,13 +466,9 @@ Compositor::Compositor() {
       gl.display_width, gl.display_height, drm.physical_width,
       drm.physical_height);
   initialize_cursor();
-  glViewport(0, 0, width, height);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, width, height, 0, 1, -1);
-  glMatrixMode(GL_MODELVIEW);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
+  renderer_ = std::make_unique<GlRenderer>(gl.display_width, gl.display_height);
 }
 
 void Compositor::AddGlobalDamage(const base::geometry::Rect &rect) {
@@ -495,7 +484,6 @@ void Compositor::Draw() {
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   std::vector<wm::Window*> committed_windows = CollectNewlyCommittedWindows();
   if (!committed_windows.empty() || draw_forced_) {
-    glLoadIdentity();
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.0, 0.0, 1.0, 1.0);
     for (auto* window : wm::WindowManager::Get()->windows()) {
@@ -568,7 +556,8 @@ void Compositor::Draw() {
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->data());
+                                      buffer->format(), buffer->data(),
+                                      renderer_.get());
         window->surface()->cache_texture(std::move(texture));
       }
     }
@@ -686,7 +675,7 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
       if (buffer && buffer->data()) {
         auto texture =
             std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->data());
+                                      buffer->format(), buffer->data(), renderer_.get());
         TRACE("Drawing Window: %p at %d %d", window,
               start_x + window->geometry().x(),
               start_y + window->geometry().y());
@@ -709,35 +698,32 @@ void Compositor::FillRect(base::geometry::Rect rect,
                           float r,
                           float g,
                           float b) {
-  glColor3f(r, g, b);
   int32_t x = rect.x() * display_metrics_->scale;
   int32_t y = rect.y() * display_metrics_->scale;
-  glBegin(GL_QUADS);
-  glVertex2f(x, y);
-  glVertex2f(x + rect.width() * display_metrics_->scale, y);
-  glVertex2f(x + rect.width() * display_metrics_->scale,
-             y + rect.height() * display_metrics_->scale);
-  glVertex2f(x, y + rect.height() * display_metrics_->scale);
-  glEnd();
-  glColor3f(1.0, 1.0, 1.0);
+  GLint coords[] = {
+      x, y,
+      x, y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale, y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale, y,
+  };
+  renderer_->DrawSolidQuad(coords, r, g, b, true);
 }
 
 void Compositor::DrawWindowBorder(wm::Window* window) {
   glLineWidth(2.5);
-  if (window->focused())
-    glColor3f(1.0, 0.0, 0.0);
-  else
-    glColor3f(0.0, 1.0, 0.0);
   int32_t x = window->wm_x() * display_metrics_->scale;
   int32_t y = window->wm_y() * display_metrics_->scale;
   auto rect = window->geometry();
-  glBegin(GL_LINE_LOOP);
-  glVertex2f(x, y);
-  glVertex2f(x + rect.width() * display_metrics_->scale, y);
-  glVertex2f(x + rect.width() * display_metrics_->scale,
-             y + rect.height() * display_metrics_->scale);
-  glVertex2f(x, y + rect.height() * display_metrics_->scale);
-  glEnd();
+  GLint coords[] = {
+      x, y,
+      x, y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale, y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale, y,
+  };
+  if (window->focused())
+    renderer_->DrawSolidQuad(coords, 1.0, 0.0, 0.0, false);
+  else
+    renderer_->DrawSolidQuad(coords, 0.0, 1.0, 0.0, false);
 }
 
 void Compositor::DrawPointer() {

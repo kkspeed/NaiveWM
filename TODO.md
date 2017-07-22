@@ -20,6 +20,12 @@ Currently repaints damage. But needs a mechanism to force redraw.
    to actually only upload texture when necessary aka when surface is absolutely
    visible.
 
+3. Compositor should be refactored with the introduction of renderer.
+   Shader code should be refactored.
+
+4. Compositor view can be maintained inside each surface instead of needing to be
+   created each time during rendering.
+
 ## Improve model
 - Pointer / keyboard model could be improved by using seat to track focus instead
   of on per client basis. So that pointer won't remain when leaving the surface.

@@ -9,6 +9,7 @@ SET(CMAKE_C_FLAGS "-Werror")
 
 INCLUDE(cmake_modules/FindEGL.cmake)
 INCLUDE(cmake_modules/FindGLESv2.cmake)
+INCLUDE(cmake_modules/FindGLM.cmake)
 INCLUDE(cmake_modules/FindGBM.cmake)
 INCLUDE(cmake_modules/FindLibdrm.cmake)
 INCLUDE(cmake_modules/FindLibInput.cmake)
@@ -28,6 +29,7 @@ INCLUDE_DIRECTORIES(
         ${LIBINPUT_INCLUDE_DIRS}
         ${EGL_INCLUDE_DIR}
         ${GLESv2_INCLUDE_DIRS}
+        ${GLM_INCLUDE_DIRS}
         ${GBM_INCLUDE_DIRS}
         ${UDEV_INCLUDE_DIRS}
         ${XKBCOMMON_INCLUDE_DIRS}

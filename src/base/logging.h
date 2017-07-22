@@ -14,6 +14,8 @@
 //#define LOG_ERROR (std::cerr << "[Error] ")
 //
 #define LOG_ERROR LOG(ERROR)
+#define LOG_INFO LOG(INFO)
+#define LOG_FATAL LOG(FATAL)
 
 #define NOTIMPLEMENTED() \
   LOG(ERROR) << "Not implemented: " << __PRETTY_FUNCTION__ << std::endl;

@@ -19,12 +19,15 @@ class SubSurface : public SurfaceObserver {
   void SetCommitBehavior(bool sync);
 
   // SurfaceObserver overrides
-  void OnCommit() override;
+  void OnCommit(Surface* committed_surface) override;
   void OnSurfaceDestroyed(Surface* surface) override;
 
  private:
   Surface* parent_;
   Surface* surface_;
+
+  base::geometry::IntPoint pending_position_, position_;
+  bool position_dirty_{false};
 
   std::deque<std::pair<bool, Surface*>> pending_placement_;
   bool is_synchronized_;

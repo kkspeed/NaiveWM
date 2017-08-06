@@ -4,20 +4,28 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+
 #include "base/geometry.h"
 #include "base/logging.h"
 #include "compositor/shell_surface.h"
 #include "compositor/surface.h"
 
 namespace naive {
+namespace ui {
+class Widget;
+}  // namespace ui
 
 class ShellSurface;
 
 namespace wm {
 
-class Window : public SurfaceObserver {
+class WindowImpl;
+enum class WindowType { NORMAL, CONTAINER, WIDGET, ROOT };
+
+class Window {
  public:
-  Window();
+  explicit Window(Surface* surface);
+  explicit Window(ui::Widget* widget);
   ~Window();
 
   bool IsManaged() const { return managed_; }
@@ -38,39 +46,17 @@ class Window : public SurfaceObserver {
   void set_popup(bool popup) { is_popup_ = popup; }
   void set_visible(bool visible);
 
-  // SurfaceObserver overrides
-  void OnCommit() override;
+  void MaybeMakeTopLevel();
 
   void Raise();
 
-  Surface* surface() { return surface_; }
-  void set_surface(Surface* surface) {
-    LOG_ERROR << "Set Surface " << surface << std::endl;
-    surface_ = surface;
-    surface_->AddSurfaceObserver(this);
-  }
+  Surface* surface();
 
-  void SetShellSurface(ShellSurface* shell_surface) {
-    shell_surface_ = shell_surface;
-  }
+  void SetShellSurface(ShellSurface* shell_surface);
 
-  void SetPosition(int32_t x, int32_t y) {
-    TRACE("%d, %d", x, y);
-    pending_state_.geometry.x_ = x;
-    pending_state_.geometry.y_ = y;
-  }
-
-  void SetVisibleRegion(const base::geometry::Rect& rect) {
-    TRACE("visible region %p: %d %d %d %d", this, rect.x(), rect.y(),
-          rect.width(), rect.height());
-    pending_state_.visible_region = rect;
-  }
-
-  void SetGeometry(const base::geometry::Rect& rect) {
-    TRACE("geometry: %p: %d %d %d %d", this, rect.x(), rect.y(), rect.width(),
-          rect.height());
-    pending_state_.geometry = rect;
-  }
+  void PushProperty(const base::geometry::Rect& geometry,
+                    const base::geometry::Rect& visible_region);
+  void PushProperty(bool is_position, int32_t v0, int32_t v1);
 
   void Resize(int32_t width, int32_t height);
 
@@ -94,10 +80,9 @@ class Window : public SurfaceObserver {
     surface_->force_commit();
   }
   base::geometry::Rect GetToDrawRegion() {
-    if (state_.visible_region.Empty())
-      return base::geometry::Rect(0, 0, state_.geometry.width(),
-                                  state_.geometry.height());
-    return state_.visible_region;
+    if (visible_region_.Empty())
+      return base::geometry::Rect(0, 0, geometry_.width(), geometry_.height());
+    return visible_region_;
   }
   void LoseFocus();
   void TakeFocus();
@@ -109,9 +94,8 @@ class Window : public SurfaceObserver {
   void set_to_be_managed(bool tobe) { to_be_managed_ = true; }
   std::vector<Window*>& children() { return children_; }
   Window* parent() { return parent_; }
-  base::geometry::Rect visible_region() { return state_.visible_region; }
-  base::geometry::Rect pending_geometry() { return pending_state_.geometry; }
-  base::geometry::Rect geometry() { return state_.geometry; }
+  base::geometry::Rect visible_region() { return visible_region_; }
+  base::geometry::Rect geometry() { return geometry_; }
   int32_t wm_x() { return wm_x_; }
   int32_t wm_y() { return wm_y_; }
   base::geometry::Rect global_bound() {
@@ -128,25 +112,30 @@ class Window : public SurfaceObserver {
     return rect;
   }
 
+  void set_type(WindowType type);
+  WindowType window_type() const;
+  void NotifyFrameCallback();
+
+  WindowImpl* window_impl() { return window_impl_.get(); }
+
  private:
   bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
   bool visible_ = true;
 
-  struct WindowState {
-    base::geometry::Rect geometry;
-    base::geometry::Rect visible_region;
-    WindowState() : geometry({0, 0, 0, 0}), visible_region({0, 0, 0, 0}) {}
-  };
+  base::geometry::Rect geometry_, visible_region_;
 
   bool is_popup_ = false, is_transient_ = false;
-  WindowState pending_state_, state_;
   std::string title_, clazz_, app_id_;
   std::vector<Window*> children_;
   Window* parent_ = nullptr;
   Surface* surface_;
   ShellSurface* shell_surface_;
   int32_t wm_x_ = 0, wm_y_ = 0;
+  WindowType type_;
+
+  std::unique_ptr<WindowImpl> window_impl_;
+  ui::Widget* widget_;
 };
 
 }  // namespace wm

@@ -9,9 +9,7 @@
 
 namespace naive {
 
-Surface::Surface() : window_(std::make_unique<wm::Window>()) {
-  window_->set_surface(this);
-}
+Surface::Surface() : window_(std::make_unique<wm::Window>(this)) {}
 
 Surface::~Surface() {
   TRACE("resource %p, window %p", resource(), window());
@@ -30,15 +28,11 @@ Surface::~Surface() {
 void Surface::Attach(Buffer* buffer) {
   LOG_ERROR << "Surface::Attach " << buffer << " to window " << window()
             << std::endl;
-  wayland::DisplayMetrics* metrics =
-      compositor::Compositor::Get()->GetDisplayMetrics();
   if (buffer) {
     buffer->SetOwningSurface(this);
-    window_->SetGeometry(base::geometry::Rect(
-        window_->pending_geometry().x(), window_->pending_geometry().y(),
-        buffer->width() / metrics->scale, buffer->height() / metrics->scale));
     Damage(window_->geometry());
   }
+  buffer_attached_dirty_ = true;
   pending_state_.buffer = buffer;
 }
 
@@ -76,7 +70,16 @@ void Surface::Commit() {
   for (size_t i = 0; i < observers_.size(); i++) {
     auto* observer = observers_[i];
     TRACE("notifying %p for commit", observer);
-    observer->OnCommit();
+    observer->OnCommit(this);
+  }
+
+  // IF dirty buffer attach:
+  if (state_.buffer && buffer_attached_dirty_) {
+    wayland::DisplayMetrics* metrics =
+        compositor::Compositor::Get()->GetDisplayMetrics();
+    window_->PushProperty(false, state_.buffer->width() / metrics->scale,
+                          state_.buffer->height() / metrics->scale);
+    buffer_attached_dirty_ = false;
   }
 }
 

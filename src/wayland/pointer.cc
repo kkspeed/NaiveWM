@@ -24,7 +24,8 @@ bool Pointer::CanReceiveEvent(Surface* surface) {
 }
 
 void Pointer::OnMouseEvent(wm::MouseEvent* event) {
-  if (!event->window()) {
+  if (!event->window() ||
+      event->window()->window_type() != wm::WindowType::NORMAL) {
     if (target_) {
       TRACE("leave to null surface, pointer resource: %p, current target: %p",
             resource_, target_);

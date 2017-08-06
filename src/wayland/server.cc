@@ -474,7 +474,7 @@ void shell_surface_set_transient(wl_client* client,
   parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_transient(true);
   // shell_surface->window()->set_to_be_managed(true);
-  shell_surface->window()->SetPosition(x, y);
+  shell_surface->SetPosition(x, y);
   // wm::WindowManager::Get()->Manage(shell_surface->window());
 }
 
@@ -502,7 +502,7 @@ void shell_surface_set_popup(wl_client* client,
   parent_surface->window()->AddChild(shell_surface->window());
   shell_surface->window()->set_popup(true);
   // shell_surface->window()->set_to_be_managed(true);
-  shell_surface->window()->SetPosition(x, y);
+  shell_surface->SetPosition(x, y);
   shell_surface->set_ungrab_callback(std::bind(
       [](wl_client* c, wl_resource* r) {
         TRACE("ungrabbing surface");
@@ -830,7 +830,7 @@ void xdg_surface_v5_set_window_geometry(wl_client* client,
                                         int32_t width,
                                         int32_t height) {
   TRACE();
-  GetUserDataAs<ShellSurface>(resource)->window()->SetVisibleRegion(
+  GetUserDataAs<ShellSurface>(resource)->SetVisibleRegion(
       base::geometry::Rect(x, y, width, height));
 }
 
@@ -970,7 +970,7 @@ void xdg_shell_v5_get_popup(wl_client* client,
   auto shell_surface = GetUserDataAs<Display>(resource)->CreateShellSurface(
       GetUserDataAs<Surface>(surface));
   parent_surface->window()->AddChild(shell_surface->window());
-  shell_surface->window()->SetPosition(x, y);
+  shell_surface->SetPosition(x, y);
   shell_surface->set_close_callback(
       std::bind(HandleXdgPopupV5CloseCallback, xdg_popup_resource));
   SetImplementation(xdg_popup_resource, &xdg_popup_v5_implementation,

@@ -22,7 +22,6 @@ class Point {
                           fabs(static_cast<float>(other.y_ - y_)));
   }
 
- private:
   T x_, y_;
 };
 
@@ -31,6 +30,7 @@ using IntPoint = Point<int>;
 
 class Rect {
  public:
+  Rect() : x_(0), y_(0), width_(0), height_(0) {}
   Rect(int32_t x, int32_t y, int32_t width, int32_t height)
       : x_(x), y_(y), width_(width), height_(height) {}
   ~Rect() = default;

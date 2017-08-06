@@ -20,13 +20,14 @@ class ShellSurface : SurfaceObserver {
   ~ShellSurface();
 
   void Move();
+  void SetPosition(int32_t x, int32_t y);
   void SetGeometry(const base::geometry::Rect& rect);
   void SetVisibleRegion(const base::geometry::Rect& rect);
   void AcknowledgeConfigure(uint32_t serial);
 
   // SurfaceObserver overrides:
-  void OnCommit() override;
-  void OnSurfaceDestroyed(Surface*) override;
+  void OnCommit(Surface* committed_surface) override;
+  void OnSurfaceDestroyed(Surface* surface) override;
 
   void set_close_callback(std::function<void()> callback) {
     close_callback_ = callback;
@@ -53,6 +54,12 @@ class ShellSurface : SurfaceObserver {
   wm::Window* window() { return window_; }
 
  private:
+  struct ShellState {
+    base::geometry::Rect geometry;
+    base::geometry::Rect visible_region;
+  };
+  ShellState pending_state_, state_;
+
   std::function<uint32_t(int32_t, int32_t)> configure_callback_;
   std::function<void()> close_callback_;
   std::function<void()> destroy_callback_;

@@ -35,18 +35,19 @@ void ShellSurface::Close() {
   close_callback_ = []() {};
 }
 
+void ShellSurface::SetPosition(int32_t x, int32_t y) {
+  pending_state_.geometry.x_ = x;
+  pending_state_.geometry.y_ = y;
+}
+
 void ShellSurface::SetGeometry(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
-  if (!window_)
-    return;
-  window_->SetGeometry(rect);
+  pending_state_.geometry = rect;
 }
 
 void ShellSurface::SetVisibleRegion(const base::geometry::Rect& rect) {
   TRACE("%d %d %d %d", rect.x(), rect.y(), rect.width(), rect.height());
-  if (!window_)
-    return;
-  window_->SetVisibleRegion(rect);
+  pending_state_.visible_region = rect;
 }
 
 void ShellSurface::Move() {
@@ -62,7 +63,7 @@ void ShellSurface::AcknowledgeConfigure(uint32_t serial) {
   NOTIMPLEMENTED();
 }
 
-void ShellSurface::OnCommit() {
+void ShellSurface::OnCommit(Surface* committed_surface) {
   if (!window_)
     return;
 
@@ -71,6 +72,10 @@ void ShellSurface::OnCommit() {
     // TODO: How to anounce size?
     return;
   }
+
+  state_ = pending_state_;
+  window_->PushProperty(state_.geometry, state_.visible_region);
+  window_->MaybeMakeTopLevel();
 }
 
 void ShellSurface::OnSurfaceDestroyed(Surface* surface) {

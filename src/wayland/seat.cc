@@ -4,7 +4,6 @@
 #include "wayland/data_device.h"
 #include "wayland/data_offer.h"
 #include "wayland/data_source.h"
-#include "wayland/keyboard.h"
 
 namespace naive {
 namespace wayland {
@@ -12,6 +11,15 @@ namespace wayland {
 Seat::Seat(
     std::function<DataOffer*(wl_client* client, DataSource* source)> new_offer)
     : data_device_(std::make_unique<DataDevice>(this)), new_offer_(new_offer) {}
+
+void Seat::RegisterKeyboard(wl_client* client,
+                            std::unique_ptr<Keyboard> keyboard) {
+  keyboard_bindings_.emplace(client, std::move(keyboard));
+}
+
+void Seat::RemoveKeyboard(wl_client* client) {
+  keyboard_bindings_.erase(client);
+}
 
 void Seat::NotifyKeyboardFocusChanged(Keyboard* to_keyboard) {
   TRACE();

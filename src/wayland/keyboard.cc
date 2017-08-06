@@ -61,6 +61,8 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 void Keyboard::OnFocus(wm::Window* window) {
   TRACE("%p, target: %p", window, target_);
   seat_->NotifyKeyboardFocusChanged(this);
+  if (!window || window->window_type() != wm::WindowType::NORMAL)
+    return;
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
     TRACE("Adding %p as surface observer to %p", this, window->surface());
@@ -92,7 +94,8 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
   TRACE();
   UpdateKeyStates(key_event);
 
-  if (!key_event->window()) {
+  if (!key_event->window() ||
+      key_event->window()->window_type() != wm::WindowType::NORMAL) {
     if (target_)
       wl_keyboard_send_leave(resource_, next_serial(), target_->resource());
     return;

@@ -1,6 +1,7 @@
 #include "compositor/compositor_view.h"
 
 #include "compositor/surface.h"
+#include "wm/window_impl.h"
 
 namespace naive {
 namespace compositor {
@@ -35,7 +36,7 @@ CompositorView::CompositorView(wm::Window* window,
                                int32_t x_offset,
                                int32_t y_offset)
     : window_(window),
-      damaged_region_(window->surface()->damaged_regoin()),
+      damaged_region_(window->window_impl()->DamagedRegion()),
       global_bounds_(window->geometry()),
       global_region_(Region(window->geometry())) {
   damaged_region_.Intersect(window->GetToDrawRegion());

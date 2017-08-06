@@ -31,14 +31,16 @@ void SubSurface::PlaceBelow(Surface* target) {
 }
 
 void SubSurface::SetPosition(int32_t x, int32_t y) {
-  surface_->window()->SetPosition(x, y);
+  pending_position_.x_ = x;
+  pending_position_.y_ = y;
+  position_dirty_ = true;
 }
 
 void SubSurface::SetCommitBehavior(bool sync) {
   is_synchronized_ = sync;
 }
 
-void SubSurface::OnCommit() {
+void SubSurface::OnCommit(Surface* committed_surface) {
   TRACE("parent: %p, surface: %p", parent_, surface_);
   while (!pending_placement_.empty()) {
     auto placement = pending_placement_.front();
@@ -51,6 +53,12 @@ void SubSurface::OnCommit() {
     pending_placement_.pop_front();
   }
 
+  // IF DIRTY POSITION
+  if (position_dirty_) {
+    position_ = pending_position_;
+    surface_->window()->PushProperty(true, position_.x(), position_.y());
+    position_dirty_ = false;
+  }
   if (is_synchronized_) {
     LOG_ERROR << "Cascading commit" << std::endl;
     surface_->Commit();

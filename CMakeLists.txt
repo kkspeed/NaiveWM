@@ -2,7 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 PROJECT(NaiveWM)
 
 SET(CMAKE_CXX_COMPILER "clang++")
-SET(CMAKE_CXX_FLAGS "-D__TRACE__ -DNAIVE_COMPOSITOR -std=c++14 -Werror -ggdb -O0")
+SET(CMAKE_C_COMPILER "clang")
+SET(CMAKE_CXX_FLAGS "-D__TRACE__ -std=c++14 -Werror -ggdb -O0")
 SET(CMAKE_EXE_LINKER_FLAGS "-lrt -lSegFault")
 SET(CMAKE_C_COMPILER "clang")
 SET(CMAKE_C_FLAGS "-Werror")
@@ -18,6 +19,7 @@ INCLUDE(cmake_modules/FindUdev.cmake)
 INCLUDE(cmake_modules/FindWayland.cmake)
 INCLUDE(cmake_modules/FindXKBCommon.cmake)
 INCLUDE(cmake_modules/FindGlog.cmake)
+INCLUDE(cmake_modules/FindCairomm.cmake)
 
 FIND_PACKAGE(PNG REQUIRED)
 #FIND_PACKAGE(Glog REQUIRED)
@@ -35,6 +37,7 @@ INCLUDE_DIRECTORIES(
         ${XKBCOMMON_INCLUDE_DIRS}
         ${PNG_INCLUDE_DIR}
         ${GLOG_INCLUDE_DIR}
+        ${CAIROMM_INCLUDE_DIRS}
         src
         src/protocols)
 
@@ -59,4 +62,5 @@ TARGET_LINK_LIBRARIES(
         ${GBM_LIBRARIES}
         ${XKBCOMMON_LIBRARIES}
         ${PNG_LIBRARY}
-        ${GLOG_LIBRARY})
+        ${GLOG_LIBRARY}
+        ${CAIROMM_LIBRARIES})

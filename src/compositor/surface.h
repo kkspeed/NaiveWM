@@ -30,7 +30,7 @@ class Surface;
 
 class SurfaceObserver {
  public:
-  virtual void OnCommit() {}
+  virtual void OnCommit(Surface* committed_surface) {}
   virtual void OnSurfaceDestroyed(Surface*) {}
 };
 
@@ -102,6 +102,7 @@ class Surface {
 
   SurfaceState pending_state_;
   SurfaceState state_;
+  bool buffer_attached_dirty_{false};
 
   wl_resource* resource_;
   bool has_commit_ = false;

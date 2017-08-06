@@ -26,11 +26,13 @@
 #include "base/logging.h"
 #include "compositor/buffer.h"
 #include "compositor/compositor_view.h"
+#include "compositor/draw_quad.h"
 #include "compositor/gl_renderer.h"
 #include "compositor/surface.h"
 #include "compositor/texture_delegate.h"
 #include "resources/cursor.h"
 #include "wm/window.h"
+#include "wm/window_impl.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -72,7 +74,7 @@ struct drm_fb {
 int32_t find_crtc_for_encoder(const drmModeRes* resources,
                               const drmModeEncoder* encoder) {
   for (uint32_t i = 0; i < resources->count_crtcs; i++) {
-    const uint32_t crtc_mask = ((uint32_t) 1) << i;
+    const uint32_t crtc_mask = ((uint32_t)1) << i;
     const uint32_t crtc_id = resources->crtcs[i];
     if (encoder->possible_crtcs & crtc_mask)
       return crtc_id;
@@ -181,7 +183,7 @@ void init_gl() {
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
-      (PFNEGLGETPLATFORMDISPLAYEXTPROC) eglGetProcAddress(
+      (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
@@ -195,7 +197,7 @@ void init_gl() {
       eglCreateContext(gl.display, gl.config, EGL_NO_CONTEXT, context_attribs);
   assert(gl.context);
   gl.surface = eglCreateWindowSurface(gl.display, gl.config,
-                                      (EGLNativeWindowType) gbm.surface, NULL);
+                                      (EGLNativeWindowType)gbm.surface, NULL);
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   eglSwapInterval(gl.display, 1);
 }
@@ -239,7 +241,7 @@ void page_flip_handler(int fd,
   *waiting_for_flip = 0;
 }
 
-drmEventContext evctx = {
+drmEventContext evctx{
     .version = DRM_EVENT_CONTEXT_VERSION,
     .page_flip_handler = page_flip_handler,
 };
@@ -287,8 +289,7 @@ void initialize_cursor() {
   assert(drmIoctl(drm.fd, DRM_IOCTL_MODE_CREATE_DUMB, &creq) >= 0);
   uint32_t handle = creq.handle;
 
-  int result =
-      drmModeSetCursor(drm.fd, drm.crtc_id, handle, 64, 64);
+  int result = drmModeSetCursor(drm.fd, drm.crtc_id, handle, 64, 64);
   if (result < 0) {
     LOG_ERROR << "unable to set cusror " << strerror(errno) << std::endl;
     exit(1);
@@ -305,10 +306,9 @@ void initialize_cursor() {
     exit(1);
   }
   memset(gl.mouse_surface_data, 0, creq.size);
-  memcpy(gl.mouse_surface_data, cursor_image.pixel_data,
-         cursor_image.width * cursor_image.height *
-             cursor_image.bytes_per_pixel);
-
+  memcpy(
+      gl.mouse_surface_data, cursor_image.pixel_data,
+      cursor_image.width * cursor_image.height * cursor_image.bytes_per_pixel);
 }
 
 void move_cursor(int32_t x, int32_t y) {
@@ -334,13 +334,7 @@ void finalize_draw(bool did_draw) {
     next_bo = gbm_surface_lock_front_buffer(gbm.surface);
     fb = drm_fb_get_from_bo(next_bo);
     if (fb->need_modset) {
-      drmModeSetCrtc(drm.fd,
-                     drm.crtc_id,
-                     fb->fb_id,
-                     0,
-                     0,
-                     &drm.connector_id,
-                     1,
+      drmModeSetCrtc(drm.fd, drm.crtc_id, fb->fb_id, 0, 0, &drm.connector_id, 1,
                      drm.mode);
       fb->need_modset = false;
     } else {
@@ -355,7 +349,11 @@ void finalize_draw(bool did_draw) {
 
 class Texture : public TextureDelegate {
  public:
-  Texture(int width, int height, int32_t format, void* data, GlRenderer* renderer)
+  Texture(int width,
+          int height,
+          int32_t format,
+          void* data,
+          GlRenderer* renderer)
       : width_(width), height_(height), identifier_(0), renderer_(renderer) {
     if (format != WL_SHM_FORMAT_ARGB8888 && format != WL_SHM_FORMAT_XRGB8888) {
       TRACE("buffer format not WL_SHM_FORMAT_ARGB8888");
@@ -376,10 +374,10 @@ class Texture : public TextureDelegate {
   }
 
   void Draw(int x, int y, int patch_x, int patch_y, int width, int height)
-  override {
+      override {
     TRACE(
         "Draw: offset (%d %d) (in buffer offset: %d %d) (dimension: %d %d), "
-            "texture dimension: (%d %d)",
+        "texture dimension: (%d %d)",
         x, y, patch_x, patch_y, width, height, width_, height_);
     if (!identifier_)
       return;
@@ -393,25 +391,20 @@ class Texture : public TextureDelegate {
     if (height > height_)
       height = height_;
 
-    GLint vertices[] = {
-        x + patch_x, y + patch_y + height,
-        x + patch_x, y + patch_y,
-        x + patch_x + width, y + patch_y,
-        x + patch_x + width, y + patch_y + height
-    };
-    float top_left_x = ((float) patch_x) / width_;
-    float top_left_y = ((float) patch_y) / height_;
-    float bottom_right_x = ((float) (patch_x + width)) / width_;
-    float bottom_right_y = ((float) (patch_y + height)) / height_;
+    GLint vertices[] = {x + patch_x,         y + patch_y + height, x + patch_x,
+                        y + patch_y,         x + patch_x + width,  y + patch_y,
+                        x + patch_x + width, y + patch_y + height};
+    float top_left_x = ((float)patch_x) / width_;
+    float top_left_y = ((float)patch_y) / height_;
+    float bottom_right_x = ((float)(patch_x + width)) / width_;
+    float bottom_right_y = ((float)(patch_y + height)) / height_;
 
     TRACE("Texture coord: tl (%f %f), br (%f %f)", top_left_x, top_left_y,
           bottom_right_x, bottom_right_y);
 
     GLfloat tex_coords[] = {
-        top_left_x, bottom_right_y,
-        top_left_x, top_left_y,
-        bottom_right_x, top_left_y,
-        bottom_right_x, bottom_right_y,
+        top_left_x,     bottom_right_y, top_left_x,     top_left_y,
+        bottom_right_x, top_left_y,     bottom_right_x, bottom_right_y,
     };
 
     renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
@@ -431,7 +424,7 @@ std::vector<wm::Window*> CollectNewlyCommittedWindows() {
     stack.push(window);
     while (!stack.empty()) {
       auto* current = stack.top();
-      if (current->surface()->has_commit())
+      if (current->window_impl()->HasCommit())
         result.push_back(current);
       stack.pop();
       for (auto* child : current->children()) {
@@ -471,7 +464,7 @@ Compositor::Compositor() {
   renderer_ = std::make_unique<GlRenderer>(gl.display_width, gl.display_height);
 }
 
-void Compositor::AddGlobalDamage(const base::geometry::Rect &rect) {
+void Compositor::AddGlobalDamage(const base::geometry::Rect& rect) {
   global_damage_region_.Union(rect);
 }
 
@@ -518,7 +511,7 @@ void Compositor::Draw() {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
           CompositorView::BuildCompositorViewHierarchyRecursive(window);
-      for (auto &view : view_list_window) {
+      for (auto& view : view_list_window) {
         auto* cv = view.release();
         view_list.push_back(std::unique_ptr<CompositorView>(cv));
       }
@@ -528,7 +521,7 @@ void Compositor::Draw() {
   bool has_global_damage = !global_damage_region_.is_empty();
 
   if (has_global_damage) {
-    for (auto &v : view_list) {
+    for (auto& v : view_list) {
       auto additional_damage = global_damage_region_.Clone();
       additional_damage.Intersect(v->global_region());
       v->damaged_region().Union(additional_damage);
@@ -548,48 +541,45 @@ void Compositor::Draw() {
     global_damage_region_.Clear();
 
   bool did_draw = false;
-  for (auto &view : view_list) {
+  for (auto& view : view_list) {
     auto* window = view->window();
-    if (window->surface()->has_commit()) {
-      auto* buffer = window->surface()->committed_buffer();
-      window->surface()->RunSurfaceCallback();
-      if (buffer && buffer->data()) {
-        auto texture =
-            std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->data(),
-                                      renderer_.get());
-        window->surface()->cache_texture(std::move(texture));
+    if (window->window_impl()->HasCommit()) {
+      auto quad = window->window_impl()->GetQuad();
+      window->NotifyFrameCallback();
+      if (quad.has_data()) {
+        auto texture = std::make_unique<Texture>(quad.width(), quad.height(),
+                                                 quad.format(), quad.data(),
+                                                 renderer_.get());
+        window->window_impl()->CacheTexture(std::move(texture));
       }
     }
-    for (auto &rect : view->damaged_region().rectangles()) {
+    for (auto& rect : view->damaged_region().rectangles()) {
       auto bounds = view->global_bounds();
       TRACE("rectangle: %s, window %p, global bounds: %s, did draw: %d",
-            rect.ToString().c_str(),
-            view->window(),
-            bounds.ToString().c_str(),
+            rect.ToString().c_str(), view->window(), bounds.ToString().c_str(),
             did_draw);
-      if (window->surface()->cached_texture()) {
+      if (window->window_impl()->CachedTexture()) {
         int32_t physical_x = bounds.x() * display_metrics_->scale;
         int32_t physical_y = bounds.y() * display_metrics_->scale;
         int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
         int32_t to_draw_y = (rect.y() - bounds.y()) * display_metrics_->scale;
         int32_t physical_width = rect.width() * display_metrics_->scale;
         int32_t physical_height = rect.height() * display_metrics_->scale;
-        window->surface()->cached_texture()->Draw(
+        window->window_impl()->CachedTexture()->Draw(
             physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
             physical_height);
         did_draw = true;
       }
     }
-    window->surface()->clear_commit();
-    window->surface()->clear_damage();
+    window->window_impl()->ClearCommit();
+    window->window_impl()->ClearDamage();
   }
 
   if (did_draw) {
     for (int i = 0; i < view_list.size(); i++) {
       for (int j = i + 1; j < view_list.size(); j++)
         view_list[i]->border_region().Subtract(view_list[j]->global_region());
-      for (auto &rect : view_list[i]->border_region().rectangles()) {
+      for (auto& rect : view_list[i]->border_region().rectangles()) {
         if (view_list[i]->window()->focused() &&
             !view_list[i]->window()->parent())
           FillRect(rect, 1.0, 0.0, 0.0);
@@ -602,10 +592,10 @@ void Compositor::Draw() {
   if (has_global_damage) {
     Region full_screen = Region(base::geometry::Rect(
         0, 0, display_metrics_->width_dp, display_metrics_->height_dp));
-    for (auto &v : view_list)
+    for (auto& v : view_list)
       full_screen.Subtract(v->global_region());
     did_draw = did_draw || !full_screen.is_empty();
-    for (auto &r : full_screen.rectangles()) {
+    for (auto& r : full_screen.rectangles()) {
       TRACE("Fullscreen filling %s", r.ToString().c_str());
       FillRect(r, 0.0, 0.0, 0.0);
     }
@@ -617,15 +607,8 @@ void Compositor::Draw() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0,
-                      0,
-                      gl.display_width,
-                      gl.display_height,
-                      0,
-                      0,
-                      gl.display_width,
-                      gl.display_height,
-                      GL_COLOR_BUFFER_BIT,
+    glBlitFramebuffer(0, 0, gl.display_width, gl.display_height, 0, 0,
+                      gl.display_width, gl.display_height, GL_COLOR_BUFFER_BIT,
                       GL_LINEAR);
   }
 
@@ -651,8 +634,8 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
                                      int32_t start_x,
                                      int32_t start_y) {
   // TODO: child windows needs to be handled as well!
-  if (window->surface()->has_commit() || draw_forced_) {
-    window->surface()->RunSurfaceCallback();
+  if (window->window_impl()->HasCommit() || draw_forced_) {
+    window->window_impl()->NotifyFrameRendered();
     int32_t physical_x =
         (start_x + window->geometry().x()) * display_metrics_->scale;
     int32_t physical_y =
@@ -663,28 +646,28 @@ void Compositor::DrawWindowRecursive(wm::Window* window,
         window->GetToDrawRegion().width() * display_metrics_->scale;
     int32_t physical_height =
         window->GetToDrawRegion().height() * display_metrics_->scale;
-    if (!window->surface()->has_commit() &&
-        window->surface()->cached_texture()) {
+    if (!window->window_impl()->HasCommit() &&
+        window->window_impl()->CachedTexture()) {
       TRACE("Drawing Window: %p at %d %d", window,
             start_x + window->geometry().x(), start_y + window->geometry().y());
-      window->surface()->cached_texture()->Draw(
+      window->window_impl()->CachedTexture()->Draw(
           physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
           physical_height);
     } else {
-      auto* buffer = window->surface()->committed_buffer();
-      if (buffer && buffer->data()) {
-        auto texture =
-            std::make_unique<Texture>(buffer->width(), buffer->height(),
-                                      buffer->format(), buffer->data(), renderer_.get());
+      auto quad = window->window_impl()->GetQuad();
+      if (quad.has_data()) {
+        auto texture = std::make_unique<Texture>(quad.width(), quad.height(),
+                                                 quad.format(), quad.data(),
+                                                 renderer_.get());
         TRACE("Drawing Window: %p at %d %d", window,
               start_x + window->geometry().x(),
               start_y + window->geometry().y());
         texture->Draw(physical_x, physical_y, to_draw_x, to_draw_y,
                       physical_width, physical_height);
-        window->surface()->cache_texture(std::move(texture));
+        window->window_impl()->CacheTexture(std::move(texture));
       }
     }
-    window->surface()->clear_commit();
+    window->window_impl()->ClearCommit();
   }
 
   for (auto* child : window->children()) {
@@ -701,10 +684,14 @@ void Compositor::FillRect(base::geometry::Rect rect,
   int32_t x = rect.x() * display_metrics_->scale;
   int32_t y = rect.y() * display_metrics_->scale;
   GLint coords[] = {
-      x, y,
-      x, y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale, y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale, y,
+      x,
+      y,
+      x,
+      y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale,
+      y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale,
+      y,
   };
   renderer_->DrawSolidQuad(coords, r, g, b, true);
 }
@@ -715,10 +702,14 @@ void Compositor::DrawWindowBorder(wm::Window* window) {
   int32_t y = window->wm_y() * display_metrics_->scale;
   auto rect = window->geometry();
   GLint coords[] = {
-      x, y,
-      x, y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale, y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale, y,
+      x,
+      y,
+      x,
+      y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale,
+      y + rect.height() * display_metrics_->scale,
+      x + rect.width() * display_metrics_->scale,
+      y,
   };
   if (window->focused())
     renderer_->DrawSolidQuad(coords, 1.0, 0.0, 0.0, false);
@@ -730,22 +721,24 @@ void Compositor::DrawPointer() {
   auto pointer = wm::WindowManager::Get()->mouse_position();
   if (wm::WindowManager::Get()->pointer_updated()) {
     auto* pointer_window = wm::WindowManager::Get()->mouse_pointer();
-    if (pointer_window && pointer_window->surface()->committed_buffer()) {
-      auto* buffer = pointer_window->surface()->committed_buffer();
-      memset(gl.mouse_surface_data, 0, 64 * 64 * 4);
-      uint8_t* mouse_data = (uint8_t*)buffer->data();
-      for (size_t height = 0; height < buffer->height(); height++) {
-        for (size_t width = 0; width < buffer->stride(); width++) {
-          ((uint8_t*)gl.mouse_surface_data)[height * 256 +
-              width] = mouse_data[height * buffer->stride() + width];
+    if (pointer_window) {
+      auto quad = pointer_window->window_impl()->GetQuad();
+      if (quad.has_data()) {
+        memset(gl.mouse_surface_data, 0, 64 * 64 * 4);
+        uint8_t* mouse_data = (uint8_t*)quad.data();
+        for (size_t height = 0; height < quad.height(); height++) {
+          for (size_t width = 0; width < quad.stride(); width++) {
+            ((uint8_t*)gl.mouse_surface_data)[height * 256 + width] =
+                mouse_data[height * quad.stride() + width];
+          }
         }
+      } else {
+        memcpy((uint8_t*)(gl.mouse_surface_data), cursor_image.pixel_data,
+               cursor_image.bytes_per_pixel * cursor_image.height *
+                   cursor_image.width);
       }
-    } else {
-      memcpy((uint8_t*)(gl.mouse_surface_data), cursor_image.pixel_data,
-             cursor_image.bytes_per_pixel * cursor_image.height *
-                 cursor_image.width);
+      wm::WindowManager::Get()->clear_pointer_update();
     }
-    wm::WindowManager::Get()->clear_pointer_update();
   }
   move_cursor(static_cast<int32_t>(pointer.x()),
               static_cast<int32_t>(pointer.y()));

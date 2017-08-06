@@ -5,15 +5,25 @@
 #include "base/logging.h"
 #include "compositor/compositor.h"
 #include "compositor/shell_surface.h"
+#include "wm/window_impl/window_impl_wayland.h"
 #include "wm/window_manager.h"
+#include "ui/widget.h"
 
 namespace naive {
 namespace wm {
 
-Window::Window()
-    : surface_(nullptr), shell_surface_(nullptr), parent_(nullptr) {
-  TRACE("creating %p", this);
+Window::Window(Surface* surface)
+    : surface_(surface),
+      shell_surface_(nullptr),
+      parent_(nullptr),
+      widget_(nullptr),
+      type_(WindowType::NORMAL),
+      window_impl_(std::make_unique<WindowImplWayland>(surface)) {
+  TRACE("creating window: %p, surface: %p", this, surface);
 }
+
+Window::Window(ui::Widget* widget)
+    : surface_(nullptr), type_(WindowType::WIDGET), widget_(widget) {}
 
 Window::~Window() {
   TRACE("%p", this);
@@ -25,7 +35,25 @@ Window::~Window() {
   }
   for (auto* child : children_)
     child->set_parent(nullptr);
-  // Window is destroyed with surface. no need to remove surface observer
+}
+
+void Window::SetShellSurface(ShellSurface* shell_surface) {
+  auto* impl = static_cast<WindowImplWayland*>(window_impl_.get());
+  impl->set_shell_surface(shell_surface);
+  shell_surface_ = shell_surface;
+}
+
+void Window::set_type(WindowType type) {
+  type_ = type;
+}
+
+WindowType Window::window_type() const {
+  return type_;
+}
+
+Surface* Window::surface() {
+  assert(type_ == WindowType::NORMAL);
+  return surface_;
 }
 
 void Window::AddChild(Window* child) {
@@ -92,31 +120,43 @@ void Window::GrabDone() {
     return;
   }
 
-  shell_surface_->Ungrab();
+  window_impl_->SurfaceUngrab();
+}
+
+void Window::PushProperty(const base::geometry::Rect& geometry,
+                          const base::geometry::Rect& visible_region) {
+  geometry_ = geometry;
+  visible_region_ = visible_region;
+}
+
+void Window::PushProperty(bool is_position, int32_t v0, int32_t v1) {
+  if (is_position) {
+    geometry_.x_ = v0;
+    geometry_.y_ = v1;
+  } else {
+    geometry_.width_ = v0;
+    geometry_.height_ = v1;
+  }
 }
 
 void Window::Resize(int32_t width, int32_t height) {
-  if (!shell_surface_) {
-    LOG_ERROR << " only shell surface can be resized. " << std::endl;
+  if (!window_impl_->CanResize())
     return;
-  }
-  pending_state_.geometry.width_ = width;
-  pending_state_.geometry.height_ = height;
-  state_.geometry.width_ = width;
-  state_.geometry.height_ = height;
-  shell_surface_->Configure(width, height);
+
+  geometry_.width_ = width;
+  geometry_.height_ = height;
+  window_impl_->Configure(width, height);
 }
 
-void Window::OnCommit() {
-  state_ = pending_state_;
+void Window::MaybeMakeTopLevel() {
   if (to_be_managed_ && !managed_) {
-    to_be_managed_ = false;
     // Detach this surface from parent since it's going to be managed at top
     // level
     if (!parent_)
       wm::WindowManager::Get()->Manage(this);
     else
       WmSetSize(geometry().width(), geometry().height());
+    to_be_managed_ = false;
   }
 }
 
@@ -126,8 +166,8 @@ void Window::set_fullscreen(bool fullscreen) {
     return;
   }
 
-  shell_surface_->Configure(pending_state_.geometry.width(),
-                            pending_state_.geometry.height());
+  // TODO: changed from pending_state_ to state_... does it work?
+  window_impl_->Configure(geometry_.width(), geometry_.height());
 }
 
 void Window::set_maximized(bool maximized) {
@@ -136,8 +176,8 @@ void Window::set_maximized(bool maximized) {
     return;
   }
 
-  shell_surface_->Configure(pending_state_.geometry.width(),
-                            pending_state_.geometry.height());
+  // TODO: changed from pending_state_ to state_... does it work?
+  window_impl_->Configure(geometry_.width(), geometry_.height());
 }
 
 void Window::WmSetSize(int32_t width, int32_t height) {
@@ -146,7 +186,7 @@ void Window::WmSetSize(int32_t width, int32_t height) {
     return;
   }
 
-  shell_surface_->Configure(width, height);
+  window_impl_->Configure(width, height);
 }
 
 void Window::LoseFocus() {
@@ -173,7 +213,7 @@ void Window::TakeFocus() {
   if (!focused_) {
     focused_ = true;
     auto size = geometry();
-    shell_surface_->Configure(size.width(), size.height());
+    window_impl_->Configure(size.width(), size.height());
   }
 }
 
@@ -187,7 +227,7 @@ void Window::Close() {
     LOG_ERROR << " only shell surface can call close." << std::endl;
     return;
   }
-  shell_surface_->Close();
+  window_impl_->SurfaceClose();
 }
 
 void Window::set_visible(bool visible) {
@@ -204,6 +244,10 @@ void Window::set_visible(bool visible) {
     surface()->ForceDamage(geometry());
   compositor::Compositor::Get()->AddGlobalDamage(global_bound());
   visible_ = visible;
+}
+
+void Window::NotifyFrameCallback() {
+  window_impl_->NotifyFrameRendered();
 }
 
 }  // namespace wm

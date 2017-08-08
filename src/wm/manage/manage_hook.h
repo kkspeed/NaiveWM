@@ -8,6 +8,10 @@
 #include "wm/window_manager.h"
 
 namespace naive {
+namespace ui {
+class ImageView;
+}  // namespace ui
+
 namespace wm {
 
 class Window;
@@ -22,6 +26,7 @@ class ManageHook : public WmEventObserver {
   void WindowCreated(Window* window) override;
   void WindowDestroying(Window* window) override;
   void WindowDestroyed(Window* window) override;
+  void PostWmInitialize() override;
   bool OnMouseEvent(MouseEvent* event) override;
   bool OnKey(KeyboardEvent* event) override;
 
@@ -45,6 +50,7 @@ class ManageHook : public WmEventObserver {
 
   int32_t width_, height_;
   WMPrimitives* primitives_ = nullptr;
+  std::unique_ptr<ui::ImageView> wallpaper_view_;
 };
 
 }  // wm

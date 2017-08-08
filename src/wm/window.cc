@@ -5,6 +5,7 @@
 #include "base/logging.h"
 #include "compositor/compositor.h"
 #include "compositor/shell_surface.h"
+#include "wm/window_impl/window_impl_cairo.h"
 #include "wm/window_impl/window_impl_wayland.h"
 #include "wm/window_manager.h"
 #include "ui/widget.h"
@@ -23,7 +24,10 @@ Window::Window(Surface* surface)
 }
 
 Window::Window(ui::Widget* widget)
-    : surface_(nullptr), type_(WindowType::WIDGET), widget_(widget) {}
+    : surface_(nullptr),
+      type_(WindowType::WIDGET),
+      widget_(widget),
+      window_impl_(std::make_unique<WindowImplCairo>(widget)) {}
 
 Window::~Window() {
   TRACE("%p", this);
@@ -152,9 +156,10 @@ void Window::MaybeMakeTopLevel() {
   if (to_be_managed_ && !managed_) {
     // Detach this surface from parent since it's going to be managed at top
     // level
-    if (!parent_)
+    if (!parent_) {
       wm::WindowManager::Get()->Manage(this);
-    else
+      has_border_ = true;
+    } else
       WmSetSize(geometry().width(), geometry().height());
     to_be_managed_ = false;
   }

@@ -6,6 +6,7 @@
 #include "base/geometry.h"
 #include "compositor/draw_quad.h"
 #include "compositor/region.h"
+#include "compositor/texture_delegate.h"
 
 namespace naive {
 
@@ -39,7 +40,7 @@ class WindowImpl {
   virtual bool CanResize() { return false; }
 
   // Provide hint from the window manager to resize the surface.
-  virtual void Configure(int32_t width, int32_t size) = 0;
+  virtual void Configure(int32_t width, int32_t height) = 0;
 
   // Forces the surface to be fully redrawn.
   virtual void ForceCommit() = 0;

@@ -419,6 +419,8 @@ class Texture : public TextureDelegate {
 std::vector<wm::Window*> CollectNewlyCommittedWindows() {
   std::vector<wm::Window*> result;
 
+  if (wm::WindowManager::Get()->wallpaper_window())
+    result.push_back(wm::WindowManager::Get()->wallpaper_window());
   for (auto* window : wm::WindowManager::Get()->windows()) {
     std::stack<wm::Window*> stack;
     stack.push(window);
@@ -506,7 +508,11 @@ void Compositor::Draw() {
 void Compositor::Draw() {
   eglMakeCurrent(gl.display, gl.surface, gl.surface, gl.context);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  CompositorViewList view_list;
+  auto* wallpaper_window = wm::WindowManager::Get()->wallpaper_window();
+  CompositorViewList view_list =
+      wallpaper_window ? CompositorView::BuildCompositorViewHierarchyRecursive(
+                             wallpaper_window)
+                       : CompositorViewList();
   for (auto* window : wm::WindowManager::Get()->windows()) {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
@@ -580,6 +586,8 @@ void Compositor::Draw() {
       for (int j = i + 1; j < view_list.size(); j++)
         view_list[i]->border_region().Subtract(view_list[j]->global_region());
       for (auto& rect : view_list[i]->border_region().rectangles()) {
+        if (!view_list[i]->window()->has_border())
+          continue;
         if (view_list[i]->window()->focused() &&
             !view_list[i]->window()->parent())
           FillRect(rect, 1.0, 0.0, 0.0);
@@ -697,6 +705,8 @@ void Compositor::FillRect(base::geometry::Rect rect,
 }
 
 void Compositor::DrawWindowBorder(wm::Window* window) {
+  if (!window->has_border())
+    return;
   glLineWidth(2.5);
   int32_t x = window->wm_x() * display_metrics_->scale;
   int32_t y = window->wm_y() * display_metrics_->scale;

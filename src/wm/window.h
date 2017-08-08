@@ -117,11 +117,13 @@ class Window {
   void NotifyFrameCallback();
 
   WindowImpl* window_impl() { return window_impl_.get(); }
+  bool has_border() { return has_border_; }
 
  private:
   bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
   bool visible_ = true;
+  bool has_border_ = false;
 
   base::geometry::Rect geometry_, visible_region_;
 

@@ -50,6 +50,7 @@ class WmEventObserver {
  public:
   virtual void set_wm_primitives(WMPrimitives* primitives) = 0;
   virtual void set_workspace_dimension(int32_t width, int32_t height) = 0;
+  virtual void PostWmInitialize() = 0;
   virtual bool OnMouseEvent(MouseEvent* event) = 0;
   virtual bool OnKey(KeyboardEvent* event) = 0;
   virtual void WindowCreated(Window* window) = 0;
@@ -140,6 +141,12 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   bool pointer_updated() { return pointer_updated_; }
   void clear_pointer_update() { pointer_updated_ = false; }
 
+  void set_wallpaper_window(Window* wallpaper) {
+    wallpaper_window_ = wallpaper;
+  }
+
+  Window* wallpaper_window() { return wallpaper_window_; }
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
@@ -157,6 +164,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
 
   Window* mouse_pointer_ = nullptr;
   bool pointer_updated_ = false;
+  Window* wallpaper_window_ = nullptr;
 };
 
 }  // namespace wm

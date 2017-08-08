@@ -38,6 +38,7 @@ WindowManager* WindowManager::g_window_manager = nullptr;
 void WindowManager::InitializeWindowManager(
     WmEventObserver* wm_event_observer) {
   g_window_manager = new WindowManager(wm_event_observer);
+  wm_event_observer->PostWmInitialize();
 }
 
 WindowManager* WindowManager::Get() {

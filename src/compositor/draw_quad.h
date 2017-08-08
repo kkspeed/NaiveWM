@@ -13,6 +13,7 @@ class DrawQuad {
 public:
   DrawQuad() = default;
   explicit DrawQuad(Buffer* buffer);
+  explicit DrawQuad(int32_t width, int32_t height, void* data);
 
   bool has_data() { return has_data_; }
   int32_t width() { return width_; }

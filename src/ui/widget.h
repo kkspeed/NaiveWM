@@ -26,17 +26,24 @@ class Widget {
   // When a frame is drawn.
   virtual void OnDrawFrame() {}
 
-  // Called by compositor to get already texture drawn.
-  virtual void GetTexture(std::vector<uint8_t>& buffer,
-                          int32_t& width,
-                          int32_t& height);
+  void* GetTexture(int32_t& width, int32_t& height);
 
-  virtual Region& GetDamagedRegion() { return damaged_region_; }
+  Region& GetDamagedRegion() { return damaged_region_; }
+  void AddDamage(const base::geometry::Rect& rect) {
+    damaged_region_.Union(rect);
+  }
 
   // Get the bounds of this widget relative to its parent surface.
-  virtual base::geometry::Rect& GetBounds() { return bounds_; }
+  base::geometry::Rect& GetBounds() { return bounds_; }
 
- private:
+  wm::Window* window() { return window_.get(); }
+  bool has_commit() { return has_commit_; }
+  void force_commit() { has_commit_ = true; }
+  void clear_commit() { has_commit_ = false; }
+  void clear_damage() { damaged_region_.Clear(); }
+
+ protected:
+  bool has_commit_{false};
   Region damaged_region_;
   base::geometry::Rect bounds_;
   Cairo::RefPtr<Cairo::Context> context_;

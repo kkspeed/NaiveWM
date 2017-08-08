@@ -50,6 +50,10 @@ It's recommended that you do the following things:
    with Qt5). To launch it, you can press Win + C in the window manager or type
    <tt>qutebrowser --qt-args platform wayland</tt> in the terminal.
 
+3. You'll need to specify a wallpaper file via variable <tt>kWallpaperPath</tt> in 
+   <tt>manage\_hook.cc</tt> and uncomment the code in <tt>PostWmInitialize</tt> to
+   enable wallpaper.
+
 ## Default Configurations
 Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
 

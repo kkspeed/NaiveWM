@@ -11,15 +11,27 @@
 #include "wm/mouse_event.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
+#include "ui/image_view.h"
 
 namespace naive {
 namespace wm {
+
+namespace {
+// Change this to your wallpaper's path.
+constexpr char kWallpaperPath[] = "/home/bruce/Downloads/test_wallpaper.png";
+}  // namespace
 
 ManageHook::ManageHook() {
   for (uint32_t i = 0; i < 9; i++) {
     workspaces_.push_back(Workspace(i));
     current_workspace_ = 0;
   }
+}
+
+void ManageHook::PostWmInitialize() {
+  // wallpaper_view_ =
+  //    std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
+  // wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 }
 
 void ManageHook::WindowCreated(Window* window) {

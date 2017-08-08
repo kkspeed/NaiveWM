@@ -1,7 +1,5 @@
 #include "wm/window_impl.h"
 
-#include "compositor/texture_delegate.h"
-
 namespace naive {
 namespace wm {
 

@@ -113,7 +113,10 @@ void Workspace::SetCurrentWindow(Window* window) {
   }
 }
 
-void Workspace::ArrangeWindows(int32_t width, int32_t height) {
+void Workspace::ArrangeWindows(int32_t x,
+                               int32_t y,
+                               int32_t width,
+                               int32_t height) {
   std::vector<ManageWindow*> floating_windows;
   std::deque<ManageWindow*> normal_windows;
 
@@ -126,8 +129,8 @@ void Workspace::ArrangeWindows(int32_t width, int32_t height) {
     }
   }
 
-  ArrangeNonFloatingWindows(normal_windows, 0, 0, width, height,
-                            width, height, true);
+  ArrangeNonFloatingWindows(normal_windows, x, y, width, height, width, height,
+                            true);
 
   for (auto* window : floating_windows)
     window->window()->Raise();

@@ -9,6 +9,7 @@
 
 #include "base/geometry.h"
 #include "compositor/region.h"
+#include "wm/window.h"
 
 namespace naive {
 namespace wm {
@@ -24,7 +25,10 @@ class Widget {
   virtual ~Widget() = default;
 
   // When a frame is drawn.
-  virtual void OnDrawFrame() {}
+  virtual void OnDrawFrame();
+
+  // When the view needs to be drawn.
+  virtual void Draw() {}
 
   void* GetTexture(int32_t& width, int32_t& height);
 
@@ -42,8 +46,12 @@ class Widget {
   void clear_commit() { has_commit_ = false; }
   void clear_damage() { damaged_region_.Clear(); }
 
+  // Marks the view as dirty and needs to be drawn.
+  void Invalidate();
+
  protected:
   bool has_commit_{false};
+  bool view_dirty_{false};
   Region damaged_region_;
   base::geometry::Rect bounds_;
   Cairo::RefPtr<Cairo::Context> context_;

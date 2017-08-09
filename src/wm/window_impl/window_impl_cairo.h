@@ -14,23 +14,23 @@ class Widget;
 
 namespace wm {
 
-class WindowImplCairo: public WindowImpl {
-public:
-    WindowImplCairo(ui::Widget* widget);
+class WindowImplCairo : public WindowImpl {
+ public:
+  WindowImplCairo(ui::Widget* widget);
 
-    // WindowImpl overrides.
-    void NotifyFrameRendered() override;
-    void AddDamage(const base::geometry::Rect& rect) override;
-    void Configure(int32_t width, int32_t height) override {}
-    void ForceCommit() override;
-    bool HasCommit() override;
-    Region DamagedRegion() override;
-    compositor::DrawQuad GetQuad() override;
-    void ClearCommit() override;
-    void ClearDamage() override;
+  // WindowImpl overrides.
+  void NotifyFrameRendered() override;
+  void AddDamage(const base::geometry::Rect& rect) override;
+  void Configure(int32_t width, int32_t height) override {}
+  void ForceCommit() override;
+  bool HasCommit() override;
+  Region DamagedRegion() override;
+  compositor::DrawQuad GetQuad() override;
+  void ClearCommit() override;
+  void ClearDamage() override;
 
-private:
-    ui::Widget* widget_;
+ private:
+  ui::Widget* widget_;
 };
 
 }  // namespace wm

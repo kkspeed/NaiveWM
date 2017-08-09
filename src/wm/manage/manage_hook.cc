@@ -12,6 +12,7 @@
 #include "wm/window.h"
 #include "wm/window_manager.h"
 #include "ui/image_view.h"
+#include "ui/text_view.h"
 
 namespace naive {
 namespace wm {
@@ -19,6 +20,8 @@ namespace wm {
 namespace {
 // Change this to your wallpaper's path.
 constexpr char kWallpaperPath[] = "/home/bruce/Downloads/test_wallpaper.png";
+constexpr int32_t kWorkspaceInsetX = 0;
+constexpr int32_t kWorkspaceInsetY = 20;
 }  // namespace
 
 ManageHook::ManageHook() {
@@ -32,6 +35,14 @@ void ManageHook::PostWmInitialize() {
   // wallpaper_view_ =
   //    std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
   // wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
+
+  // panel_ = std::make_unique<ui::TextView>(0, 0, 2560, 20);
+  // panel_->SetText("<1> 2 3 4 5 6 7 8 9");
+  // panel_->SetTextSize(20);
+  // panel_->SetTextAlignment(ui::TextAlignment::CENTER_VERTICAL |
+  //                         ui::TextAlignment::LEFT);
+  // panel_->SetTextColor(0xFF00FF00);
+  // wm::WindowManager::Get()->set_panel_window(panel_->window());
 }
 
 void ManageHook::WindowCreated(Window* window) {
@@ -43,7 +54,9 @@ void ManageHook::WindowCreated(Window* window) {
   auto* workspace = current_workspace();
   workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
-  workspace->ArrangeWindows(width_, height_);
+  workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                            width_ - kWorkspaceInsetX,
+                            height_ - kWorkspaceInsetY);
 }
 
 void ManageHook::WindowDestroying(Window* window) {
@@ -59,7 +72,9 @@ void ManageHook::WindowDestroyed(Window* window) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);
         // TODO: maybe pass this to workspace and coords for multiscreen?
-        workspace.ArrangeWindows(width_, height_);
+        workspace.ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                                 width_ - kWorkspaceInsetX,
+                                 height_ - kWorkspaceInsetY);
       }
       break;
     }
@@ -136,7 +151,9 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     auto* current = current_workspace()->CurrentWindow();
     if (current) {
       current->set_maximized(!current->is_maximized());
-      current_workspace()->ArrangeWindows(width_, height_);
+      current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                                          width_ - kWorkspaceInsetX,
+                                          height_ - kWorkspaceInsetY);
     }
     return true;
   }
@@ -149,7 +166,9 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       auto poped = current_workspace()->PopWindow(current->window());
       current_workspace()->AddWindowToHead(std::move(poped));
       current_workspace()->SetCurrentWindow(current->window());
-      current_workspace()->ArrangeWindows(width_, height_);
+      current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                                          width_ - kWorkspaceInsetX,
+                                          height_ - kWorkspaceInsetY);
     }
     return true;
   }
@@ -190,7 +209,9 @@ void ManageHook::SelectTag(size_t tag) {
   current_workspace()->Show(true);
   auto* manage_window = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(manage_window ? manage_window->window() : nullptr);
-  current_workspace()->ArrangeWindows(width_, height_);
+  current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                                      width_ - kWorkspaceInsetX,
+                                      height_ - kWorkspaceInsetY);
 }
 
 void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
@@ -203,7 +224,9 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   TRACE("arrange for workspace %d", current_workspace()->tag());
   auto* current = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(current ? current->window() : nullptr);
-  current_workspace()->ArrangeWindows(width_, height_);
+  current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
+                                      width_ - kWorkspaceInsetX,
+                                      height_ - kWorkspaceInsetY);
 }
 
 }  // namespace wm

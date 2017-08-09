@@ -10,7 +10,7 @@ class Buffer;
 namespace compositor {
 
 class DrawQuad {
-public:
+ public:
   DrawQuad() = default;
   explicit DrawQuad(Buffer* buffer);
   explicit DrawQuad(int32_t width, int32_t height, void* data);
@@ -22,7 +22,7 @@ public:
   int32_t stride() { return stride_; }
   void* data() { return data_; }
 
-private:
+ private:
   bool has_data_{false};
   int32_t format_, width_, height_, stride_;
   void* data_;

@@ -3,11 +3,11 @@
 #ifndef TEXT_INPUT_UNSTABLE_V1_SERVER_PROTOCOL_H
 #define TEXT_INPUT_UNSTABLE_V1_SERVER_PROTOCOL_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "wayland-server.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -128,7 +128,8 @@ extern const struct wl_interface zwp_text_input_v1_interface;
  * See @ref iface_zwp_text_input_manager_v1.
  */
 /**
- * @defgroup iface_zwp_text_input_manager_v1 The zwp_text_input_manager_v1 interface
+ * @defgroup iface_zwp_text_input_manager_v1 The zwp_text_input_manager_v1
+ * interface
  *
  * A factory for text_input objects. This object is a global singleton.
  */
@@ -144,58 +145,58 @@ extern const struct wl_interface zwp_text_input_manager_v1_interface;
  * input.
  */
 enum zwp_text_input_v1_content_hint {
-	/**
-	 * no special behaviour
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_NONE = 0x0,
-	/**
-	 * auto completion, correction and capitalization
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_DEFAULT = 0x7,
-	/**
-	 * hidden and sensitive text
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_PASSWORD = 0xc0,
-	/**
-	 * suggest word completions
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_COMPLETION = 0x1,
-	/**
-	 * suggest word corrections
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_CORRECTION = 0x2,
-	/**
-	 * switch to uppercase letters at the start of a sentence
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_CAPITALIZATION = 0x4,
-	/**
-	 * prefer lowercase letters
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_LOWERCASE = 0x8,
-	/**
-	 * prefer uppercase letters
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_UPPERCASE = 0x10,
-	/**
-	 * prefer casing for titles and headings (can be language dependent)
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_TITLECASE = 0x20,
-	/**
-	 * characters should be hidden
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_HIDDEN_TEXT = 0x40,
-	/**
-	 * typed text should not be stored
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_SENSITIVE_DATA = 0x80,
-	/**
-	 * just latin characters should be entered
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_LATIN = 0x100,
-	/**
-	 * the text input is multiline
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_HINT_MULTILINE = 0x200,
+  /**
+   * no special behaviour
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_NONE = 0x0,
+  /**
+   * auto completion, correction and capitalization
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_DEFAULT = 0x7,
+  /**
+   * hidden and sensitive text
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_PASSWORD = 0xc0,
+  /**
+   * suggest word completions
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_COMPLETION = 0x1,
+  /**
+   * suggest word corrections
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_CORRECTION = 0x2,
+  /**
+   * switch to uppercase letters at the start of a sentence
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_AUTO_CAPITALIZATION = 0x4,
+  /**
+   * prefer lowercase letters
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_LOWERCASE = 0x8,
+  /**
+   * prefer uppercase letters
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_UPPERCASE = 0x10,
+  /**
+   * prefer casing for titles and headings (can be language dependent)
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_TITLECASE = 0x20,
+  /**
+   * characters should be hidden
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_HIDDEN_TEXT = 0x40,
+  /**
+   * typed text should not be stored
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_SENSITIVE_DATA = 0x80,
+  /**
+   * just latin characters should be entered
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_LATIN = 0x100,
+  /**
+   * the text input is multiline
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_HINT_MULTILINE = 0x200,
 };
 #endif /* ZWP_TEXT_INPUT_V1_CONTENT_HINT_ENUM */
 
@@ -212,96 +213,96 @@ enum zwp_text_input_v1_content_hint {
  * extra characters or to disallow some characters.
  */
 enum zwp_text_input_v1_content_purpose {
-	/**
-	 * default input, allowing all characters
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NORMAL = 0,
-	/**
-	 * allow only alphabetic characters
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_ALPHA = 1,
-	/**
-	 * allow only digits
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DIGITS = 2,
-	/**
-	 * input a number (including decimal separator and sign)
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NUMBER = 3,
-	/**
-	 * input a phone number
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_PHONE = 4,
-	/**
-	 * input an URL
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_URL = 5,
-	/**
-	 * input an email address
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_EMAIL = 6,
-	/**
-	 * input a name of a person
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NAME = 7,
-	/**
-	 * input a password (combine with password or sensitive_data hint)
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_PASSWORD = 8,
-	/**
-	 * input a date
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DATE = 9,
-	/**
-	 * input a time
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_TIME = 10,
-	/**
-	 * input a date and time
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DATETIME = 11,
-	/**
-	 * input for a terminal
-	 */
-	ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_TERMINAL = 12,
+  /**
+   * default input, allowing all characters
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NORMAL = 0,
+  /**
+   * allow only alphabetic characters
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_ALPHA = 1,
+  /**
+   * allow only digits
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DIGITS = 2,
+  /**
+   * input a number (including decimal separator and sign)
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NUMBER = 3,
+  /**
+   * input a phone number
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_PHONE = 4,
+  /**
+   * input an URL
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_URL = 5,
+  /**
+   * input an email address
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_EMAIL = 6,
+  /**
+   * input a name of a person
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_NAME = 7,
+  /**
+   * input a password (combine with password or sensitive_data hint)
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_PASSWORD = 8,
+  /**
+   * input a date
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DATE = 9,
+  /**
+   * input a time
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_TIME = 10,
+  /**
+   * input a date and time
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_DATETIME = 11,
+  /**
+   * input for a terminal
+   */
+  ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_TERMINAL = 12,
 };
 #endif /* ZWP_TEXT_INPUT_V1_CONTENT_PURPOSE_ENUM */
 
 #ifndef ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_ENUM
 #define ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_ENUM
 enum zwp_text_input_v1_preedit_style {
-	/**
-	 * default style for composing text
-	 */
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_DEFAULT = 0,
-	/**
-	 * style should be the same as in non-composing text
-	 */
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_NONE = 1,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_ACTIVE = 2,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_INACTIVE = 3,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_HIGHLIGHT = 4,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_UNDERLINE = 5,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_SELECTION = 6,
-	ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_INCORRECT = 7,
+  /**
+   * default style for composing text
+   */
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_DEFAULT = 0,
+  /**
+   * style should be the same as in non-composing text
+   */
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_NONE = 1,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_ACTIVE = 2,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_INACTIVE = 3,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_HIGHLIGHT = 4,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_UNDERLINE = 5,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_SELECTION = 6,
+  ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_INCORRECT = 7,
 };
 #endif /* ZWP_TEXT_INPUT_V1_PREEDIT_STYLE_ENUM */
 
 #ifndef ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_ENUM
 #define ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_ENUM
 enum zwp_text_input_v1_text_direction {
-	/**
-	 * automatic text direction based on text and language
-	 */
-	ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_AUTO = 0,
-	/**
-	 * left-to-right
-	 */
-	ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_LTR = 1,
-	/**
-	 * right-to-left
-	 */
-	ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_RTL = 2,
+  /**
+   * automatic text direction based on text and language
+   */
+  ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_AUTO = 0,
+  /**
+   * left-to-right
+   */
+  ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_LTR = 1,
+  /**
+   * right-to-left
+   */
+  ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_RTL = 2,
 };
 #endif /* ZWP_TEXT_INPUT_V1_TEXT_DIRECTION_ENUM */
 
@@ -310,117 +311,116 @@ enum zwp_text_input_v1_text_direction {
  * @struct zwp_text_input_v1_interface
  */
 struct zwp_text_input_v1_interface {
-	/**
-	 * request activation
-	 *
-	 * Requests the text_input object to be activated (typically when
-	 * the text entry gets focus).
-	 *
-	 * The seat argument is a wl_seat which maintains the focus for
-	 * this activation. The surface argument is a wl_surface assigned
-	 * to the text_input object and tracked for focus lost. The enter
-	 * event is emitted on successful activation.
-	 */
-	void (*activate)(struct wl_client *client,
-			 struct wl_resource *resource,
-			 struct wl_resource *seat,
-			 struct wl_resource *surface);
-	/**
-	 * request deactivation
-	 *
-	 * Requests the text_input object to be deactivated (typically
-	 * when the text entry lost focus). The seat argument is a wl_seat
-	 * which was used for activation.
-	 */
-	void (*deactivate)(struct wl_client *client,
-			   struct wl_resource *resource,
-			   struct wl_resource *seat);
-	/**
-	 * show input panels
-	 *
-	 * Requests input panels (virtual keyboard) to show.
-	 */
-	void (*show_input_panel)(struct wl_client *client,
-				 struct wl_resource *resource);
-	/**
-	 * hide input panels
-	 *
-	 * Requests input panels (virtual keyboard) to hide.
-	 */
-	void (*hide_input_panel)(struct wl_client *client,
-				 struct wl_resource *resource);
-	/**
-	 * reset
-	 *
-	 * Should be called by an editor widget when the input state
-	 * should be reset, for example after the text was changed outside
-	 * of the normal input method flow.
-	 */
-	void (*reset)(struct wl_client *client,
-		      struct wl_resource *resource);
-	/**
-	 * sets the surrounding text
-	 *
-	 * Sets the plain surrounding text around the input position.
-	 * Text is UTF-8 encoded. Cursor is the byte offset within the
-	 * surrounding text. Anchor is the byte offset of the selection
-	 * anchor within the surrounding text. If there is no selected text
-	 * anchor, then it is the same as cursor.
-	 */
-	void (*set_surrounding_text)(struct wl_client *client,
-				     struct wl_resource *resource,
-				     const char *text,
-				     uint32_t cursor,
-				     uint32_t anchor);
-	/**
-	 * set content purpose and hint
-	 *
-	 * Sets the content purpose and content hint. While the purpose
-	 * is the basic purpose of an input field, the hint flags allow to
-	 * modify some of the behavior.
-	 *
-	 * When no content type is explicitly set, a normal content purpose
-	 * with default hints (auto completion, auto correction, auto
-	 * capitalization) should be assumed.
-	 */
-	void (*set_content_type)(struct wl_client *client,
-				 struct wl_resource *resource,
-				 uint32_t hint,
-				 uint32_t purpose);
-	/**
-	 */
-	void (*set_cursor_rectangle)(struct wl_client *client,
-				     struct wl_resource *resource,
-				     int32_t x,
-				     int32_t y,
-				     int32_t width,
-				     int32_t height);
-	/**
-	 * sets preferred language
-	 *
-	 * Sets a specific language. This allows for example a virtual
-	 * keyboard to show a language specific layout. The "language"
-	 * argument is an RFC-3066 format language tag.
-	 *
-	 * It could be used for example in a word processor to indicate the
-	 * language of the currently edited document or in an instant
-	 * message application which tracks languages of contacts.
-	 */
-	void (*set_preferred_language)(struct wl_client *client,
-				       struct wl_resource *resource,
-				       const char *language);
-	/**
-	 * @param serial used to identify the known state
-	 */
-	void (*commit_state)(struct wl_client *client,
-			     struct wl_resource *resource,
-			     uint32_t serial);
-	/**
-	 */
-	void (*invoke_action)(struct wl_client *client,
-			      struct wl_resource *resource,
-			      uint32_t button,
-			      uint32_t index);
+  /**
+   * request activation
+   *
+   * Requests the text_input object to be activated (typically when
+   * the text entry gets focus).
+   *
+   * The seat argument is a wl_seat which maintains the focus for
+   * this activation. The surface argument is a wl_surface assigned
+   * to the text_input object and tracked for focus lost. The enter
+   * event is emitted on successful activation.
+   */
+  void (*activate)(struct wl_client* client,
+                   struct wl_resource* resource,
+                   struct wl_resource* seat,
+                   struct wl_resource* surface);
+  /**
+   * request deactivation
+   *
+   * Requests the text_input object to be deactivated (typically
+   * when the text entry lost focus). The seat argument is a wl_seat
+   * which was used for activation.
+   */
+  void (*deactivate)(struct wl_client* client,
+                     struct wl_resource* resource,
+                     struct wl_resource* seat);
+  /**
+   * show input panels
+   *
+   * Requests input panels (virtual keyboard) to show.
+   */
+  void (*show_input_panel)(struct wl_client* client,
+                           struct wl_resource* resource);
+  /**
+   * hide input panels
+   *
+   * Requests input panels (virtual keyboard) to hide.
+   */
+  void (*hide_input_panel)(struct wl_client* client,
+                           struct wl_resource* resource);
+  /**
+   * reset
+   *
+   * Should be called by an editor widget when the input state
+   * should be reset, for example after the text was changed outside
+   * of the normal input method flow.
+   */
+  void (*reset)(struct wl_client* client, struct wl_resource* resource);
+  /**
+   * sets the surrounding text
+   *
+   * Sets the plain surrounding text around the input position.
+   * Text is UTF-8 encoded. Cursor is the byte offset within the
+   * surrounding text. Anchor is the byte offset of the selection
+   * anchor within the surrounding text. If there is no selected text
+   * anchor, then it is the same as cursor.
+   */
+  void (*set_surrounding_text)(struct wl_client* client,
+                               struct wl_resource* resource,
+                               const char* text,
+                               uint32_t cursor,
+                               uint32_t anchor);
+  /**
+   * set content purpose and hint
+   *
+   * Sets the content purpose and content hint. While the purpose
+   * is the basic purpose of an input field, the hint flags allow to
+   * modify some of the behavior.
+   *
+   * When no content type is explicitly set, a normal content purpose
+   * with default hints (auto completion, auto correction, auto
+   * capitalization) should be assumed.
+   */
+  void (*set_content_type)(struct wl_client* client,
+                           struct wl_resource* resource,
+                           uint32_t hint,
+                           uint32_t purpose);
+  /**
+   */
+  void (*set_cursor_rectangle)(struct wl_client* client,
+                               struct wl_resource* resource,
+                               int32_t x,
+                               int32_t y,
+                               int32_t width,
+                               int32_t height);
+  /**
+   * sets preferred language
+   *
+   * Sets a specific language. This allows for example a virtual
+   * keyboard to show a language specific layout. The "language"
+   * argument is an RFC-3066 format language tag.
+   *
+   * It could be used for example in a word processor to indicate the
+   * language of the currently edited document or in an instant
+   * message application which tracks languages of contacts.
+   */
+  void (*set_preferred_language)(struct wl_client* client,
+                                 struct wl_resource* resource,
+                                 const char* language);
+  /**
+   * @param serial used to identify the known state
+   */
+  void (*commit_state)(struct wl_client* client,
+                       struct wl_resource* resource,
+                       uint32_t serial);
+  /**
+   */
+  void (*invoke_action)(struct wl_client* client,
+                        struct wl_resource* resource,
+                        uint32_t button,
+                        uint32_t index);
 };
 
 #define ZWP_TEXT_INPUT_V1_ENTER 0
@@ -540,10 +540,9 @@ struct zwp_text_input_v1_interface {
  * Sends an enter event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_enter(struct wl_resource *resource_, struct wl_resource *surface)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_ENTER, surface);
+static inline void zwp_text_input_v1_send_enter(struct wl_resource* resource_,
+                                                struct wl_resource* surface) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_ENTER, surface);
 }
 
 /**
@@ -551,10 +550,8 @@ zwp_text_input_v1_send_enter(struct wl_resource *resource_, struct wl_resource *
  * Sends an leave event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_leave(struct wl_resource *resource_)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_LEAVE);
+static inline void zwp_text_input_v1_send_leave(struct wl_resource* resource_) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_LEAVE);
 }
 
 /**
@@ -562,10 +559,10 @@ zwp_text_input_v1_send_leave(struct wl_resource *resource_)
  * Sends an modifiers_map event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_modifiers_map(struct wl_resource *resource_, struct wl_array *map)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_MODIFIERS_MAP, map);
+static inline void zwp_text_input_v1_send_modifiers_map(
+    struct wl_resource* resource_,
+    struct wl_array* map) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_MODIFIERS_MAP, map);
 }
 
 /**
@@ -573,10 +570,10 @@ zwp_text_input_v1_send_modifiers_map(struct wl_resource *resource_, struct wl_ar
  * Sends an input_panel_state event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_input_panel_state(struct wl_resource *resource_, uint32_t state)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_INPUT_PANEL_STATE, state);
+static inline void zwp_text_input_v1_send_input_panel_state(
+    struct wl_resource* resource_,
+    uint32_t state) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_INPUT_PANEL_STATE, state);
 }
 
 /**
@@ -585,10 +582,13 @@ zwp_text_input_v1_send_input_panel_state(struct wl_resource *resource_, uint32_t
  * @param resource_ The client's resource
  * @param serial serial of the latest known text input state
  */
-static inline void
-zwp_text_input_v1_send_preedit_string(struct wl_resource *resource_, uint32_t serial, const char *text, const char *commit)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_STRING, serial, text, commit);
+static inline void zwp_text_input_v1_send_preedit_string(
+    struct wl_resource* resource_,
+    uint32_t serial,
+    const char* text,
+    const char* commit) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_STRING, serial,
+                         text, commit);
 }
 
 /**
@@ -596,10 +596,13 @@ zwp_text_input_v1_send_preedit_string(struct wl_resource *resource_, uint32_t se
  * Sends an preedit_styling event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_preedit_styling(struct wl_resource *resource_, uint32_t index, uint32_t length, uint32_t style)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_STYLING, index, length, style);
+static inline void zwp_text_input_v1_send_preedit_styling(
+    struct wl_resource* resource_,
+    uint32_t index,
+    uint32_t length,
+    uint32_t style) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_STYLING, index,
+                         length, style);
 }
 
 /**
@@ -607,10 +610,10 @@ zwp_text_input_v1_send_preedit_styling(struct wl_resource *resource_, uint32_t i
  * Sends an preedit_cursor event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_preedit_cursor(struct wl_resource *resource_, int32_t index)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_CURSOR, index);
+static inline void zwp_text_input_v1_send_preedit_cursor(
+    struct wl_resource* resource_,
+    int32_t index) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_PREEDIT_CURSOR, index);
 }
 
 /**
@@ -619,10 +622,12 @@ zwp_text_input_v1_send_preedit_cursor(struct wl_resource *resource_, int32_t ind
  * @param resource_ The client's resource
  * @param serial serial of the latest known text input state
  */
-static inline void
-zwp_text_input_v1_send_commit_string(struct wl_resource *resource_, uint32_t serial, const char *text)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_COMMIT_STRING, serial, text);
+static inline void zwp_text_input_v1_send_commit_string(
+    struct wl_resource* resource_,
+    uint32_t serial,
+    const char* text) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_COMMIT_STRING, serial,
+                         text);
 }
 
 /**
@@ -630,10 +635,12 @@ zwp_text_input_v1_send_commit_string(struct wl_resource *resource_, uint32_t ser
  * Sends an cursor_position event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_cursor_position(struct wl_resource *resource_, int32_t index, int32_t anchor)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_CURSOR_POSITION, index, anchor);
+static inline void zwp_text_input_v1_send_cursor_position(
+    struct wl_resource* resource_,
+    int32_t index,
+    int32_t anchor) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_CURSOR_POSITION, index,
+                         anchor);
 }
 
 /**
@@ -641,10 +648,12 @@ zwp_text_input_v1_send_cursor_position(struct wl_resource *resource_, int32_t in
  * Sends an delete_surrounding_text event to the client owning the resource.
  * @param resource_ The client's resource
  */
-static inline void
-zwp_text_input_v1_send_delete_surrounding_text(struct wl_resource *resource_, int32_t index, uint32_t length)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_DELETE_SURROUNDING_TEXT, index, length);
+static inline void zwp_text_input_v1_send_delete_surrounding_text(
+    struct wl_resource* resource_,
+    int32_t index,
+    uint32_t length) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_DELETE_SURROUNDING_TEXT,
+                         index, length);
 }
 
 /**
@@ -653,10 +662,14 @@ zwp_text_input_v1_send_delete_surrounding_text(struct wl_resource *resource_, in
  * @param resource_ The client's resource
  * @param serial serial of the latest known text input state
  */
-static inline void
-zwp_text_input_v1_send_keysym(struct wl_resource *resource_, uint32_t serial, uint32_t time, uint32_t sym, uint32_t state, uint32_t modifiers)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_KEYSYM, serial, time, sym, state, modifiers);
+static inline void zwp_text_input_v1_send_keysym(struct wl_resource* resource_,
+                                                 uint32_t serial,
+                                                 uint32_t time,
+                                                 uint32_t sym,
+                                                 uint32_t state,
+                                                 uint32_t modifiers) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_KEYSYM, serial, time, sym,
+                         state, modifiers);
 }
 
 /**
@@ -665,10 +678,12 @@ zwp_text_input_v1_send_keysym(struct wl_resource *resource_, uint32_t serial, ui
  * @param resource_ The client's resource
  * @param serial serial of the latest known text input state
  */
-static inline void
-zwp_text_input_v1_send_language(struct wl_resource *resource_, uint32_t serial, const char *language)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_LANGUAGE, serial, language);
+static inline void zwp_text_input_v1_send_language(
+    struct wl_resource* resource_,
+    uint32_t serial,
+    const char* language) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_LANGUAGE, serial,
+                         language);
 }
 
 /**
@@ -677,10 +692,12 @@ zwp_text_input_v1_send_language(struct wl_resource *resource_, uint32_t serial, 
  * @param resource_ The client's resource
  * @param serial serial of the latest known text input state
  */
-static inline void
-zwp_text_input_v1_send_text_direction(struct wl_resource *resource_, uint32_t serial, uint32_t direction)
-{
-	wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_TEXT_DIRECTION, serial, direction);
+static inline void zwp_text_input_v1_send_text_direction(
+    struct wl_resource* resource_,
+    uint32_t serial,
+    uint32_t direction) {
+  wl_resource_post_event(resource_, ZWP_TEXT_INPUT_V1_TEXT_DIRECTION, serial,
+                         direction);
 }
 
 /**
@@ -688,23 +705,22 @@ zwp_text_input_v1_send_text_direction(struct wl_resource *resource_, uint32_t se
  * @struct zwp_text_input_manager_v1_interface
  */
 struct zwp_text_input_manager_v1_interface {
-	/**
-	 * create text input
-	 *
-	 * Creates a new text_input object.
-	 */
-	void (*create_text_input)(struct wl_client *client,
-				  struct wl_resource *resource,
-				  uint32_t id);
+  /**
+   * create text input
+   *
+   * Creates a new text_input object.
+   */
+  void (*create_text_input)(struct wl_client* client,
+                            struct wl_resource* resource,
+                            uint32_t id);
 };
-
 
 /**
  * @ingroup iface_zwp_text_input_manager_v1
  */
 #define ZWP_TEXT_INPUT_MANAGER_V1_CREATE_TEXT_INPUT_SINCE_VERSION 1
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -144,8 +144,10 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   void set_wallpaper_window(Window* wallpaper) {
     wallpaper_window_ = wallpaper;
   }
-
   Window* wallpaper_window() { return wallpaper_window_; }
+
+  void set_panel_window(Window* panel) { panel_window_ = panel; }
+  Window* panel_window() { return panel_window_; }
 
  private:
   static WindowManager* g_window_manager;
@@ -165,6 +167,7 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   Window* mouse_pointer_ = nullptr;
   bool pointer_updated_ = false;
   Window* wallpaper_window_ = nullptr;
+  Window* panel_window_ = nullptr;
 };
 
 }  // namespace wm

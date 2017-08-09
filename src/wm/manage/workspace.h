@@ -49,7 +49,7 @@ class Workspace {
   void AddWindowToHead(std::unique_ptr<ManageWindow> window);
   void Show(bool show);
   void SetCurrentWindow(Window* window);
-  void ArrangeWindows(int32_t width, int32_t height);
+  void ArrangeWindows(int32_t x, int32_t y, int32_t width, int32_t height);
   bool HasWindow(Window* window);
   uint32_t tag() { return tag_; }
 

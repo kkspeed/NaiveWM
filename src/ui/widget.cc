@@ -1,7 +1,5 @@
 #include "ui/widget.h"
 
-#include "wm/window.h"
-
 namespace naive {
 namespace ui {
 
@@ -19,6 +17,19 @@ void* Widget::GetTexture(int32_t& width, int32_t& height) {
   width = bounds_.width();
   height = bounds_.height();
   return surface_->get_data();
+}
+
+void Widget::OnDrawFrame() {
+  if (view_dirty_) {
+    Draw();
+    view_dirty_ = false;
+  }
+}
+
+void Widget::Invalidate() {
+  has_commit_ = true;
+  AddDamage(base::geometry::Rect(0, 0, bounds_.width(), bounds_.height()));
+  view_dirty_ = true;
 }
 
 }  // namespace ui

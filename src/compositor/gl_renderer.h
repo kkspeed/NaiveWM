@@ -4,8 +4,8 @@
 #include "compositor/compositor_view.h"
 
 #include <GLES3/gl3.h>
-#include <glm/glm.hpp>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 namespace naive {
 namespace compositor {
@@ -15,7 +15,9 @@ class GlRenderer {
   explicit GlRenderer(int32_t width, int32_t height);
   ~GlRenderer();
 
-  void DrawTextureQuad(GLint coords[], GLfloat texture_coords[], GLuint texture);
+  void DrawTextureQuad(GLint coords[],
+                       GLfloat texture_coords[],
+                       GLuint texture);
   void DrawSolidQuad(GLint* coords, float r, float g, float b, bool fill);
 
  private:

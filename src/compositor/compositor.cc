@@ -524,6 +524,17 @@ void Compositor::Draw() {
     }
   }
 
+  // TODO: clean this up and L520 as well.
+  auto* panel_window = wm::WindowManager::Get()->panel_window();
+  if (panel_window) {
+    auto views =
+        CompositorView::BuildCompositorViewHierarchyRecursive(panel_window);
+    for (auto& view : views) {
+      auto* cv = view.release();
+      view_list.push_back(std::unique_ptr<CompositorView>(cv));
+    }
+  }
+
   bool has_global_damage = !global_damage_region_.is_empty();
 
   if (has_global_damage) {

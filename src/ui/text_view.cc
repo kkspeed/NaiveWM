@@ -3,6 +3,8 @@
 #include <cairomm/context.h>
 #include <cairomm/surface.h>
 
+#include "base/logging.h"
+
 namespace naive {
 namespace ui {
 
@@ -78,8 +80,6 @@ void TextView::Draw() {
   context_->set_source_rgba(bgr, bgg, bgb, bga);
   context_->rectangle(0, 0, bounds_.width(), bounds_.height());
   context_->fill();
-  context_->restore();
-  context_->save();
 
   context_->set_source_rgba(fgr, fgg, fgb, fga);
   context_->set_font_size(text_size_);

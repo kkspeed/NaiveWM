@@ -117,6 +117,7 @@ class Window {
   void NotifyFrameCallback();
 
   WindowImpl* window_impl() { return window_impl_.get(); }
+  void enabel_border(bool border) { has_border_ = border; }
   bool has_border() { return has_border_; }
 
  private:

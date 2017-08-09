@@ -36,7 +36,7 @@ CompositorView::CompositorView(wm::Window* window,
                                int32_t x_offset,
                                int32_t y_offset)
     : window_(window),
-      damaged_region_(window->window_impl()->DamagedRegion()),
+      damaged_region_(window->window_impl()->DamagedRegion().Clone()),
       global_bounds_(window->geometry()),
       global_region_(Region(window->geometry())) {
   damaged_region_.Intersect(window->GetToDrawRegion());

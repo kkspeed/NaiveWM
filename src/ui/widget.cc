@@ -1,5 +1,7 @@
 #include "ui/widget.h"
 
+#include "base/logging.h"
+
 namespace naive {
 namespace ui {
 
@@ -30,6 +32,19 @@ void Widget::Invalidate() {
   has_commit_ = true;
   AddDamage(base::geometry::Rect(0, 0, bounds_.width(), bounds_.height()));
   view_dirty_ = true;
+}
+
+void Widget::AddDamage(const base::geometry::Rect& rect) {
+  TRACE("%s", base::geometry::Rect(rect).ToString().c_str());
+  damaged_region_.Union(rect);
+}
+
+void Widget::AddChild(Widget* widget) {
+  window_->AddChild(widget->window());
+}
+
+void Widget::RemoveChild(Widget* widget) {
+  window_->RemoveChild(widget->window());
 }
 
 }  // namespace ui

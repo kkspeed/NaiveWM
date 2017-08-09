@@ -560,7 +560,9 @@ void Compositor::Draw() {
   bool did_draw = false;
   for (auto& view : view_list) {
     auto* window = view->window();
+    window->window_impl()->ClearDamage();
     if (window->window_impl()->HasCommit()) {
+      window->window_impl()->ClearCommit();
       auto quad = window->window_impl()->GetQuad();
       window->NotifyFrameCallback();
       if (quad.has_data()) {
@@ -588,8 +590,6 @@ void Compositor::Draw() {
         did_draw = true;
       }
     }
-    window->window_impl()->ClearCommit();
-    window->window_impl()->ClearDamage();
   }
 
   if (did_draw) {

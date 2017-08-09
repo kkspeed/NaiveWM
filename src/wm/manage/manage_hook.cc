@@ -8,11 +8,11 @@
 #include "base/utils.h"
 #include "compositor/compositor.h"
 #include "wm/keyboard_event.h"
+#include "wm/manage/panel.h"
 #include "wm/mouse_event.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
 #include "ui/image_view.h"
-#include "ui/text_view.h"
 
 namespace naive {
 namespace wm {
@@ -32,17 +32,12 @@ ManageHook::ManageHook() {
 }
 
 void ManageHook::PostWmInitialize() {
-  // wallpaper_view_ =
-  //    std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
-  // wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
+  wallpaper_view_ =
+      std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
+  wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
-  // panel_ = std::make_unique<ui::TextView>(0, 0, 2560, 20);
-  // panel_->SetText("<1> 2 3 4 5 6 7 8 9");
-  // panel_->SetTextSize(20);
-  // panel_->SetTextAlignment(ui::TextAlignment::CENTER_VERTICAL |
-  //                         ui::TextAlignment::LEFT);
-  // panel_->SetTextColor(0xFF00FF00);
-  // wm::WindowManager::Get()->set_panel_window(panel_->window());
+  panel_ = std::make_unique<Panel>(0, 0, 2560, 20);
+  wm::WindowManager::Get()->set_panel_window(panel_->window());
 }
 
 void ManageHook::WindowCreated(Window* window) {
@@ -212,6 +207,7 @@ void ManageHook::SelectTag(size_t tag) {
   current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                                       width_ - kWorkspaceInsetX,
                                       height_ - kWorkspaceInsetY);
+  panel_->OnWorkspaceChanged(tag);
 }
 
 void ManageHook::MoveWindowToTag(Window* window, size_t tag) {

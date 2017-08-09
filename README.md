@@ -1,7 +1,8 @@
 # NaiveWM
 Wayland-based  tiling window manager.
 
-![Screenshot](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/screenshot.png)
+![Desktop](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/screenshot_0.png)
+![Screenshot](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/screenshot_1.png)
 
 ## Compilation and Test
 ### Basics

@@ -10,7 +10,6 @@
 namespace naive {
 namespace ui {
 class ImageView;
-class TextView;
 }  // namespace ui
 
 namespace wm {
@@ -19,6 +18,7 @@ class Window;
 class WMPrimitives;
 class Event;
 class MouseEvent;
+class Panel;
 
 class ManageHook : public WmEventObserver {
  public:
@@ -52,7 +52,7 @@ class ManageHook : public WmEventObserver {
   int32_t width_, height_;
   WMPrimitives* primitives_ = nullptr;
   std::unique_ptr<ui::ImageView> wallpaper_view_;
-  std::unique_ptr<ui::TextView> panel_;
+  std::unique_ptr<Panel> panel_;
 };
 
 }  // wm

@@ -33,9 +33,7 @@ class Widget {
   void* GetTexture(int32_t& width, int32_t& height);
 
   Region& GetDamagedRegion() { return damaged_region_; }
-  void AddDamage(const base::geometry::Rect& rect) {
-    damaged_region_.Union(rect);
-  }
+  void AddDamage(const base::geometry::Rect& rect);
 
   // Get the bounds of this widget relative to its parent surface.
   base::geometry::Rect& GetBounds() { return bounds_; }
@@ -44,10 +42,13 @@ class Widget {
   bool has_commit() { return has_commit_; }
   void force_commit() { has_commit_ = true; }
   void clear_commit() { has_commit_ = false; }
-  void clear_damage() { damaged_region_.Clear(); }
+  void clear_damage() { damaged_region_ = Region::Empty(); }
 
   // Marks the view as dirty and needs to be drawn.
   void Invalidate();
+
+  void AddChild(Widget* widget);
+  void RemoveChild(Widget* widget);
 
  protected:
   bool has_commit_{false};

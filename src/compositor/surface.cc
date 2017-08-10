@@ -26,8 +26,7 @@ Surface::~Surface() {
 }
 
 void Surface::Attach(Buffer* buffer) {
-  LOG_ERROR << "Surface::Attach " << buffer << " to window " << window()
-            << std::endl;
+  TRACE("attach buffer %p to window: %p", buffer, window());
   if (buffer) {
     buffer->SetOwningSurface(this);
     Damage(window_->geometry());

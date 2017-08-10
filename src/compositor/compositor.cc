@@ -517,10 +517,9 @@ void Compositor::Draw() {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
           CompositorView::BuildCompositorViewHierarchyRecursive(window);
-      for (auto& view : view_list_window) {
-        auto* cv = view.release();
-        view_list.push_back(std::unique_ptr<CompositorView>(cv));
-      }
+      view_list.insert(view_list.end(),
+                       std::make_move_iterator(view_list_window.begin()),
+                       std::make_move_iterator(view_list_window.end()));
     }
   }
 
@@ -529,10 +528,8 @@ void Compositor::Draw() {
   if (panel_window) {
     auto views =
         CompositorView::BuildCompositorViewHierarchyRecursive(panel_window);
-    for (auto& view : views) {
-      auto* cv = view.release();
-      view_list.push_back(std::unique_ptr<CompositorView>(cv));
-    }
+    view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
+                     std::make_move_iterator(views.end()));
   }
 
   bool has_global_damage = !global_damage_region_.is_empty();

@@ -561,10 +561,10 @@ void Compositor::Draw() {
   for (auto& view : view_list) {
     auto* window = view->window();
     window->window_impl()->ClearDamage();
+    window->NotifyFrameCallback();
     if (window->window_impl()->HasCommit()) {
       window->window_impl()->ClearCommit();
       auto quad = window->window_impl()->GetQuad();
-      window->NotifyFrameCallback();
       if (quad.has_data()) {
         auto texture = std::make_unique<Texture>(quad.width(), quad.height(),
                                                  quad.format(), quad.data(),
@@ -652,9 +652,9 @@ void Compositor::Draw() {
 void Compositor::DrawWindowRecursive(wm::Window* window,
                                      int32_t start_x,
                                      int32_t start_y) {
+  window->window_impl()->NotifyFrameRendered();
   // TODO: child windows needs to be handled as well!
   if (window->window_impl()->HasCommit() || draw_forced_) {
-    window->window_impl()->NotifyFrameRendered();
     int32_t physical_x =
         (start_x + window->geometry().x()) * display_metrics_->scale;
     int32_t physical_y =

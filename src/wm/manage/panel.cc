@@ -35,7 +35,6 @@ void TimeView::OnDrawFrame() {
   if (frame_ == 0)
     SetText(GetTime());
   frame_ = (frame_ + 1) % 60;
-  Invalidate();
 }
 
 Panel::Panel(int32_t x, int32_t y, int32_t width, int32_t height)

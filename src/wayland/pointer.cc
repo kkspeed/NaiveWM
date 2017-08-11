@@ -56,7 +56,8 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
                             wl_fixed_from_int(event->x()),
                             wl_fixed_from_int(event->y()));
       // TODO: do version check here instead of blindly disable it!
-      // wl_pointer_send_frame(resource_);
+      if (wl_resource_get_version(resource_) >= WL_POINTER_FRAME_SINCE_VERSION)
+        wl_pointer_send_frame(resource_);
       return;
     }
     switch (event->type()) {
@@ -98,8 +99,8 @@ void Pointer::OnMouseEvent(wm::MouseEvent* event) {
       }
     }
   }
-  // wl_pointer_send_frame(resource_);
-  // LOG_ERROR << "send frame" << std::endl;
+  if (wl_resource_get_version(resource_) >= WL_POINTER_FRAME_SINCE_VERSION)
+    wl_pointer_send_frame(resource_);
   // TODO: dispatch mouse event by generating all wayland pointer events.
 }
 

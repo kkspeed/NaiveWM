@@ -670,8 +670,8 @@ void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   wl_resource* keyboard_resource =
       wl_resource_create(client, &wl_keyboard_interface, version, id);
   auto keyboard = std::make_unique<Keyboard>(keyboard_resource, seat);
-  TRACE("Getting keyboard: %p, client: %p, resource: %p", keyboard.get(),
-        client, resource);
+  TRACE("Getting keyboard: %p, client: %p, resource: %p, version %d",
+        keyboard.get(), client, resource, version);
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
   if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
@@ -695,10 +695,14 @@ const struct wl_seat_interface seat_implementation = {
     .get_touch = seat_get_touch,
     .release = seat_release};
 
+const uint32_t kSeatVersion = 6;
+
 void bind_seat(wl_client* client, void* data, uint32_t version, uint32_t id) {
-  TRACE();
+  TRACE("binding seat with version: %d", version);
   wl_resource* resource =
-      wl_resource_create(client, &wl_seat_interface, version, id);
+      wl_resource_create(client, &wl_seat_interface, std::min(version,
+                                                              kSeatVersion),
+                                                              id);
   wl_resource_set_implementation(resource, &seat_implementation, data, nullptr);
   wl_seat_send_name(resource, "seat0");
   // TODO: add keyboard
@@ -1712,7 +1716,8 @@ Server::Server(Display* display)
                    &bind_xdg_shell_v6);
   wl_global_create(wl_display_, &xdg_shell_interface, 1, display_,
                    &bind_xdg_shell_v5);
-  wl_global_create(wl_display_, &wl_seat_interface, 1, seat_.get(), &bind_seat);
+  wl_global_create(wl_display_, &wl_seat_interface, kSeatVersion, seat_.get(),
+                   &bind_seat);
   wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
                    bind_data_device_manager);
 }

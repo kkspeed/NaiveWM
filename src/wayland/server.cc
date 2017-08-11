@@ -699,10 +699,8 @@ const uint32_t kSeatVersion = 6;
 
 void bind_seat(wl_client* client, void* data, uint32_t version, uint32_t id) {
   TRACE("binding seat with version: %d", version);
-  wl_resource* resource =
-      wl_resource_create(client, &wl_seat_interface, std::min(version,
-                                                              kSeatVersion),
-                                                              id);
+  wl_resource* resource = wl_resource_create(
+      client, &wl_seat_interface, std::min(version, kSeatVersion), id);
   wl_resource_set_implementation(resource, &seat_implementation, data, nullptr);
   wl_seat_send_name(resource, "seat0");
   // TODO: add keyboard

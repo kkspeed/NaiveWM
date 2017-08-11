@@ -605,7 +605,7 @@ void Compositor::Draw() {
     }
   }
 
-  if (has_global_damage) {
+  if (has_global_damage && !wallpaper_window) {
     Region full_screen = Region(base::geometry::Rect(
         0, 0, display_metrics_->width_dp, display_metrics_->height_dp));
     for (auto& v : view_list)

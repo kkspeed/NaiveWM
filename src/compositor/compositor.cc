@@ -358,6 +358,7 @@ class Texture : public TextureDelegate {
     if (format != WL_SHM_FORMAT_ARGB8888 && format != WL_SHM_FORMAT_XRGB8888) {
       TRACE("buffer format not WL_SHM_FORMAT_ARGB8888");
     }
+    needs_backdrop_ = format == WL_SHM_FORMAT_XRGB8888;
     glGenTextures(1, &identifier_);
     glBindTexture(GL_TEXTURE_2D, identifier_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -407,6 +408,8 @@ class Texture : public TextureDelegate {
         bottom_right_x, top_left_y,     bottom_right_x, bottom_right_y,
     };
 
+    if (needs_backdrop_)
+      renderer_->DrawSolidQuad(vertices, 1, 1, 1, true);
     renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
   }
 
@@ -414,6 +417,7 @@ class Texture : public TextureDelegate {
   GLuint identifier_;
   GlRenderer* renderer_;
   int32_t width_, height_;
+  bool needs_backdrop_{false};
 };
 
 std::vector<wm::Window*> CollectNewlyCommittedWindows() {

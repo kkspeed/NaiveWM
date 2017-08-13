@@ -21,7 +21,7 @@ namespace {
 // Change this to your wallpaper's path.
 constexpr char kWallpaperPath[] = "/home/bruce/Downloads/test_wallpaper.png";
 constexpr int32_t kWorkspaceInsetX = 0;
-constexpr int32_t kWorkspaceInsetY = 20;
+constexpr int32_t kWorkspaceInsetY = 0;  // 20;
 }  // namespace
 
 ManageHook::ManageHook() {
@@ -32,12 +32,12 @@ ManageHook::ManageHook() {
 }
 
 void ManageHook::PostWmInitialize() {
-  wallpaper_view_ =
-      std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
-  wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
+  // wallpaper_view_ =
+  //    std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
+  // wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
-  panel_ = std::make_unique<Panel>(0, 0, 2560, 20);
-  wm::WindowManager::Get()->set_panel_window(panel_->window());
+  // panel_ = std::make_unique<Panel>(0, 0, 2560, 20);
+  // wm::WindowManager::Get()->set_panel_window(panel_->window());
 }
 
 void ManageHook::WindowCreated(Window* window) {

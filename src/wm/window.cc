@@ -157,8 +157,8 @@ void Window::MaybeMakeTopLevel() {
     // Detach this surface from parent since it's going to be managed at top
     // level
     if (!parent_) {
-      wm::WindowManager::Get()->Manage(this);
       has_border_ = true;
+      wm::WindowManager::Get()->Manage(this);
     } else
       WmSetSize(geometry().width(), geometry().height());
     to_be_managed_ = false;

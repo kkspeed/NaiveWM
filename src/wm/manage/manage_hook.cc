@@ -94,6 +94,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
           [pid](wm::Window* window) {
             if (window->GetPid() == pid) {
               window->set_mouse_event_scale_override(1);
+              window->enable_border(false);
               return true;
             }
             return false;

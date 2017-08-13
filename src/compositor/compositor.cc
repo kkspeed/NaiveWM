@@ -408,9 +408,12 @@ class Texture : public TextureDelegate {
         bottom_right_x, top_left_y,     bottom_right_x, bottom_right_y,
     };
 
-    if (needs_backdrop_)
-      renderer_->DrawSolidQuad(vertices, 1, 1, 1, true);
-    renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
+    if (needs_backdrop_) {
+      glDisable(GL_BLEND);
+      renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
+      glEnable(GL_BLEND);
+    } else
+      renderer_->DrawTextureQuad(vertices, tex_coords, identifier_);
   }
 
  private:

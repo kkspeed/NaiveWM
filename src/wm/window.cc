@@ -255,5 +255,17 @@ void Window::NotifyFrameCallback() {
   window_impl_->NotifyFrameRendered();
 }
 
+pid_t Window::GetPid() {
+  if (type_ == WindowType::NORMAL) {
+    auto* client = wl_resource_get_client(surface_->resource());
+    pid_t pid;
+    gid_t gid;
+    uid_t uid;
+    wl_client_get_credentials(client, &pid, &uid, &gid);
+    return pid;
+  }
+  return 0;
+}
+
 }  // namespace wm
 }  // namespace naive

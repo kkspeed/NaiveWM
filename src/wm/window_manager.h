@@ -149,6 +149,16 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   void set_panel_window(Window* panel) { panel_window_ = panel; }
   Window* panel_window() { return panel_window_; }
 
+  using WindowPolicyAction = std::function<bool(Window*)>;
+
+  void AddWindowPolicyAction(WindowPolicyAction action, bool once = false) {
+    if (once) {
+      policy_actions_once_.push_back(action);
+      return;
+    }
+    policy_actions_.push_back(action);
+  }
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
@@ -168,6 +178,8 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   bool pointer_updated_ = false;
   Window* wallpaper_window_ = nullptr;
   Window* panel_window_ = nullptr;
+  std::vector<WindowPolicyAction> policy_actions_;
+  std::vector<WindowPolicyAction> policy_actions_once_;
 };
 
 }  // namespace wm

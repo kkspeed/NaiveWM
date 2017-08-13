@@ -70,6 +70,10 @@ void WindowManager::Manage(Window* window) {
   }
   windows_.push_back(window);
   window->set_managed(true);
+  for (auto& policy : policy_actions_)
+    policy(window);
+  std::remove_if(policy_actions_once_.begin(), policy_actions_once_.end(),
+                 [window](auto& policy) { return policy(window); });
   // We'll skip popup windows for configure.
   if (window->is_popup() || window->is_transient())
     return;
@@ -182,6 +186,7 @@ void WindowManager::OnMouseMotion(float dx,
   MouseEventData data;
   data.delta[0] = static_cast<int32_t>(new_x - last_mouse_position_.x());
   data.delta[1] = static_cast<int32_t>(new_y - last_mouse_position_.y());
+
   DispatchMouseEvent(std::make_unique<MouseEvent>(
       FindMouseEventTarget(), MouseEventType::MouseMotion,
       base::Time::CurrentTimeMilliSeconds(), modifiers, data,
@@ -277,6 +282,13 @@ void WindowManager::DispatchMouseEvent(std::unique_ptr<MouseEvent> event) {
     // Finally, window has a transformation
     coord_x -= window_path.back()->wm_x();
     coord_y -= window_path.back()->wm_y();
+
+    if (window->mouse_event_scale_override()) {
+      coord_x = coord_x * display_metrics_->scale /
+                window->mouse_event_scale_override();
+      coord_y = coord_y * display_metrics_->scale /
+                window->mouse_event_scale_override();
+    }
     event->set_coordinates(coord_x, coord_y);
     LOG_ERROR << " dispatch final coords: " << coord_x << " " << coord_y
               << std::endl;

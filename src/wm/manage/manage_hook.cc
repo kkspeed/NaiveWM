@@ -84,6 +84,25 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     }
     return true;
   }
+
+  // Launch X wayland and apply policy to for event scale to 1.
+  if (event->super_pressed() && event->keycode() == KEY_X) {
+    if (!event->pressed()) {
+      const char* args[] = {"Xwayland", "+iglx", ":1", nullptr};
+      pid_t pid = base::LaunchProgram("Xwayland", (char**)args);
+      wm::WindowManager::Get()->AddWindowPolicyAction(
+          [pid](wm::Window* window) {
+            if (window->GetPid() == pid) {
+              window->set_mouse_event_scale_override(1);
+              return true;
+            }
+            return false;
+          },
+          true);
+    }
+    return true;
+  }
+
   if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
       event->keycode() == KEY_Q) {
     exit(0);
@@ -197,6 +216,8 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   }
   return false;
 }
+
+void ManageHook::PostSetupPolicy() {}
 
 void ManageHook::SelectTag(size_t tag) {
   current_workspace()->Show(false);

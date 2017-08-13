@@ -120,6 +120,13 @@ class Window {
   void enabel_border(bool border) { has_border_ = border; }
   bool has_border() { return has_border_; }
 
+  pid_t GetPid();
+
+  int32_t mouse_event_scale_override() { return mouse_event_scale_override_; }
+  void set_mouse_event_scale_override(int32_t override) {
+    mouse_event_scale_override_ = override;
+  }
+
  private:
   bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
@@ -136,6 +143,7 @@ class Window {
   ShellSurface* shell_surface_;
   int32_t wm_x_ = 0, wm_y_ = 0;
   WindowType type_;
+  int32_t mouse_event_scale_override_{0};
 
   std::unique_ptr<WindowImpl> window_impl_;
   ui::Widget* widget_;

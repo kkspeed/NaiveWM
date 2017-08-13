@@ -6,11 +6,10 @@
 
 #include "wm/manage/workspace.h"
 #include "wm/window_manager.h"
+#include "wm/manage/panel.h"
+#include "ui/image_view.h"
 
 namespace naive {
-namespace ui {
-class ImageView;
-}  // namespace ui
 
 namespace wm {
 
@@ -18,7 +17,6 @@ class Window;
 class WMPrimitives;
 class Event;
 class MouseEvent;
-class Panel;
 
 class ManageHook : public WmEventObserver {
  public:
@@ -30,6 +28,8 @@ class ManageHook : public WmEventObserver {
   void PostWmInitialize() override;
   bool OnMouseEvent(MouseEvent* event) override;
   bool OnKey(KeyboardEvent* event) override;
+
+  void PostSetupPolicy();
 
   void set_wm_primitives(WMPrimitives* primitives) override {
     primitives_ = primitives;

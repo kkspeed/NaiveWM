@@ -1,3 +1,4 @@
+#include <memory>
 #include <poll.h>
 
 #include "wayland/display.h"
@@ -11,7 +12,9 @@
 int main() {
   naive::event::EventHub::InitializeEventHub();
   naive::compositor::Compositor::InitializeCompoistor();
-  naive::wm::WindowManager::InitializeWindowManager(new naive::wm::ManageHook);
+
+  auto manage_hook = std::make_unique<naive::wm::ManageHook>();
+  naive::wm::WindowManager::InitializeWindowManager(manage_hook.get());
 
   auto display = std::make_unique<naive::wayland::Display>();
   auto server = std::make_unique<naive::wayland::Server>(display.get());
@@ -22,6 +25,7 @@ int main() {
   pollfd fds[] = {{.fd = wayland_fd, .events = POLLIN},
                   {.fd = libinput_fd, .events = POLLIN}};
 
+  manage_hook->PostSetupPolicy();
   for (;;) {
     server->DispatchEvents();
     libinput->HandleEvents();

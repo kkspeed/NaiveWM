@@ -9,7 +9,10 @@ namespace wayland {
 
 SharedMemory::SharedMemory(int fd, uint32_t size) {
   void* data = mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+  if (data == MAP_FAILED)
+    TRACE("mmap failed");
   shm_data_ = std::make_shared<ShmPool>(size, data);
+  close(fd);
 }
 
 SharedMemory::~SharedMemory() {

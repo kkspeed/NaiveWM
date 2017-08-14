@@ -126,24 +126,24 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
     wl_array_release(&keys);
     return;
   }
-  if (key_event->keycode() == 0) {
-    LOG_ERROR << "send modifiers " << key_event->shift_pressed() << std::endl;
-    wl_keyboard_send_modifiers(
-        resource_, next_serial(),
-        xkb_state_serialize_mods(
-            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_DEPRESSED)),
-        xkb_state_serialize_mods(
-            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LOCKED)),
-        xkb_state_serialize_mods(
-            xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LATCHED)),
-        xkb_state_serialize_layout(xkb_state_, XKB_STATE_LAYOUT_EFFECTIVE));
-    return;
-  } else {
-    wl_keyboard_send_key(resource_, next_serial(), key_event->time(),
-                         key_event->keycode(),
-                         key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
-                                              : WL_KEYBOARD_KEY_STATE_RELEASED);
-  }
+  // if (key_event->keycode() == 0) {
+  //  LOG_ERROR << "send modifiers " << key_event->shift_pressed() << std::endl;
+  wl_keyboard_send_modifiers(
+      resource_, next_serial(),
+      xkb_state_serialize_mods(
+          xkb_state_, static_cast<xkb_state_component>(XKB_STATE_DEPRESSED)),
+      xkb_state_serialize_mods(
+          xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LOCKED)),
+      xkb_state_serialize_mods(
+          xkb_state_, static_cast<xkb_state_component>(XKB_STATE_LATCHED)),
+      xkb_state_serialize_layout(xkb_state_, XKB_STATE_LAYOUT_EFFECTIVE));
+  //  return;
+  //} else {
+  wl_keyboard_send_key(resource_, next_serial(), key_event->time(),
+                       key_event->keycode(),
+                       key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
+                                            : WL_KEYBOARD_KEY_STATE_RELEASED);
+  //}
 }
 
 void Keyboard::OnSurfaceDestroyed(Surface* surface) {
@@ -156,33 +156,32 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
 
 void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {
   TRACE();
-  if (key_event->keycode() != 0) {
-    if (key_event->pressed())
-      pressed_keys_.insert(key_event->keycode());
-    else
-      pressed_keys_.erase(key_event->keycode());
-  } else {
-    uint32_t xkb_modifiers = 0;
-    uint32_t xkb_leds = 0;
-    if (key_event->ctrl_pressed())
-      xkb_modifiers |=
-          1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_CTRL);
-    if (key_event->alt_pressed())
-      xkb_modifiers |=
-          1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_ALT);
-    if (key_event->shift_pressed())
-      xkb_modifiers |=
-          1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_SHIFT);
+  // if (key_event->keycode() != 0) {
+  if (key_event->pressed())
+    pressed_keys_.insert(key_event->keycode());
+  else
+    pressed_keys_.erase(key_event->keycode());
+  //} else {
+  uint32_t xkb_modifiers = 0;
+  uint32_t xkb_leds = 0;
+  if (key_event->ctrl_pressed())
+    xkb_modifiers |=
+        1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_CTRL);
+  if (key_event->alt_pressed())
+    xkb_modifiers |=
+        1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_ALT);
+  if (key_event->shift_pressed())
+    xkb_modifiers |=
+        1 << xkb_keymap_mod_get_index(xkb_keymap_, XKB_MOD_NAME_SHIFT);
 
-    if (key_event->caps_lock_on())
-      xkb_leds |= 1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_CAPS);
-    if (key_event->num_lock_on())
-      xkb_leds |= 1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_NUM);
-    if (key_event->scroll_lock_on())
-      xkb_leds |=
-          1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_SCROLL);
-    xkb_state_update_mask(xkb_state_, xkb_modifiers, 0, xkb_leds, 0, 0, 0);
-  }
+  if (key_event->caps_lock_on())
+    xkb_leds |= 1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_CAPS);
+  if (key_event->num_lock_on())
+    xkb_leds |= 1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_NUM);
+  if (key_event->scroll_lock_on())
+    xkb_leds |= 1 << xkb_keymap_led_get_index(xkb_keymap_, XKB_LED_NAME_SCROLL);
+  xkb_state_update_mask(xkb_state_, xkb_modifiers, 0, xkb_leds, 0, 0, 0);
+  //}
 }
 
 uint32_t Keyboard::next_serial() {

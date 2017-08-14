@@ -16,13 +16,14 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
                                int32_t height,
                                int32_t screen_width_,
                                int32_t screen_height_,
-                               bool horizontal) {
+                               bool horizontal,
+                               int32_t inset_y) {
   if (candidates.size() == 0)
     return;
 
   if (candidates.size() == 1) {
     if (candidates.front()->is_maximized())
-      candidates.front()->MoveResize(0, 0, screen_width_, screen_height_);
+      candidates.front()->MoveResize(0, inset_y, screen_width_, screen_height_);
     else
       candidates.front()->MoveResize(x, y, width, height);
     return;
@@ -32,18 +33,22 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
   candidates.pop_front();
   if (horizontal) {
     if (front->is_maximized())
-      front->MoveResize(0, 0, screen_width_, screen_height_);
+      front->MoveResize(0, inset_y, screen_width_, screen_height_);
     else
       front->MoveResize(x, y, width / 2, height);
     ArrangeNonFloatingWindows(candidates, x + width / 2, y, width / 2, height,
-                              screen_width_, screen_height_, !horizontal);
+                              screen_width_, screen_height_, !horizontal,
+                              inset_y);
   } else {
     if (front->is_maximized())
       front->MoveResize(0, 0, screen_width_, screen_height_);
     else
       front->MoveResize(x, y, width, height / 2);
+    // TODO: screen_width_ and height are not full screen screen width and
+    // height (screen_height_ = height - inset_y)...
     ArrangeNonFloatingWindows(candidates, x, y + height / 2, width, height / 2,
-                              screen_width_, screen_height_, !horizontal);
+                              screen_width_, screen_height_, !horizontal,
+                              inset_y);
   }
 }
 
@@ -54,7 +59,8 @@ ManageWindow::ManageWindow(Window* window, WMPrimitives* primitives)
       primitives_(primitives),
       is_floating_(window->is_transient() || window->is_popup()) {}
 
-Workspace::Workspace(uint32_t tag) : tag_(tag) {}
+Workspace::Workspace(uint32_t tag, uint32_t workspace_inset_y)
+    : tag_(tag), workspace_inset_y_(workspace_inset_y) {}
 
 void Workspace::AddWindow(std::unique_ptr<ManageWindow> window) {
   windows_.push_back(std::move(window));
@@ -130,7 +136,7 @@ void Workspace::ArrangeWindows(int32_t x,
   }
 
   ArrangeNonFloatingWindows(normal_windows, x, y, width, height, width, height,
-                            true);
+                            true, workspace_inset_y_);
 
   for (auto* window : floating_windows)
     window->window()->Raise();

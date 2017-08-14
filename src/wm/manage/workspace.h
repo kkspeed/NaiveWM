@@ -39,7 +39,7 @@ class ManageWindow {
 
 class Workspace {
  public:
-  explicit Workspace(uint32_t tag);
+  explicit Workspace(uint32_t tag, uint32_t workspace_inset_y);
 
   void AddWindow(std::unique_ptr<ManageWindow> window);
   ManageWindow* CurrentWindow();
@@ -55,6 +55,7 @@ class Workspace {
 
  private:
   uint32_t tag_ = 0;
+  uint32_t workspace_inset_y_ = 0;
   size_t current_window_ = 0;
   std::vector<std::unique_ptr<ManageWindow>> windows_;
 };

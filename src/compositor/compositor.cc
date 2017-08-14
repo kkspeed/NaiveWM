@@ -605,9 +605,9 @@ void Compositor::Draw() {
           continue;
         if (view_list[i]->window()->focused() &&
             !view_list[i]->window()->parent())
-          FillRect(rect, 1.0, 0.0, 0.0);
+          FillRect(rect, 0.0, 1.0, 1.0);
         else
-          FillRect(rect, 0.0, 1.0, 0.0);
+          FillRect(rect, 0.0, 0.3, 0.3);
       }
     }
   }
@@ -722,7 +722,7 @@ void Compositor::FillRect(base::geometry::Rect rect,
 void Compositor::DrawWindowBorder(wm::Window* window) {
   if (!window->has_border())
     return;
-  glLineWidth(2.5);
+  glLineWidth(1.5);
   int32_t x = window->wm_x() * display_metrics_->scale;
   int32_t y = window->wm_y() * display_metrics_->scale;
   auto rect = window->geometry();

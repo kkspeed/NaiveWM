@@ -26,7 +26,7 @@ constexpr int32_t kWorkspaceInsetY = 0;  // 20;
 
 ManageHook::ManageHook() {
   for (uint32_t i = 0; i < 9; i++) {
-    workspaces_.push_back(Workspace(i));
+    workspaces_.push_back(Workspace(i, kWorkspaceInsetY));
     current_workspace_ = 0;
   }
 }

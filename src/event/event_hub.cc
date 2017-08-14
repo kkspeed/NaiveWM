@@ -105,8 +105,9 @@ void EventHub::HandleEvents() {
             MaybeChangeLockStates(device, key)) {
           return_keycode = 0;
         }
-        if (UpdateModifiers(key, state))
-          return_keycode = 0;
+        // if (UpdateModifiers(key, state))
+        //  return_keycode = 0;
+        UpdateModifiers(key, state);
         for (auto observer : observers_)
           observer->OnKey(return_keycode, modifiers_,
                           state == LIBINPUT_KEY_STATE_PRESSED,

@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "surface.h"
 #include "wayland/shared_memory.h"
 
 namespace naive {
@@ -15,6 +16,12 @@ Buffer::Buffer(int32_t width,
       offset_(offset),
       stride_(stride),
       shm_pool_(pool) {}
+
+Buffer::~Buffer() {
+  TRACE("%p", this);
+  if (owner_)
+    owner_->NotifyBufferDestroyed(this);
+}
 
 void Buffer::SetOwningSurface(Surface* surface) {
   owner_ = surface;

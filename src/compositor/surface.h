@@ -44,7 +44,7 @@ class Surface {
   void SetInputRegion(const Region region);
   void Commit();
   void SetFrameCallback(std::function<void()>* callback);
-  void SetBufferScale(int32_t scale){/* TODO: Implement this */};
+  void SetBufferScale(int32_t scale) { scale_ = scale; }
 
   void AddSurfaceObserver(SurfaceObserver* observer) {
     TRACE("Add observer: %p to surface %p", observer, this);
@@ -69,6 +69,13 @@ class Surface {
     }
   }
 
+  void NotifyBufferDestroyed(Buffer* buffer) {
+    if (buffer == pending_state_.buffer)
+      pending_state_.buffer = nullptr;
+    if (buffer == state_.buffer)
+      state_.buffer = nullptr;
+  }
+
   void ForceDamage(base::geometry::Rect rect);
   Region damaged_regoin() { return state_.damaged_region; }
   void set_resource(wl_resource* resource) { resource_ = resource; }
@@ -77,6 +84,7 @@ class Surface {
   void force_commit() { has_commit_ = true; }
   void clear_commit() { has_commit_ = false; }
   void clear_damage() { state_.damaged_region.Clear(); }
+  int32_t buffer_scale() { return scale_; }
   Buffer* committed_buffer() { return state_.buffer; }
   wm::Window* window() {
     assert(window_);
@@ -108,6 +116,7 @@ class Surface {
   bool has_commit_ = false;
   std::vector<SurfaceObserver*> observers_;
   std::unique_ptr<wm::Window> window_;
+  uint32_t scale_{1};
 
   std::unique_ptr<compositor::TextureDelegate> cached_texture_;
 };

@@ -24,7 +24,7 @@ class Buffer {
          int32_t offset,
          int32_t stride,
          std::shared_ptr<wayland::ShmPool> pool);
-  ~Buffer() { TRACE("%p", this); }
+  ~Buffer();
   void SetOwningSurface(Surface* surface);
   void* data();
 
@@ -43,7 +43,7 @@ class Buffer {
  private:
   int32_t width_, height_, format_, offset_, stride_;
   std::shared_ptr<wayland::ShmPool> shm_pool_;
-  Surface* owner_;
+  Surface* owner_{nullptr};
   std::function<void()> buffer_release_callback_;
 };
 

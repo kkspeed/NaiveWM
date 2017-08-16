@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <vector>
 
+#include "ui/image_view.h"
+#include "wm/manage/panel.h"
 #include "wm/manage/workspace.h"
 #include "wm/window_manager.h"
-#include "wm/manage/panel.h"
-#include "ui/image_view.h"
 
 namespace naive {
 

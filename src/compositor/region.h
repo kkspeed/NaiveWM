@@ -14,7 +14,6 @@ class Region {
   static Region Empty();
 
   explicit Region(const base::geometry::Rect& rect);
-  ~Region();
 
   bool is_empty();
   void Clear();

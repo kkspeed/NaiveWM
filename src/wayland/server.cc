@@ -168,15 +168,15 @@ void surface_set_buffer_scale(wl_client* client,
 }
 
 const struct wl_surface_interface surface_implementation = {
-    .attach = surface_attach,
-    .commit = surface_commit,
-    .damage = surface_damage,
-    .destroy = surface_destroy,
-    .frame = surface_frame,
-    .set_buffer_transform = surface_set_buffer_transform,
-    .set_buffer_scale = surface_set_buffer_scale,
-    .set_opaque_region = surface_set_opaque_region,
-    .set_input_region = surface_set_input_region};
+    surface_destroy,
+    surface_attach,
+    surface_damage,
+    surface_frame,
+    surface_set_opaque_region,
+    surface_set_input_region,
+    surface_commit,
+    surface_set_buffer_transform,
+    surface_set_buffer_scale};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_region_interface
@@ -208,9 +208,7 @@ void region_subtract(wl_client* client,
 }
 
 const struct wl_region_interface region_implementation = {
-    .add = region_add,
-    .subtract = region_subtract,
-    .destroy = region_destroy};
+    region_destroy, region_add, region_subtract};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_compositor
@@ -239,8 +237,7 @@ void compositor_create_region(wl_client* client,
 }
 
 const struct wl_compositor_interface compositor_implementation = {
-    .create_region = compositor_create_region,
-    .create_surface = compositor_create_surface,
+    compositor_create_surface, compositor_create_region,
 };
 
 void bind_compositor(wl_client* client,
@@ -265,7 +262,8 @@ void shm_pool_create_buffer(wl_client* client,
                             int32_t height,
                             int32_t stride,
                             uint32_t format) {
-  TRACE("create buffer: %d %d %d %d", offset, width, height, stride);
+  TRACE("create buffer: %d %d %d %d format: %d", offset, width, height, stride,
+        format);
   if (format != WL_SHM_FORMAT_XRGB8888 && format != WL_SHM_FORMAT_ARGB8888) {
     std::cerr << "unsupported format " << format;
     return;
@@ -296,9 +294,7 @@ void shm_pool_resize(wl_client* client, wl_resource* resource, int32_t size) {
 }
 
 const struct wl_shm_pool_interface shm_pool_implementation = {
-    .create_buffer = shm_pool_create_buffer,
-    .destroy = shm_pool_destroy,
-    .resize = shm_pool_resize};
+    shm_pool_create_buffer, shm_pool_destroy, shm_pool_resize};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shm_interface:
@@ -312,6 +308,7 @@ void shm_create_pool(wl_client* client,
   std::unique_ptr<SharedMemory> shared_memory =
       GetUserDataAs<Display>(resource)->CreateSharedMemory(fd, size);
   if (!shared_memory) {
+    TRACE("Memory runs out in shm pool");
     wl_resource_post_no_memory(resource);
     return;
   }
@@ -377,9 +374,8 @@ void subsurface_set_desync(wl_client* client, wl_resource* resource) {
 }
 
 const struct wl_subsurface_interface subsurface_implementation {
-  .destroy = subsurface_destroy, .set_position = subsurface_set_position,
-  .place_above = subsurface_place_above, .place_below = subsurface_place_below,
-  .set_desync = subsurface_set_desync, .set_sync = subsurface_set_sync,
+  subsurface_destroy, subsurface_set_position, subsurface_place_above,
+      subsurface_place_below, subsurface_set_sync, subsurface_set_desync,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,16 +534,11 @@ void shell_surface_set_class(wl_client* client,
 }
 
 const struct wl_shell_surface_interface shell_surface_implementation = {
-    .pong = shell_surface_pong,
-    .move = shell_surface_move,
-    .resize = shell_surface_resize,
-    .set_toplevel = shell_surface_set_toplevel,
-    .set_transient = shell_surface_set_transient,
-    .set_fullscreen = shell_surface_set_fullscreen,
-    .set_popup = shell_surface_set_popup,
-    .set_maximized = shell_surface_set_maximized,
-    .set_title = shell_surface_set_title,
-    .set_class = shell_surface_set_class};
+    shell_surface_pong,          shell_surface_move,
+    shell_surface_resize,        shell_surface_set_toplevel,
+    shell_surface_set_transient, shell_surface_set_fullscreen,
+    shell_surface_set_popup,     shell_surface_set_maximized,
+    shell_surface_set_title,     shell_surface_set_class};
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_shell_interface:
@@ -636,7 +627,7 @@ void pointer_release(wl_client* client, wl_resource* resource) {
 }
 
 const struct wl_pointer_interface pointer_implementation {
-  .release = pointer_release, .set_cursor = pointer_set_cursor
+  pointer_set_cursor, pointer_release,
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -646,9 +637,7 @@ void keyboard_release(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
-const struct wl_keyboard_interface keyboard_implementation {
-  .release = keyboard_release
-};
+const struct wl_keyboard_interface keyboard_implementation { keyboard_release };
 
 ///////////////////////////////////////////////////////////////////////////////
 // wl_seat interface:
@@ -675,7 +664,7 @@ void seat_get_keyboard(wl_client* client, wl_resource* resource, uint32_t id) {
   SetImplementation(keyboard_resource, &keyboard_implementation,
                     std::move(keyboard));
   if (version >= WL_KEYBOARD_REPEAT_INFO_SINCE_VERSION)
-    wl_keyboard_send_repeat_info(keyboard_resource, 400, 500);
+    wl_keyboard_send_repeat_info(keyboard_resource, 200, 500);
 }
 
 void seat_get_touch(wl_client* client, wl_resource* resource, uint32_t id) {
@@ -690,10 +679,7 @@ void seat_release(wl_client* client, wl_resource* resource) {
 }
 
 const struct wl_seat_interface seat_implementation = {
-    .get_keyboard = seat_get_keyboard,
-    .get_pointer = seat_get_pointer,
-    .get_touch = seat_get_touch,
-    .release = seat_release};
+    seat_get_pointer, seat_get_keyboard, seat_get_touch, seat_release};
 
 const uint32_t kSeatVersion = 6;
 
@@ -864,20 +850,20 @@ void xdg_surface_v5_set_minimized(wl_client* client, wl_resource* resource) {
 }
 
 const struct xdg_surface_interface xdg_surface_v5_implementation = {
-    .destroy = xdg_surface_v5_destroy,
-    .set_fullscreen = xdg_surface_v5_set_fullscreen,
-    .unset_fullscreen = xdg_surface_v5_unset_fullscreen,
-    .set_maximized = xdg_surface_v5_set_maximized,
-    .unset_maximized = xdg_surface_v5_unset_maximized,
-    .ack_configure = xdg_surface_v5_ack_configure,
-    .move = xdg_surface_v5_move,
-    .resize = xdg_surface_v5_resize,
-    .set_app_id = xdg_surface_v5_set_app_id,
-    .set_title = xdg_surface_v5_set_title,
-    .set_window_geometry = xdg_surface_v5_set_window_geometry,
-    .set_parent = xdg_surface_v5_set_parent,
-    .show_window_menu = xdg_surface_v5_show_window_menu,
-    .set_minimized = xdg_surface_v5_set_minimized};
+    xdg_surface_v5_destroy,
+    xdg_surface_v5_set_parent,
+    xdg_surface_v5_set_title,
+    xdg_surface_v5_set_app_id,
+    xdg_surface_v5_show_window_menu,
+    xdg_surface_v5_move,
+    xdg_surface_v5_resize,
+    xdg_surface_v5_ack_configure,
+    xdg_surface_v5_set_window_geometry,
+    xdg_surface_v5_set_maximized,
+    xdg_surface_v5_unset_maximized,
+    xdg_surface_v5_set_fullscreen,
+    xdg_surface_v5_unset_fullscreen,
+    xdg_surface_v5_set_minimized};
 
 //////////////////////////////////////////////////////////////////////////////
 // xdg_shell_v5_popup_interface:
@@ -886,7 +872,7 @@ void xdg_popup_v5_destroy(wl_client* client, wl_resource* resource) {
 }
 
 const struct xdg_popup_interface xdg_popup_v5_implementation = {
-    .destroy = xdg_popup_v5_destroy};
+    xdg_popup_v5_destroy};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_shell_v5_interface:
@@ -986,11 +972,8 @@ void xdg_shell_v5_pong(wl_client* client,
 }
 
 const struct xdg_shell_interface xdg_shell_v5_implementation = {
-    .destroy = xdg_shell_v5_destroy,
-    .use_unstable_version = xdg_shell_v5_use_unstable_version,
-    .get_xdg_surface = xdg_shell_v5_get_xdg_surface,
-    .get_xdg_popup = xdg_shell_v5_get_popup,
-    .pong = xdg_shell_v5_pong};
+    xdg_shell_v5_destroy, xdg_shell_v5_use_unstable_version,
+    xdg_shell_v5_get_xdg_surface, xdg_shell_v5_get_popup, xdg_shell_v5_pong};
 
 void bind_xdg_shell_v5(wl_client* client,
                        void* data,
@@ -1139,13 +1122,13 @@ void xdg_positioner_v6_set_offset(wl_client* client,
 }
 
 const struct zxdg_positioner_v6_interface xdg_positioner_v6_implementation = {
-    .destroy = xdg_positioner_v6_destroy,
-    .set_anchor = xdg_positioner_v6_set_anchor,
-    .set_anchor_rect = xdg_positioner_v6_set_anchor_rect,
-    .set_constraint_adjustment = xdg_positioner_v6_set_constraint_adjustment,
-    .set_gravity = xdg_positioner_v6_set_gravity,
-    .set_offset = xdg_positioner_v6_set_offset,
-    .set_size = xdg_positioner_v6_set_size};
+    xdg_positioner_v6_destroy,
+    xdg_positioner_v6_set_size,
+    xdg_positioner_v6_set_anchor_rect,
+    xdg_positioner_v6_set_anchor,
+    xdg_positioner_v6_set_gravity,
+    xdg_positioner_v6_set_constraint_adjustment,
+    xdg_positioner_v6_set_offset};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_toplevel_interface
@@ -1257,20 +1240,13 @@ void xdg_toplevel_v6_set_minimized(wl_client* client, wl_resource* resource) {
 }
 
 const struct zxdg_toplevel_v6_interface xdg_toplevel_v6_implementation = {
-    .destroy = xdg_toplevel_v6_destroy,
-    .set_parent = xdg_toplevel_v6_set_parent,
-    .set_title = xdg_toplevel_v6_set_title,
-    .move = xdg_toplevel_v6_move,
-    .resize = xdg_toplevel_v6_resize,
-    .set_app_id = xdg_toplevel_v6_set_app_id,
-    .set_fullscreen = xdg_toplevel_v6_set_fullscreen,
-    .unset_fullscreen = xdg_toplevel_v6_unset_fullscreen,
-    .set_max_size = xdg_toplevel_v6_set_max_size,
-    .set_min_size = xdg_toplevel_v6_set_min_size,
-    .set_maximized = xdg_toplevel_v6_set_maximized,
-    .unset_maximized = xdg_toplevel_v6_unset_maximized,
-    .set_minimized = xdg_toplevel_v6_set_minimized,
-    .show_window_menu = xdg_toplevel_v6_show_window_menu,
+    xdg_toplevel_v6_destroy,          xdg_toplevel_v6_set_parent,
+    xdg_toplevel_v6_set_title,        xdg_toplevel_v6_set_app_id,
+    xdg_toplevel_v6_show_window_menu, xdg_toplevel_v6_move,
+    xdg_toplevel_v6_resize,           xdg_toplevel_v6_set_max_size,
+    xdg_toplevel_v6_set_min_size,     xdg_toplevel_v6_set_maximized,
+    xdg_toplevel_v6_unset_maximized,  xdg_toplevel_v6_set_fullscreen,
+    xdg_toplevel_v6_unset_fullscreen, xdg_toplevel_v6_set_minimized,
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1294,8 +1270,7 @@ void xdg_popup_v6_grab(wl_client* client,
 }
 
 const struct zxdg_popup_v6_interface xdg_popup_v6_implementation = {
-    .destroy = xdg_popup_v6_destroy,
-    .grab = xdg_popup_v6_grab};
+    xdg_popup_v6_destroy, xdg_popup_v6_grab};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_surface_interface:
@@ -1453,11 +1428,9 @@ void xdg_surface_v6_ack_configure(wl_client* client,
 }
 
 const struct zxdg_surface_v6_interface xdg_surface_v6_implementation = {
-    .destroy = xdg_surface_v6_destroy,
-    .get_toplevel = xdg_surface_v6_get_toplevel,
-    .get_popup = xdg_surface_v6_get_popup,
-    .set_window_geometry = xdg_surface_v6_set_window_geometry,
-    .ack_configure = xdg_surface_v6_ack_configure};
+    xdg_surface_v6_destroy, xdg_surface_v6_get_toplevel,
+    xdg_surface_v6_get_popup, xdg_surface_v6_set_window_geometry,
+    xdg_surface_v6_ack_configure};
 
 ///////////////////////////////////////////////////////////////////////////////
 // xdg_shell_interface:
@@ -1558,11 +1531,20 @@ void data_offer_destroy(wl_client* client, wl_resource* resource) {
   wl_resource_destroy(resource);
 }
 
+void data_offer_finish(wl_client* client, wl_resource* resource) {
+  NOTIMPLEMENTED();
+}
+
+void data_offer_set_actions(wl_client* client,
+                            wl_resource* resource,
+                            uint32_t dnd_actions,
+                            uint32_t preferred_action) {
+  NOTIMPLEMENTED();
+}
+
 const struct wl_data_offer_interface data_offer_implementation = {
-    .accept = data_offer_accept,
-    .receive = data_offer_receive,
-    .destroy = data_offer_destroy,
-};
+    data_offer_accept, data_offer_receive, data_offer_destroy,
+    data_offer_finish, data_offer_set_actions};
 
 DataOffer* CreateDataOffer(wl_client* client, DataSource* source) {
   wl_resource* offer_resource =
@@ -1614,9 +1596,7 @@ void data_device_release(wl_client* client, wl_resource* resource) {
 }
 
 const struct wl_data_device_interface data_device_implementation = {
-    .release = data_device_release,
-    .start_drag = data_device_start_drag,
-    .set_selection = data_device_set_selection};
+    data_device_start_drag, data_device_set_selection, data_device_release};
 
 //////////////////////////////////////////////////////////////////////////////
 // wl_data_source_interface
@@ -1642,8 +1622,7 @@ void data_source_set_actions(wl_client* client,
 }
 
 const struct wl_data_source_interface data_source_implementation {
-  .destroy = data_source_destroy, .offer = data_source_offer,
-  .set_actions = data_source_set_actions
+  data_source_offer, data_source_destroy, data_source_set_actions
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1677,8 +1656,8 @@ void data_device_manager_get_data_device(wl_client* client,
 
 const struct wl_data_device_manager_interface
     data_device_manager_implementation = {
-        .create_data_source = data_device_manager_create_data_source,
-        .get_data_device = data_device_manager_get_data_device};
+        data_device_manager_create_data_source,
+        data_device_manager_get_data_device};
 
 void bind_data_device_manager(wl_client* client,
                               void* data,

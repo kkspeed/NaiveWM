@@ -29,9 +29,7 @@ void close_restricted(int fd, void* user_data) {
   close(fd);
 }
 
-const struct libinput_interface interface = {
-    .close_restricted = close_restricted,
-    .open_restricted = open_restricted};
+const struct libinput_interface interface = {open_restricted, close_restricted};
 
 libinput* open_libinput_udev(const struct libinput_interface* interface,
                              const char* seat) {

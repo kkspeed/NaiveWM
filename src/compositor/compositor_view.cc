@@ -15,7 +15,7 @@ void CollectViewsAt(int32_t x_offset,
   auto rect = window->geometry();
   int32_t x = x_offset;
   int32_t y = y_offset;
-  TRACE("window: %p, global_x: %d, global_y: %d", window, x, y);
+  //  TRACE("window: %p, global_x: %d, global_y: %d", window, x, y);
   auto view = std::make_unique<CompositorView>(window, x, y);
   list.push_back(std::move(view));
   for (auto* child : window->children())
@@ -47,8 +47,8 @@ CompositorView::CompositorView(wm::Window* window,
   global_region_.TranslateInPlace(x_offset, y_offset);
   if (!window->parent()) {
     auto rect = base::geometry::Rect(
-        global_bounds_.x() + 2, global_bounds_.y() + 2,
-        global_bounds_.width() - 4, global_bounds_.height() - 4);
+        global_bounds_.x() + 1, global_bounds_.y() + 1,
+        global_bounds_.width() - 2, global_bounds_.height() - 2);
     Region inner(rect);
     border_region_ = global_region_.Clone();
     border_region_.Subtract(inner);

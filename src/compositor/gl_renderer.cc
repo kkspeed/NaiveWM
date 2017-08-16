@@ -97,9 +97,7 @@ GLuint MakeShaders(const char* vertex, const char* fragment) {
 
   if (info_log_length > 0) {
     std::vector<char> program_error_message(info_log_length + 1);
-    glGetProgramInfoLog(program_id,
-                        info_log_length,
-                        nullptr,
+    glGetProgramInfoLog(program_id, info_log_length, nullptr,
                         &program_error_message[0]);
     LOG_FATAL << &program_error_message[0];
   }
@@ -115,17 +113,20 @@ GLuint MakeShaders(const char* vertex, const char* fragment) {
 }  // namespace
 
 GlRenderer::GlRenderer(int32_t width, int32_t height)
-  : screen_width_(width), screen_height_(height) {
+    : screen_width_(width), screen_height_(height) {
   shader_program_ = MakeShaders(kVertexQuadShader, kFragmentQuadShader);
   matrix_id_ = glGetUniformLocation(shader_program_, "MVP");
   texture_id_ = glGetUniformLocation(shader_program_, "myTextureSampler");
 
-  solid_shader_program_ = MakeShaders(kSolidQuadVertexShader, kSolidQuadFragmentShader);
+  solid_shader_program_ =
+      MakeShaders(kSolidQuadVertexShader, kSolidQuadFragmentShader);
   solid_mvp_ = glGetUniformLocation(solid_shader_program_, "MVP");
   fill_color_ = glGetUniformLocation(solid_shader_program_, "fill_color");
 
-  glm::mat4 projection = glm::ortho(0.0f, (float) width, (float) height, 0.0f, 0.1f, 100.0f);
-  glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+  glm::mat4 projection =
+      glm::ortho(0.0f, (float)width, (float)height, 0.0f, 0.1f, 100.0f);
+  glm::mat4 view =
+      glm::lookAt(glm::vec3(0, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
   glm::mat4 model = glm::mat4(1.0f);
   mvp_ = projection * view * model;
 
@@ -141,11 +142,14 @@ GlRenderer::~GlRenderer() {
   glDeleteVertexArrays(1, &vertex_array_id_);
 }
 
-void GlRenderer::DrawTextureQuad(GLint coords[], GLfloat texture_coords[], GLuint texture) {
+void GlRenderer::DrawTextureQuad(GLint coords[],
+                                 GLfloat texture_coords[],
+                                 GLuint texture) {
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
   glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLint), coords, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, uvbuffer_);
-  glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), texture_coords, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), texture_coords,
+               GL_STATIC_DRAW);
 
   glUseProgram(shader_program_);
   glUniformMatrix4fv(matrix_id_, 1, GL_FALSE, &mvp_[0][0]);
@@ -154,16 +158,20 @@ void GlRenderer::DrawTextureQuad(GLint coords[], GLfloat texture_coords[], GLuin
   glUniform1i(texture_id_, 0);
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-  glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, (void*) 0);
+  glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, (void*)0);
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, uvbuffer_);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   glDisableVertexAttribArray(1);
   glDisableVertexAttribArray(0);
 }
 
-void GlRenderer::DrawSolidQuad(GLint* coords, float r, float g, float b, bool fill) {
+void GlRenderer::DrawSolidQuad(GLint* coords,
+                               float r,
+                               float g,
+                               float b,
+                               bool fill) {
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
   glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLint), coords, GL_STATIC_DRAW);
   glUseProgram(solid_shader_program_);
@@ -172,7 +180,7 @@ void GlRenderer::DrawSolidQuad(GLint* coords, float r, float g, float b, bool fi
   glUniformMatrix4fv(solid_mvp_, 1, GL_FALSE, &mvp_[0][0]);
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-  glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, (void*) 0);
+  glVertexAttribPointer(0, 2, GL_INT, GL_FALSE, 0, (void*)0);
   if (fill)
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   else

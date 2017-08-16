@@ -242,8 +242,7 @@ void page_flip_handler(int fd,
 }
 
 drmEventContext evctx{
-    .version = DRM_EVENT_CONTEXT_VERSION,
-    .page_flip_handler = page_flip_handler,
+    DRM_EVENT_CONTEXT_VERSION, nullptr, page_flip_handler,
 };
 
 fd_set fds;
@@ -551,9 +550,9 @@ void Compositor::Draw() {
 
   for (int i = 0; i < view_list.size(); i++) {
     for (int j = i + 1; j < view_list.size(); j++) {
-      TRACE("subtracting %p: %s, from %p", view_list[j]->window(),
-            view_list[j]->global_bounds().ToString().c_str(),
-            view_list[i]->window());
+      // TRACE("subtracting %p: %s, from %p", view_list[j]->window(),
+      //      view_list[j]->global_bounds().ToString().c_str(),
+      //      view_list[i]->window());
       view_list[i]->damaged_region().Subtract(view_list[j]->global_region());
     }
   }

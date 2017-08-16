@@ -52,7 +52,7 @@ class Rect {
   int32_t y() const { return y_; }
   int32_t width() const { return width_; }
   int32_t height() const { return height_; }
-  Rect operator*(int32_t scale) {
+  Rect operator*(int32_t scale) const {
     return Rect(x_ * scale, y_ * scale, width_ * scale, height_ * scale);
   }
 

@@ -42,7 +42,7 @@ class Compositor {
                            int32_t start_x,
                            int32_t start_y);
 
-  void AddGlobalDamage(const base::geometry::Rect& rect);
+  void AddGlobalDamage(const base::geometry::Rect& rect, wm::Window* window);
 
  private:
   static Compositor* g_compositor;

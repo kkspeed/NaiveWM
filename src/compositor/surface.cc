@@ -40,7 +40,7 @@ void Surface::SetFrameCallback(std::function<void()>* callback) {
 }
 
 void Surface::Damage(const base::geometry::Rect& rect) {
-  pending_state_.damaged_region.Union(rect);
+  pending_state_.damaged_region.Union(rect * scale_);
 }
 
 void Surface::SetOpaqueRegion(const Region region) {
@@ -84,8 +84,8 @@ void Surface::Commit() {
 
 void Surface::ForceDamage(base::geometry::Rect rect) {
   TRACE("force damage %s on %p", rect.ToString().c_str(), window());
-  Region r = Region(rect);
-  state_.damaged_region.Union(r);
+  // Region r = Region(rect * scale_);
+  state_.damaged_region.Union(rect * scale_);
 }
 
 }  // namespace naive

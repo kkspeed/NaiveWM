@@ -19,16 +19,20 @@ void CollectViewsAt(int32_t x_offset,
   auto view = std::make_unique<CompositorView>(window, x, y);
   list.push_back(std::move(view));
   for (auto* child : window->children())
-    CollectViewsAt(x + rect.x(), y + rect.y(), child, list);
+    CollectViewsAt(x + rect.x() * window->window_impl()->GetScale(),
+                   y + rect.y() * window->window_impl()->GetScale(), child,
+                   list);
 }
 
 }  // namespace
 
 // static
 CompositorViewList CompositorView::BuildCompositorViewHierarchyRecursive(
-    wm::Window* window) {
+    wm::Window* window,
+    int32_t scale) {
   CompositorViewList result;
-  CollectViewsAt(window->wm_x(), window->wm_y(), window, result);
+  CollectViewsAt(window->wm_x() * scale, window->wm_y() * scale, window,
+                 result);
   return result;
 }
 
@@ -37,9 +41,11 @@ CompositorView::CompositorView(wm::Window* window,
                                int32_t y_offset)
     : window_(window),
       damaged_region_(window->window_impl()->DamagedRegion().Clone()),
-      global_bounds_(window->geometry()),
-      global_region_(Region(window->geometry())) {
-  damaged_region_.Intersect(window->GetToDrawRegion());
+      global_bounds_(window->geometry() * window->window_impl()->GetScale()),
+      global_region_(
+          Region(window->geometry() * window->window_impl()->GetScale())) {
+  damaged_region_.Intersect(window->GetToDrawRegion() *
+                            window->window_impl()->GetScale());
   damaged_region_.TranslateInPlace(x_offset + global_bounds_.x(),
                                    y_offset + global_bounds_.y());
   global_bounds_.x_ += x_offset;

@@ -179,7 +179,7 @@ void init_gl() {
                                       EGL_ALPHA_SIZE,
                                       1,
                                       EGL_RENDERABLE_TYPE,
-                                      EGL_OPENGL_BIT,
+                                      EGL_OPENGL_ES3_BIT,
                                       EGL_NONE};
 
   PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display =
@@ -188,7 +188,7 @@ void init_gl() {
   assert(get_platform_display);
   gl.display = get_platform_display(EGL_PLATFORM_GBM_KHR, gbm.dev, nullptr);
   assert(eglInitialize(gl.display, &major, &minor));
-  assert(eglBindAPI(EGL_OPENGL_API));
+  assert(eglBindAPI(EGL_OPENGL_ES_API));
   assert(eglChooseConfig(gl.display, config_attributes, &gl.config, 1, &n));
   LOG_ERROR << "eglConfig " << n << std::endl;
   assert(n == 1);
@@ -472,8 +472,9 @@ Compositor::Compositor() {
   renderer_ = std::make_unique<GlRenderer>(gl.display_width, gl.display_height);
 }
 
-void Compositor::AddGlobalDamage(const base::geometry::Rect& rect) {
-  global_damage_region_.Union(rect);
+void Compositor::AddGlobalDamage(const base::geometry::Rect& rect,
+                                 wm::Window* window) {
+  global_damage_region_.Union(rect * window->window_impl()->GetScale());
 }
 
 wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
@@ -517,12 +518,13 @@ void Compositor::Draw() {
   auto* wallpaper_window = wm::WindowManager::Get()->wallpaper_window();
   CompositorViewList view_list =
       wallpaper_window ? CompositorView::BuildCompositorViewHierarchyRecursive(
-                             wallpaper_window)
+                             wallpaper_window, display_metrics_->scale)
                        : CompositorViewList();
   for (auto* window : wm::WindowManager::Get()->windows()) {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
-          CompositorView::BuildCompositorViewHierarchyRecursive(window);
+          CompositorView::BuildCompositorViewHierarchyRecursive(
+              window, display_metrics_->scale);
       view_list.insert(view_list.end(),
                        std::make_move_iterator(view_list_window.begin()),
                        std::make_move_iterator(view_list_window.end()));
@@ -532,8 +534,8 @@ void Compositor::Draw() {
   // TODO: clean this up and L520 as well.
   auto* panel_window = wm::WindowManager::Get()->panel_window();
   if (panel_window) {
-    auto views =
-        CompositorView::BuildCompositorViewHierarchyRecursive(panel_window);
+    auto views = CompositorView::BuildCompositorViewHierarchyRecursive(
+        panel_window, display_metrics_->scale);
     view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
                      std::make_move_iterator(views.end()));
   }
@@ -581,12 +583,14 @@ void Compositor::Draw() {
             rect.ToString().c_str(), view->window(), bounds.ToString().c_str(),
             did_draw);
       if (window->window_impl()->CachedTexture()) {
-        int32_t physical_x = bounds.x() * display_metrics_->scale;
-        int32_t physical_y = bounds.y() * display_metrics_->scale;
-        int32_t to_draw_x = (rect.x() - bounds.x()) * display_metrics_->scale;
-        int32_t to_draw_y = (rect.y() - bounds.y()) * display_metrics_->scale;
-        int32_t physical_width = rect.width() * display_metrics_->scale;
-        int32_t physical_height = rect.height() * display_metrics_->scale;
+        int32_t physical_x = bounds.x();  // * display_metrics_->scale;
+        int32_t physical_y = bounds.y();  // * display_metrics_->scale;
+        int32_t to_draw_x =
+            (rect.x() - bounds.x());  // * display_metrics_->scale;
+        int32_t to_draw_y =
+            (rect.y() - bounds.y());              // * display_metrics_->scale;
+        int32_t physical_width = rect.width();    // * display_metrics_->scale;
+        int32_t physical_height = rect.height();  // * display_metrics_->scale;
         window->window_impl()->CachedTexture()->Draw(
             physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
             physical_height);
@@ -703,16 +707,16 @@ void Compositor::FillRect(base::geometry::Rect rect,
                           float r,
                           float g,
                           float b) {
-  int32_t x = rect.x() * display_metrics_->scale;
-  int32_t y = rect.y() * display_metrics_->scale;
+  int32_t x = rect.x();
+  int32_t y = rect.y();
   GLint coords[] = {
       x,
       y,
       x,
-      y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale,
-      y + rect.height() * display_metrics_->scale,
-      x + rect.width() * display_metrics_->scale,
+      y + rect.height(),
+      x + rect.width(),
+      y + rect.height(),
+      x + rect.width(),
       y,
   };
   renderer_->DrawSolidQuad(coords, r, g, b, true);

@@ -22,7 +22,8 @@ class CompositorView {
                           int32_t y_offset);
 
   static CompositorViewList BuildCompositorViewHierarchyRecursive(
-      wm::Window* window);
+      wm::Window* window,
+      int32_t scale);
 
   base::geometry::Rect& global_bounds() { return global_bounds_; }
   Region& global_region() { return global_region_; }

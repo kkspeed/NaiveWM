@@ -218,6 +218,8 @@ void compositor_create_surface(wl_client* client,
                                uint32_t id) {
   std::unique_ptr<Surface> surface =
       GetUserDataAs<Display>(resource)->CreateSurface();
+  auto* display_metrics = compositor::Compositor::Get()->GetDisplayMetrics();
+  surface->SetBufferScale(display_metrics->scale);
   wl_resource* surface_resource = wl_resource_create(
       client, &wl_surface_interface, wl_resource_get_version(resource), id);
   surface->set_resource(surface_resource);

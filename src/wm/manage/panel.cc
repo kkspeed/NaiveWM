@@ -25,7 +25,7 @@ TimeView::TimeView(int32_t x, int32_t y, int32_t width, int32_t height)
     : TextView(x, y, width, height) {
   TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width, height);
   SetTextColor(0xFFFFFF00);
-  SetTextSize(20);
+  SetTextSize(16);
 }
 
 void TimeView::OnDrawFrame() {
@@ -38,13 +38,12 @@ void TimeView::OnDrawFrame() {
 }
 
 Panel::Panel(int32_t x, int32_t y, int32_t width, int32_t height)
-    : TextView(x, y, width, height),
-      time_view_(width / 2 - 500, 0, 500, height) {
+    : TextView(x, y, width, height), time_view_(width - 500, 0, 500, height) {
   // TODO: scaling is not correct
   AddChild(&time_view_);
 
   SetTextColor(0xFF00FF00);
-  SetTextSize(20);
+  SetTextSize(16);
   SetTextAlignment(ui::TextAlignment::CENTER_VERTICAL |
                    ui::TextAlignment::LEFT);
 

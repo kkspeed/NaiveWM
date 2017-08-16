@@ -31,7 +31,7 @@ Window::Window(ui::Widget* widget)
 
 Window::~Window() {
   TRACE("%p", this);
-  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
+  compositor::Compositor::Get()->AddGlobalDamage(global_bound(), this);
   wm::WindowManager::Get()->RemoveWindow(this);
   if (parent_) {
     TRACE("removing window %p from parent: %p", this, parent_);
@@ -247,7 +247,7 @@ void Window::set_visible(bool visible) {
   TRACE("%p -> visible: %d", this, visible);
   if (visible)
     surface()->ForceDamage(geometry());
-  compositor::Compositor::Get()->AddGlobalDamage(global_bound());
+  compositor::Compositor::Get()->AddGlobalDamage(global_bound(), this);
   visible_ = visible;
 }
 

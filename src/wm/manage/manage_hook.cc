@@ -126,6 +126,13 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_TAB) {
+    if (event->pressed())
+      return true;
+    SelectTag(previous_tag_);
+    return true;
+  }
+
   if (event->super_pressed() && event->keycode() == KEY_J) {
     if (event->pressed())
       return true;
@@ -221,6 +228,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
 void ManageHook::PostSetupPolicy() {}
 
 void ManageHook::SelectTag(size_t tag) {
+  previous_tag_ = current_workspace_;
   current_workspace()->Show(false);
   current_workspace_ = tag;
   current_workspace()->Show(true);

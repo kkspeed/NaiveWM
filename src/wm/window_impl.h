@@ -60,6 +60,9 @@ class WindowImpl {
   // Called by compositor that the damage is picked up.
   virtual void ClearDamage() = 0;
 
+  // Returns the scale of underlining surface implemenation.
+  virtual int32_t GetScale() = 0;
+
   void CacheTexture(std::unique_ptr<compositor::TextureDelegate> texture);
   compositor::TextureDelegate* CachedTexture();
 

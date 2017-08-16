@@ -28,6 +28,7 @@ class WindowImplCairo : public WindowImpl {
   compositor::DrawQuad GetQuad() override;
   void ClearCommit() override;
   void ClearDamage() override;
+  int32_t GetScale() override;
 
  private:
   ui::Widget* widget_;

@@ -21,7 +21,6 @@ void WindowImplCairo::ForceCommit() {
 }
 
 bool WindowImplCairo::HasCommit() {
-  TRACE();
   return widget_->has_commit();
 }
 
@@ -43,6 +42,11 @@ void WindowImplCairo::ClearCommit() {
 
 void WindowImplCairo::ClearDamage() {
   widget_->clear_damage();
+}
+
+int32_t WindowImplCairo::GetScale() {
+  // TODO: cairo surface currently is assumed to have scale 1x.
+  return 1;
 }
 
 }  // namespace wm

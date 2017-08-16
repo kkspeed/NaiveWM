@@ -87,5 +87,10 @@ void WindowImplWayland::ClearDamage() {
   surface_->clear_damage();
 }
 
+int32_t WindowImplWayland::GetScale() {
+  assert(surface_);
+  return surface_->buffer_scale();
+}
+
 }  // namespace wm
 }  // namespace naive

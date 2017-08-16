@@ -53,6 +53,8 @@ class ManageHook : public WmEventObserver {
   WMPrimitives* primitives_ = nullptr;
   std::unique_ptr<ui::ImageView> wallpaper_view_;
   std::unique_ptr<Panel> panel_;
+
+  int32_t previous_tag_{0};
 };
 
 }  // wm

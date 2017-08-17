@@ -162,7 +162,8 @@ void PowerIndicator::UpdatePowerInfo() {
   if (hour == 0 && minute == 0)
     std::sprintf(buffer, "Battery: charing (%.2lf%%)", remaining);
   else
-    std::sprintf(buffer, "Battery: %d:%d (%.2lf%%)", hour, minute, remaining);
+    std::sprintf(buffer, "Battery: %2d:%.2d (%.2lf%%)", hour, minute,
+                 remaining);
   SetText(std::string(buffer));
   if (hour == 0 && minute <= 30 && remaining <= 15)
     SetBackgroundColor(0xFFDD0000);

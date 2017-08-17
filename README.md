@@ -8,12 +8,14 @@ Wayland-based  tiling window manager.
 ### Basics
 You'll need the following dependencies:
 
-    libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng, glog
+    libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng, glog,
+    glm, dbus, cairomm
 
 The packages needed under Fedora are:
 
     libdrm, egl-utils, mesa-libGLES-devel, libinput-devel, mesa-libwayland-egl, 
-	pixman, systemd-udev, libxkbcommon, glog-devel, mesa-libgbm-devel, glflags-devel
+	pixman, systemd-udev, libxkbcommon, glog-devel, mesa-libgbm-devel, glflags-devel,
+
 
 Then
 
@@ -55,6 +57,11 @@ It's recommended that you do the following things:
    <tt>manage\_hook.cc</tt> and uncomment the code in <tt>PostWmInitialize</tt> to
    enable wallpaper.
 
+4. You can uncomment the panel code in <tt>manage\_hook.cc</tt> to enable panel.
+   You can modify <tt>panel.cc</tt> to tweak it (sorry for not having good configration
+   file). Currently it offers a battery indicator (needs UPower), a clock and
+   a workspace indicator.
+
 ## Default Configurations
 Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
 
@@ -69,6 +76,8 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 |Super + P            | Save screenshot. Currently it saves to /tmp/output.png |
 |Super + 1..9         | Switch workspace to 1..9                               |
 |Super + Shift + 1..9 | Move current window to workspace 1..9                  |
+|Super + x            | Start XWayland                                         |
+|Super + Tab          | Jump to previous tag                                   |
 
 NaiveWM should be able to guess the scale of your screen for high res screens.
 

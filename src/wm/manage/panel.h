@@ -2,6 +2,7 @@
 #define WM_MANAGE_PANEL_H_
 
 #include "ui/text_view.h"
+#include "wm/manage/power_indicator.h"
 
 namespace naive {
 namespace wm {
@@ -22,6 +23,7 @@ class Panel : public ui::TextView {
   explicit Panel(int32_t x, int32_t y, int32_t width, int32_t height);
   void OnWorkspaceChanged(int32_t workspace);
   TimeView time_view_;
+  extra::PowerIndicator power_indicator_;
 };
 
 }  // namespace wm

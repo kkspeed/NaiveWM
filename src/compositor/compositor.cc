@@ -17,11 +17,11 @@
 #include <drm_mode.h>
 #include <fcntl.h>
 #include <gbm.h>
+#include <resources/cursor.h>
+#include <sys/mman.h>
 #include <wayland-server.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
-#include <sys/mman.h>
-#include <resources/cursor.h>
 
 #include "base/logging.h"
 #include "compositor/buffer.h"

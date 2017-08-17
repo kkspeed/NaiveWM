@@ -5,10 +5,10 @@
 #include "base/logging.h"
 #include "compositor/compositor.h"
 #include "compositor/shell_surface.h"
+#include "ui/widget.h"
 #include "wm/window_impl/window_impl_cairo.h"
 #include "wm/window_impl/window_impl_wayland.h"
 #include "wm/window_manager.h"
-#include "ui/widget.h"
 
 namespace naive {
 namespace wm {

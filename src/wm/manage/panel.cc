@@ -38,9 +38,12 @@ void TimeView::OnDrawFrame() {
 }
 
 Panel::Panel(int32_t x, int32_t y, int32_t width, int32_t height)
-    : TextView(x, y, width, height), time_view_(width - 500, 0, 500, height) {
+    : TextView(x, y, width, height),
+      time_view_(width - 500, 0, 500, height),
+      power_indicator_(width - 1000, 0, 400, height) {
   // TODO: scaling is not correct
   AddChild(&time_view_);
+  AddChild(&power_indicator_);
 
   SetTextColor(0xFF00FF00);
   SetTextSize(16);

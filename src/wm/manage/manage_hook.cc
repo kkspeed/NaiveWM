@@ -7,12 +7,12 @@
 #include "base/image_codec.h"
 #include "base/utils.h"
 #include "compositor/compositor.h"
+#include "ui/image_view.h"
 #include "wm/keyboard_event.h"
 #include "wm/manage/panel.h"
 #include "wm/mouse_event.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
-#include "ui/image_view.h"
 
 namespace naive {
 namespace wm {

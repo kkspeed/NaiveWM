@@ -20,6 +20,7 @@ INCLUDE(cmake_modules/FindWayland.cmake)
 INCLUDE(cmake_modules/FindXKBCommon.cmake)
 INCLUDE(cmake_modules/FindGlog.cmake)
 INCLUDE(cmake_modules/FindCairomm.cmake)
+INCLUDE(cmake_modules/FindDBus.cmake)
 
 FIND_PACKAGE(PNG REQUIRED)
 #FIND_PACKAGE(Glog REQUIRED)
@@ -38,6 +39,7 @@ INCLUDE_DIRECTORIES(
         ${PNG_INCLUDE_DIR}
         ${GLOG_INCLUDE_DIR}
         ${CAIROMM_INCLUDE_DIRS}
+        ${DBUS_INCLUDE_DIRS}
         src
         src/protocols)
 
@@ -63,4 +65,5 @@ TARGET_LINK_LIBRARIES(
         ${XKBCOMMON_LIBRARIES}
         ${PNG_LIBRARY}
         ${GLOG_LIBRARY}
-        ${CAIROMM_LIBRARIES})
+        ${CAIROMM_LIBRARIES}
+        ${DBUS_LIBRARIES})

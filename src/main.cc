@@ -1,5 +1,5 @@
-#include <memory>
 #include <poll.h>
+#include <memory>
 
 #include "wayland/display.h"
 #include "wayland/server.h"

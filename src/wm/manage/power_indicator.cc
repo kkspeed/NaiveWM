@@ -159,13 +159,14 @@ void PowerIndicator::UpdatePowerInfo() {
   int hour = static_cast<int>(time / 3600);
   int minute = static_cast<int>((time % 3600) / 60);
   char buffer[80];
+  // TODO: Use better method to decide whether it's charging (getstatus).
   if (hour == 0 && minute == 0)
     std::sprintf(buffer, "Battery: charing (%.2lf%%)", remaining);
   else
     std::sprintf(buffer, "Battery: %2d:%.2d (%.2lf%%)", hour, minute,
                  remaining);
   SetText(std::string(buffer));
-  if (hour == 0 && minute <= 30 && remaining <= 15)
+  if (hour == 0 && minute <= 30 && minute > 0 && remaining <= 15)
     SetBackgroundColor(0xFFDD0000);
   else
     SetBackgroundColor(0xFF000000);

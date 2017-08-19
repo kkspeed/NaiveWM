@@ -44,7 +44,7 @@ the <tt>-DNAIVE\_COMPOISTOR</tt> from <tt>CMAKE\_CXX\_FLAGS</tt> in
 ## Recommended Configurations
 It's recommended that you do the following things:
 
-1. You'll need a wayland-compatible terminal. I'd recommend gnome-terminal
+1. You'll need a wayland-compatible terminal. I'd recommend lxterminal
    with Gtk3. To use Gtk3 in Wayland, you'll also need to set 2 environment 
    variables: <tt>GDK\_BACKEND=wayland</tt> and <tt>CLUTTER\_BACKEND=wayland</tt>.
    You can change the command for your terminal in <tt>manage\_hook.cc</tt>
@@ -68,7 +68,7 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 | Key                 | Action                                                 |
 |---------------------|--------------------------------------------------------|
 |Super + C            | Launches browser (default is qutebrowser)              |
-|Super + T            | Launches terminal (default is gnome-terminal           |
+|Super + T            | Launches terminal (default is lxterminal               |
 |Super + J            | Focus next window                                      |
 |Super + K            | Focus previous window                                  |
 |Super + Shift + Q    | Exit                                                   |

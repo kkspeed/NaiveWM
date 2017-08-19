@@ -47,7 +47,10 @@ void ManageHook::WindowCreated(Window* window) {
     return;
   }
   auto* workspace = current_workspace();
-  workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
+  auto* mw =
+      workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
+  std::remove_if(window_added_callback_.begin(), window_added_callback_.end(),
+                 [mw](auto f) { return f(mw); });
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
   workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                             width_ - kWorkspaceInsetX,
@@ -62,7 +65,11 @@ void ManageHook::WindowDestroyed(Window* window) {
   TRACE("window: %p", window);
   for (Workspace& workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
-      (workspace.PopWindow(window))->Show(false);
+      auto mw = workspace.PopWindow(window);
+      mw->Show(false);
+      std::remove_if(window_removed_callback_.begin(),
+                     window_removed_callback_.end(),
+                     [&mw](auto f) { return f(mw.get()); });
       if (workspace.tag() == current_workspace_) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);
@@ -79,8 +86,8 @@ void ManageHook::WindowDestroyed(Window* window) {
 bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_T) {
     if (!event->pressed()) {
-      const char* args[] = {"gnome-terminal", nullptr};
-      base::LaunchProgram("gnome-terminal", (char**)args);
+      const char* args[] = {"lxtemrinal", "--no-remote", nullptr};
+      base::LaunchProgram("lxterminal", (char**)args);
     }
     return true;
   }
@@ -136,7 +143,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_J) {
     if (event->pressed())
       return true;
-    auto* next = current_workspace()->NextWindow();
+    auto* next = current_workspace()->NextVisibleWindow();
     primitives_->FocusWindow(next ? next->window() : nullptr);
     return true;
   }
@@ -144,7 +151,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   if (event->super_pressed() && event->keycode() == KEY_K) {
     if (event->pressed())
       return true;
-    auto* prev = current_workspace()->PrevWindow();
+    auto* prev = current_workspace()->PrevVisibleWindow();
     primitives_->FocusWindow(prev ? prev->window() : nullptr);
     return true;
   }
@@ -207,6 +214,53 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+  if (event->super_pressed() && event->keycode() == KEY_D) {
+    if (event->pressed())
+      return true;
+    if (popup_terminal_pid_ == 0) {
+      const char* args[] = {"lxterminal", "--no-remote", nullptr};
+      pid_t pid = base::LaunchProgram("lxterminal", (char**)args);
+      popup_terminal_pid_ = pid;
+      window_added_callback_.push_back([this](ManageWindow* mw) {
+        if (this->popup_terminal_pid_ &&
+            mw->window()->GetPid() == this->popup_terminal_pid_) {
+          mw->MoveResize(0, 10, 1280, 450);
+          mw->set_floating(true);
+          mw->SetShowPredicate([](bool show, ManageWindowShowReason reason) {
+            return show && reason == ManageWindowShowReason::SHOW_TOGGLE;
+          });
+          return true;
+        }
+        return false;
+      });
+
+      window_removed_callback_.push_back([this](ManageWindow* mw) {
+        if (mw->window()->GetPid() == this->popup_terminal_pid_) {
+          this->popup_terminal_pid_ = 0;
+          return true;
+        }
+        return false;
+      });
+
+      return true;
+    }
+    ManageWindow* window =
+        current_workspace()->FindWindowByPid(popup_terminal_pid_);
+    ManageWindow* current = current_workspace()->CurrentWindow();
+    bool visible = window->window()->is_visible();
+    window->Show(!visible);
+    if (!visible) {
+      current_workspace()->SetCurrentWindow(window->window());
+      primitives_->RaiseWindow(window->window());
+      primitives_->FocusWindow(window->window());
+    } else if (current == window) {
+      auto* next = current_workspace()->NextWindow();
+      primitives_->FocusWindow(next->window());
+    }
+
+    return true;
+  }
+
   return false;
 }
 
@@ -229,10 +283,24 @@ void ManageHook::PostSetupPolicy() {}
 
 void ManageHook::SelectTag(size_t tag) {
   previous_tag_ = current_workspace_;
+  if (popup_terminal_pid_) {
+    ManageWindow* window =
+        current_workspace()->FindWindowByPid(popup_terminal_pid_);
+    MoveWindowToTag(window->window(), tag);
+  }
   current_workspace()->Show(false);
   current_workspace_ = tag;
   current_workspace()->Show(true);
   auto* manage_window = current_workspace()->CurrentWindow();
+  auto* start_window = manage_window;
+  while (manage_window && !manage_window->window()->is_visible()) {
+    manage_window = current_workspace()->NextWindow();
+    if (manage_window == start_window) {
+      manage_window = nullptr;
+      break;
+    }
+  }
+
   primitives_->FocusWindow(manage_window ? manage_window->window() : nullptr);
   current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                                       width_ - kWorkspaceInsetX,
@@ -245,7 +313,7 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   // TODO: Rename this to move current window?
   auto manage_window = current_workspace()->PopWindow(window);
   assert(manage_window);
-  manage_window->Show(false);
+  manage_window->Show(false, ManageWindowShowReason::SHOW_WORKSPACE_CHANGE);
   workspaces_[tag].AddWindow(std::move(manage_window));
   TRACE("arrange for workspace %d", current_workspace()->tag());
   auto* current = current_workspace()->CurrentWindow();

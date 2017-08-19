@@ -62,9 +62,11 @@ ManageWindow::ManageWindow(Window* window, WMPrimitives* primitives)
 Workspace::Workspace(uint32_t tag, uint32_t workspace_inset_y)
     : tag_(tag), workspace_inset_y_(workspace_inset_y) {}
 
-void Workspace::AddWindow(std::unique_ptr<ManageWindow> window) {
+ManageWindow* Workspace::AddWindow(std::unique_ptr<ManageWindow> window) {
+  auto* result = window.get();
   windows_.push_back(std::move(window));
   current_window_ = windows_.size() - 1;
+  return result;
 }
 
 ManageWindow* Workspace::CurrentWindow() {
@@ -86,6 +88,9 @@ std::unique_ptr<ManageWindow> Workspace::PopWindow(Window* window) {
     }
     auto* mw = windows_.back().release();
     windows_.pop_back();
+    auto* current = CurrentWindow();
+    if (current && !current->window()->is_visible())
+      NextVisibleWindow();
     return std::unique_ptr<ManageWindow>(mw);
   }
   return nullptr;
@@ -107,9 +112,36 @@ ManageWindow* Workspace::PrevWindow() {
   return windows_[next_index].get();
 }
 
+ManageWindow* Workspace::NextVisibleWindow() {
+  return WindowWithCondition(
+      [](auto* mw) { return mw->window()->is_visible(); },
+      [this]() { return this->NextWindow(); });
+}
+
+ManageWindow* Workspace::PrevVisibleWindow() {
+  return WindowWithCondition(
+      [](auto* mw) { return mw->window()->is_visible(); },
+      [this]() { return this->PrevWindow(); });
+}
+
+ManageWindow* Workspace::WindowWithCondition(
+    std::function<bool(ManageWindow* mw)> predicate,
+    std::function<ManageWindow*()> advance_proc) {
+  ManageWindow* current = advance_proc();
+  ManageWindow* start = current;
+  while (current && !predicate(current)) {
+    current = advance_proc();
+    if (start == current) {
+      current = nullptr;
+      break;
+    }
+  }
+  return current;
+}
+
 void Workspace::Show(bool show) {
   for (auto& window : windows_)
-    window->Show(show);
+    window->Show(show, ManageWindowShowReason::SHOW_WORKSPACE_CHANGE);
 }
 
 void Workspace::SetCurrentWindow(Window* window) {
@@ -151,6 +183,13 @@ bool Workspace::HasWindow(Window* window) {
   return std::find_if(windows_.begin(), windows_.end(), [window](auto& mw) {
            return mw->window() == window;
          }) != windows_.end();
+}
+
+ManageWindow* Workspace::FindWindowByPid(pid_t pid) {
+  auto result = std::find_if(windows_.begin(), windows_.end(), [pid](auto& mw) {
+    return mw->window()->GetPid() == pid;
+  });
+  return (result == windows_.end()) ? nullptr : (*result).get();
 }
 
 }  // namespace wm

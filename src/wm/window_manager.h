@@ -159,6 +159,12 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
     policy_actions_.push_back(action);
   }
 
+  Window* FindWindowByPid(pid_t pid) {
+    auto iter = std::find_if(windows_.begin(), windows_.end(),
+                             [pid](Window* w) { return w->GetPid() == pid; });
+    return (iter == windows_.end()) ? nullptr : *iter;
+  }
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;

@@ -2,6 +2,7 @@
 
 #include <linux/input.h>
 #include <memory>
+#include <signal.h>
 #include <vector>
 
 #include "base/image_codec.h"
@@ -137,6 +138,32 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     if (event->pressed())
       return true;
     SelectTag(previous_tag_);
+    return true;
+  }
+
+  if (event->super_pressed() && event->keycode() == KEY_R) {
+    if (event->pressed())
+      return true;
+    const char* args[] = {"kupfer", nullptr};
+    pid_t pid = base::LaunchProgram("kupfer", (char**)args);
+    window_added_callback_.push_back([pid](ManageWindow* mw) {
+      if (mw->window()->GetPid() == pid) {
+        mw->set_floating(true);
+        mw->MoveResize(0, 10, 600, 300);
+        mw->window()->enable_border(false);
+        return true;
+      }
+      return false;
+    });
+
+    window_removed_callback_.push_back([pid](ManageWindow* mw) {
+      if (mw->window()->GetPid() == pid) {
+        kill(pid, SIGTERM);
+        return true;
+      }
+      return false;
+    });
+
     return true;
   }
 

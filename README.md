@@ -69,6 +69,7 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 |---------------------|--------------------------------------------------------|
 |Super + C            | Launches browser (default is qutebrowser)              |
 |Super + T            | Launches terminal (default is lxterminal               |
+|Super + D            | Launches drop down terminal (default is lxterminal)    |
 |Super + J            | Focus next window                                      |
 |Super + K            | Focus previous window                                  |
 |Super + Shift + Q    | Exit                                                   |

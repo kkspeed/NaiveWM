@@ -54,7 +54,10 @@ class ManageHook : public WmEventObserver {
   WMPrimitives* primitives_ = nullptr;
   std::unique_ptr<ui::ImageView> wallpaper_view_;
   std::unique_ptr<Panel> panel_;
-  std::vector<std::function<bool(ManageWindow* mw)>> window_added_callback_;
+
+  using ManageWindowPolicy = std::function<bool(ManageWindow* mw)>;
+  std::vector<ManageWindowPolicy> window_added_callback_;
+  std::vector<ManageWindowPolicy> window_removed_callback_;
 
   int32_t previous_tag_{0};
   pid_t popup_terminal_pid_{0};

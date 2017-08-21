@@ -82,6 +82,22 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 
 NaiveWM should be able to guess the scale of your screen for high res screens.
 
+## Run X Apps
+NaiveWM currently does not have well-integration for rootless XWayland but you can
+still run XWayland as if you are running a remote desktop.
+
+To start XWayland, run <tt>Xwayland +iglx :1</tt> or press <tt>Super + X</tt>.
+
+Likely you'll need a X window manager to manage X windows. I suggest using DWM:
+
+    export DISPLAY=:1
+    dwm &
+
+And you can see dwm is running in XWayland. Press <tt>Alt + P</tt> to start dmenu,
+which can help you launch X applications:
+
+![XWayland](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/xwayland.png)
+
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!

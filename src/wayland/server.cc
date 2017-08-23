@@ -10,6 +10,8 @@
 #include <functional>
 #include <memory>
 
+#include "input-method-unstable-v1.h"
+#include "text-input-unstable-v1.h"
 #include "xdg-shell-unstable-v5.h"
 #include "xdg-shell-unstable-v6.h"
 
@@ -1671,6 +1673,22 @@ void bind_data_device_manager(wl_client* client,
   wl_resource_set_implementation(resource, &data_device_manager_implementation,
                                  data, nullptr);
 }
+
+text_input_activate(struct wl_client* client,
+                    struct wl_resource* resource,
+                    struct wl_resource* seat,
+                    struct wl_resource* surface) {
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  auto* track_surface = GetUserDataAs<Surface>(surface);
+  text_input->TrackSurface(track_surface);
+  auto* seat = GetUserDataAs<Seat>(seat);
+  seat->input_method()->Activate(text_input);
+}
+
+const struct zwp_text_input_v1_interface text_input_implementation = {
+    text_input_activate,
+
+};
 
 }  // namespace
 

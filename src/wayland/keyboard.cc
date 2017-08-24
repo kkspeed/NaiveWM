@@ -161,21 +161,21 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
     observed_surfaces_.erase(surface);
 }
 
-void Keyboard::Grab(Keyboard* grab) {
+void Keyboard::Grab(Keyboard* grab, bool from_set_grabbing) {
   if (grab_ == grab)
     return;
-  if (grab_)
-    grab_->SetGrabbing(nullptr);
+  if (grab_ && !from_set_grabbing)
+    grab_->SetGrabbing(nullptr, true);
   grab_ = grab;
   if (grab)
-    grab->SetGrabbing(this);
+    grab->SetGrabbing(this, true);
 }
 
-void Keyboard::SetGrabbing(Keyboard* grabbing) {
+void Keyboard::SetGrabbing(Keyboard* grabbing, bool from_grab) {
   if (grabbing_ == grabbing)
     return;
-  if (grabbing_)
-    grabbing_->Grab(nullptr);
+  if (grabbing_ && !from_grab)
+    grabbing_->Grab(nullptr, true);
   grabbing_ = grabbing;
 }
 

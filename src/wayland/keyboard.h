@@ -26,8 +26,8 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface) override;
 
-  void Grab(Keyboard* grab);
-  void SetGrabbing(Keyboard* grabbing);
+  void Grab(Keyboard* grab, bool from_set_grabbing = false);
+  void SetGrabbing(Keyboard* grabbing, bool from_grab = false);
 
   bool CanReceiveEvent(Surface* surface);
 

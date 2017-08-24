@@ -1855,8 +1855,11 @@ InputMethodContext* CreateInputContext(wl_client* client,
                                        TextInput* text_input,
                                        InputMethod* input_method) {
   TRACE();
+  if (!input_method->binding())
+    return nullptr;
   wl_resource* input_context_resource =
-      wl_resource_create(client, &zwp_input_method_context_v1_interface, 1, 0);
+      wl_resource_create(wl_resource_get_client(input_method->binding()),
+                         &zwp_input_method_context_v1_interface, 1, 0);
 
   std::unique_ptr<InputMethodContext> input_context =
       std::make_unique<InputMethodContext>(input_context_resource, text_input,

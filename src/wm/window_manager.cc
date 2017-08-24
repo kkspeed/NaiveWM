@@ -241,6 +241,10 @@ WindowManager::WindowsInGlobalCoordinates() {
   std::vector<std::unique_ptr<Layer>> result;
   for (auto* w : windows_)
     CollectGlobalLayers(result, w, w->wm_x(), w->wm_y());
+  if (input_panel_top_level_) {
+    // TODO: wayland toplevel panel needs to be placed at appropriate places.
+    CollectGlobalLayers(result, input_panel_top_level_, 0, 0);
+  }
   return result;
 }
 

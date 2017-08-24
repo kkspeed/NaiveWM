@@ -1899,12 +1899,14 @@ void input_panel_surface_set_toplevel(wl_client* client,
                                       wl_resource* output_resource,
                                       uint32_t position) {
   auto* surface = GetUserDataAs<Surface>(resource);
+  TRACE("Setting %p, window: %p", surface, surface->window());
   wm::WindowManager::Get()->SetInputPanelTopLevel(surface->window());
 }
 
 void input_panel_surface_set_overlay_panel(wl_client* client,
                                            wl_resource* resource) {
   auto* surface = GetUserDataAs<Surface>(resource);
+  TRACE("Setting %p, window: %p", surface, surface->window());
   wm::WindowManager::Get()->SetInputPanelOverlay(surface->window());
 }
 

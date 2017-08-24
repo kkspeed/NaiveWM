@@ -35,7 +35,7 @@ class Seat {
   std::unique_ptr<DataDevice> data_device_;
   std::function<DataOffer*(wl_client* client, DataSource* source)> new_offer_;
   std::map<wl_client*, std::unique_ptr<Keyboard>> keyboard_bindings_;
-  Keyboard* focused_keyboard_;
+  Keyboard* focused_keyboard_{nullptr};
   InputMethod input_method_;
 };
 

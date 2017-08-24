@@ -26,6 +26,7 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface) override;
 
+  // TODO: this is ugly.. how to avoid infinite recursion?
   void Grab(Keyboard* grab, bool from_set_grabbing = false);
   void SetGrabbing(Keyboard* grabbing, bool from_grab = false);
 

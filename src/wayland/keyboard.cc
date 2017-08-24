@@ -27,6 +27,10 @@ Keyboard::Keyboard(wl_resource* resource, Seat* seat)
 
 Keyboard::~Keyboard() {
   TRACE("%p", this);
+  if (grabbing_)
+    grabbing_->Grab(nullptr);
+  if (grab_)
+    grab_->SetGrabbing(nullptr);
   xkb_context_unref(xkb_context_);
   xkb_keymap_unref(xkb_keymap_);
   wm::WindowManager::Get()->RemoveKeyboardObserver(this);
@@ -126,10 +130,13 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
     wl_array_release(&keys);
     return;
   }
+
+  wl_resource* target_keyboard = grab_ ? grab_->resource() : resource_;
   // if (key_event->keycode() == 0) {
-  //  LOG_ERROR << "send modifiers " << key_event->shift_pressed() << std::endl;
+  //  LOG_ERROR << "send modifiers " << key_event->shift_pressed() <<
+  //  std::endl;
   wl_keyboard_send_modifiers(
-      resource_, next_serial(),
+      target_keyboard, next_serial(),
       xkb_state_serialize_mods(
           xkb_state_, static_cast<xkb_state_component>(XKB_STATE_DEPRESSED)),
       xkb_state_serialize_mods(
@@ -139,7 +146,7 @@ void Keyboard::OnKey(wm::KeyboardEvent* key_event) {
       xkb_state_serialize_layout(xkb_state_, XKB_STATE_LAYOUT_EFFECTIVE));
   //  return;
   //} else {
-  wl_keyboard_send_key(resource_, next_serial(), key_event->time(),
+  wl_keyboard_send_key(target_keyboard, next_serial(), key_event->time(),
                        key_event->keycode(),
                        key_event->pressed() ? WL_KEYBOARD_KEY_STATE_PRESSED
                                             : WL_KEYBOARD_KEY_STATE_RELEASED);
@@ -152,6 +159,24 @@ void Keyboard::OnSurfaceDestroyed(Surface* surface) {
     target_ = nullptr;
   if (observed_surfaces_.find(surface) != observed_surfaces_.end())
     observed_surfaces_.erase(surface);
+}
+
+void Keyboard::Grab(Keyboard* grab) {
+  if (grab_ == grab)
+    return;
+  if (grab_)
+    grab_->SetGrabbing(nullptr);
+  grab_ = grab;
+  if (grab)
+    grab->SetGrabbing(this);
+}
+
+void Keyboard::SetGrabbing(Keyboard* grabbing) {
+  if (grabbing_ == grabbing)
+    return;
+  if (grabbing_)
+    grabbing_->Grab(nullptr);
+  grabbing_ = grabbing;
 }
 
 void Keyboard::UpdateKeyStates(wm::KeyboardEvent* key_event) {

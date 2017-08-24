@@ -26,9 +26,13 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   // SurfaceObserver overrides
   void OnSurfaceDestroyed(Surface* surface) override;
 
+  void Grab(Keyboard* grab);
+  void SetGrabbing(Keyboard* grabbing);
+
   bool CanReceiveEvent(Surface* surface);
 
   wl_resource* resource() { return resource_; }
+  Surface* target_surface() { return target_; }
 
  private:
   void UpdateKeyStates(wm::KeyboardEvent* key_event);
@@ -42,6 +46,8 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   std::set<uint32_t> pressed_keys_;
   std::set<Surface*> observed_surfaces_;
   Surface* target_ = nullptr;
+  Keyboard* grab_ = nullptr;
+  Keyboard* grabbing_ = nullptr;
   Seat* seat_;
 };
 

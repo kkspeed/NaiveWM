@@ -4,13 +4,16 @@
 #include "wayland/data_device.h"
 #include "wayland/data_offer.h"
 #include "wayland/data_source.h"
+#include "wayland/text_input.h"
 
 namespace naive {
 namespace wayland {
 
 Seat::Seat(
     std::function<DataOffer*(wl_client* client, DataSource* source)> new_offer)
-    : data_device_(std::make_unique<DataDevice>(this)), new_offer_(new_offer) {}
+    : data_device_(std::make_unique<DataDevice>(this)),
+      new_offer_(new_offer),
+      input_method_(this) {}
 
 void Seat::RegisterKeyboard(wl_client* client,
                             std::unique_ptr<Keyboard> keyboard) {
@@ -24,6 +27,11 @@ void Seat::RemoveKeyboard(wl_client* client) {
 void Seat::NotifyKeyboardFocusChanged(Keyboard* to_keyboard) {
   TRACE();
   if (focused_keyboard_ != to_keyboard) {
+    if (focused_keyboard_) {
+      focused_keyboard_->Grab(nullptr);
+      input_method_.NotifyFocusedSurfaceChanged(
+          to_keyboard ? to_keyboard->target_surface() : nullptr);
+    }
     focused_keyboard_ = to_keyboard;
     OfferSelection();
   }

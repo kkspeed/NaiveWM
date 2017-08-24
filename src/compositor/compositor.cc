@@ -540,6 +540,22 @@ void Compositor::Draw() {
                      std::make_move_iterator(views.end()));
   }
 
+  auto* ime_top_level = wm::WindowManager::Get()->input_panel_top_level();
+  if (ime_top_level) {
+    auto views = CompositorView::BuildCompositorViewHierarchyRecursive(
+        ime_top_level, display_metrics_->scale);
+    view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
+                     std::make_move_iterator(views.end()));
+  }
+
+  auto* ime_overlay = wm::WindowManager::Get()->input_panel_overlay();
+  if (ime_overlay) {
+    auto views = CompositorView::BuildCompositorViewHierarchyRecursive(
+        ime_overlay, display_metrics_->scale);
+    view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
+                     std::make_move_iterator(views.end()));
+  }
+
   bool has_global_damage = !global_damage_region_.is_empty();
 
   if (has_global_damage) {

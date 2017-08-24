@@ -7,6 +7,7 @@
 
 #include "wayland/data_device.h"
 #include "wayland/keyboard.h"
+#include "wayland/text_input.h"
 
 namespace naive {
 namespace wayland {
@@ -27,12 +28,15 @@ class Seat {
   void RemoveKeyboard(wl_client*);
 
   DataDevice* data_device() { return data_device_.get(); }
+  InputMethod* input_method() { return &input_method_; }
+  Keyboard* focused_keyboard() { return focused_keyboard_; }
 
  private:
   std::unique_ptr<DataDevice> data_device_;
   std::function<DataOffer*(wl_client* client, DataSource* source)> new_offer_;
   std::map<wl_client*, std::unique_ptr<Keyboard>> keyboard_bindings_;
   Keyboard* focused_keyboard_;
+  InputMethod input_method_;
 };
 
 }  // namespace wayland

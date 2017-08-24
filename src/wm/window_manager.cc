@@ -86,6 +86,16 @@ void WindowManager::RemoveWindow(Window* window) {
     return;
   }
 
+  if (window == input_panel_overlay_) {
+    input_panel_overlay_ = nullptr;
+    return;
+  }
+
+  if (window == input_panel_top_level_) {
+    input_panel_top_level_ = nullptr;
+    return;
+  }
+
   auto* top_level = window->top_level();
   if (top_level == window) {
     // We are dealing with a top level window

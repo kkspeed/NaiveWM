@@ -165,6 +165,14 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
     return (iter == windows_.end()) ? nullptr : *iter;
   }
 
+  void SetInputPanelTopLevel(Window* window) {
+    input_panel_top_level_ = window;
+  }
+  void SetInputPanelOverlay(Window* window) { input_panel_overlay_ = window; }
+
+  Window* input_panel_top_level() { return input_panel_top_level_; }
+  Window* input_panel_overlay() { return input_panel_overlay_; }
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
@@ -184,6 +192,8 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   bool pointer_updated_ = false;
   Window* wallpaper_window_ = nullptr;
   Window* panel_window_ = nullptr;
+  Window* input_panel_top_level_ = nullptr;
+  Window* input_panel_overlay_ = nullptr;
   std::vector<WindowPolicyAction> policy_actions_;
   std::vector<WindowPolicyAction> policy_actions_once_;
 };

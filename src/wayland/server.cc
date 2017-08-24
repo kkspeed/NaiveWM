@@ -31,6 +31,7 @@
 #include "wayland/keyboard.h"
 #include "wayland/pointer.h"
 #include "wayland/seat.h"
+#include "wayland/text_input.h"
 #include "wm/window_manager.h"
 
 namespace naive {
@@ -1674,21 +1675,419 @@ void bind_data_device_manager(wl_client* client,
                                  data, nullptr);
 }
 
-text_input_activate(struct wl_client* client,
-                    struct wl_resource* resource,
-                    struct wl_resource* seat,
-                    struct wl_resource* surface) {
+//////////////////////////////////////////////////////////////////////////////
+// zwp_input_method_v1_interfaces:
+
+void input_method_context_destroy(wl_client* client, wl_resource* resource) {
+  TRACE();
+  wl_resource_destroy(resource);
+}
+
+void input_method_context_commit_string(wl_client* client,
+                                        wl_resource* resource,
+                                        uint32_t serial,
+                                        const char* text) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+
+  if (context->text_input())
+    zwp_text_input_v1_send_commit_string(context->text_input()->resource(),
+                                         serial, text);
+}
+
+void input_method_context_preedit_string(wl_client* client,
+                                         wl_resource* resource,
+                                         uint32_t serial,
+                                         const char* text,
+                                         const char* commit) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_preedit_string(context->text_input()->resource(),
+                                        serial, text, commit);
+}
+
+void input_method_context_preedit_styling(wl_client* client,
+                                          wl_resource* resource,
+                                          uint32_t index,
+                                          uint32_t length,
+                                          uint32_t style) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_preedit_styling(context->text_input()->resource(),
+                                         index, length, style);
+}
+
+void input_method_context_preedit_cursor(wl_client* client,
+                                         wl_resource* resource,
+                                         int32_t cursor) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_preedit_cursor(context->text_input()->resource(),
+                                        cursor);
+}
+
+void input_method_context_delete_surrounding_text(wl_client* client,
+                                                  wl_resource* resource,
+                                                  int32_t index,
+                                                  uint32_t length) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_delete_surrounding_text(
+      context->text_input()->resource(), index, length);
+}
+
+void input_method_context_cursor_position(wl_client* client,
+                                          wl_resource* resource,
+                                          int32_t index,
+                                          int32_t anchor) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+
+  zwp_text_input_v1_send_cursor_position(context->text_input()->resource(),
+                                         index, anchor);
+}
+
+void input_method_context_modifiers_map(wl_client* client,
+                                        wl_resource* resource,
+                                        wl_array* map) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_modifiers_map(context->text_input()->resource(), map);
+}
+
+void input_method_context_keysym(wl_client* client,
+                                 wl_resource* resource,
+                                 uint32_t serial,
+                                 uint32_t time,
+                                 uint32_t sym,
+                                 uint32_t state,
+                                 uint32_t modifiers) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_keysym(context->text_input()->resource(), serial, time,
+                                sym, state, modifiers);
+}
+
+void input_method_context_grab_keyboard(wl_client* client,
+                                        wl_resource* resource,
+                                        uint32_t id) {
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+  auto* seat = context->input_method()->seat();
+  wl_resource* keyboard_resource =
+      wl_resource_create(client, &wl_keyboard_interface, 1, id);
+  SetImplementation(keyboard_resource, &keyboard_implementation,
+                    std::make_unique<Keyboard>(keyboard_resource, seat));
+  auto* grab_keyboard = GetUserDataAs<Keyboard>(keyboard_resource);
+  if (seat->focused_keyboard())
+    seat->focused_keyboard()->Grab(grab_keyboard);
+}
+
+void input_method_context_key(wl_client* client,
+                              wl_resource* resource,
+                              uint32_t serial,
+                              uint32_t time,
+                              uint32_t key,
+                              uint32_t state_w) {
+  NOTIMPLEMENTED();
+}
+
+void input_method_context_modifiers(wl_client* client,
+                                    wl_resource* resource,
+                                    uint32_t serial,
+                                    uint32_t mods_depressed,
+                                    uint32_t mods_latched,
+                                    uint32_t mods_locked,
+                                    uint32_t group) {
+  NOTIMPLEMENTED();
+}
+
+void input_method_context_language(wl_client* client,
+                                   wl_resource* resource,
+                                   uint32_t serial,
+                                   const char* language) {
+  TRACE();
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+
+  if (!context->text_input())
+    return;
+  zwp_text_input_v1_send_language(context->text_input()->resource(), serial,
+                                  language);
+}
+
+void input_method_context_text_direction(wl_client* client,
+                                         wl_resource* resource,
+                                         uint32_t serial,
+                                         uint32_t direction) {
+  TRACE();
+  auto* context = GetUserDataAs<InputMethodContext>(resource);
+
+  if (!context->text_input())
+    return;
+
+  zwp_text_input_v1_send_text_direction(context->text_input()->resource(),
+                                        serial, direction);
+}
+
+const struct zwp_input_method_context_v1_interface
+    input_context_implementation = {
+        input_method_context_destroy,
+        input_method_context_commit_string,
+        input_method_context_preedit_string,
+        input_method_context_preedit_styling,
+        input_method_context_preedit_cursor,
+        input_method_context_delete_surrounding_text,
+        input_method_context_cursor_position,
+        input_method_context_modifiers_map,
+        input_method_context_keysym,
+        input_method_context_grab_keyboard,
+        input_method_context_key,
+        input_method_context_modifiers,
+        input_method_context_language,
+        input_method_context_text_direction};
+
+InputMethodContext* CreateInputContext(wl_client* client,
+                                       TextInput* text_input,
+                                       InputMethod* input_method) {
+  TRACE();
+  wl_resource* input_context_resource =
+      wl_resource_create(client, &zwp_input_method_context_v1_interface, 1, 0);
+
+  std::unique_ptr<InputMethodContext> input_context =
+      std::make_unique<InputMethodContext>(input_context_resource, text_input,
+                                           input_method);
+  SetImplementation(input_context_resource, &input_context_implementation,
+                    std::move(input_context));
+  return GetUserDataAs<InputMethodContext>(input_context_resource);
+}
+
+void unbind_input_method(wl_resource* resource) {
+  TRACE();
+  auto* input_method = GetUserDataAs<InputMethod>(resource);
+  input_method->Deactivate();
+  input_method->SetBinding(nullptr);
+}
+
+void bind_input_method(wl_client* client,
+                       void* data,
+                       uint32_t version,
+                       uint32_t id) {
+  TRACE();
+  InputMethod* input_method = static_cast<InputMethod*>(data);
+  wl_resource* resource =
+      wl_resource_create(client, &zwp_input_method_v1_interface, 1, id);
+  if (input_method->binding()) {
+    wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT,
+                           "input method already bound");
+    return;
+  }
+  wl_resource_set_implementation(resource, nullptr, input_method,
+                                 unbind_input_method);
+  input_method->SetBinding(resource);
+}
+
+void input_panel_surface_set_toplevel(wl_client* client,
+                                      wl_resource* resource,
+                                      wl_resource* output_resource,
+                                      uint32_t position) {
+  auto* surface = GetUserDataAs<Surface>(resource);
+  wm::WindowManager::Get()->SetInputPanelTopLevel(surface->window());
+}
+
+void input_panel_surface_set_overlay_panel(wl_client* client,
+                                           wl_resource* resource) {
+  auto* surface = GetUserDataAs<Surface>(resource);
+  wm::WindowManager::Get()->SetInputPanelOverlay(surface->window());
+}
+
+const struct zwp_input_panel_surface_v1_interface
+    input_panel_surface_implementation = {
+        input_panel_surface_set_toplevel,
+        input_panel_surface_set_overlay_panel};
+
+void input_panel_get_input_panel_surface(wl_client* client,
+                                         wl_resource* resource,
+                                         uint32_t id,
+                                         wl_resource* surface_resource) {
+  auto* surface = GetUserDataAs<Surface>(surface_resource);
+  auto* panel_resource =
+      wl_resource_create(client, &zwp_input_panel_surface_v1_interface, 1, id);
+  wl_resource_set_implementation(
+      panel_resource, &input_panel_surface_implementation, surface, nullptr);
+}
+
+const struct zwp_input_panel_v1_interface input_panel_implementation = {
+    input_panel_get_input_panel_surface};
+
+void bind_input_panel(wl_client* client,
+                      void* data,
+                      uint32_t version,
+                      uint32_t id) {
+  TRACE();
+  auto* resource =
+      wl_resource_create(client, &zwp_input_panel_v1_interface, 1, id);
+
+  wl_resource_set_implementation(resource, &input_panel_implementation, data,
+                                 nullptr);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// zwp_text_input_v1_interfaces:
+
+void text_input_activate(wl_client* client,
+                         wl_resource* resource,
+                         wl_resource* seat_resource,
+                         wl_resource* surface) {
+  TRACE();
   auto* text_input = GetUserDataAs<TextInput>(resource);
   auto* track_surface = GetUserDataAs<Surface>(surface);
-  text_input->TrackSurface(track_surface);
-  auto* seat = GetUserDataAs<Seat>(seat);
-  seat->input_method()->Activate(text_input);
+  text_input->SetSurface(track_surface);
+  auto* seat = GetUserDataAs<Seat>(seat_resource);
+  InputMethodContext* input_method_context =
+      CreateInputContext(client, text_input, seat->input_method());
+  text_input->SetInputMethodContext(input_method_context);
+  seat->input_method()->Activate(input_method_context);
+}
+
+void text_input_deactivate(wl_client* client,
+                           wl_resource* resource,
+                           wl_resource* seat_resource) {
+  TRACE();
+  auto* seat = GetUserDataAs<Seat>(seat_resource);
+  seat->input_method()->Deactivate();
+}
+
+void text_input_show_input_panel(wl_client* client, wl_resource* resource) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context())
+    text_input->input_method_context()->input_method()->ShowPanels(true);
+}
+
+void text_input_hide_input_panel(wl_client* client, wl_resource* resource) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context())
+    text_input->input_method_context()->input_method()->ShowPanels(false);
+}
+
+void text_input_reset(wl_client* client, wl_resource* resource) {
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context())
+    text_input->input_method_context()->Reset();
+}
+
+void text_input_set_surrounding_text(wl_client* client,
+                                     wl_resource* resource,
+                                     const char* text,
+                                     uint32_t cursor,
+                                     uint32_t anchor) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+
+  if (text_input->input_method_context())
+    zwp_input_method_context_v1_send_surrounding_text(
+        text_input->input_method_context()->resource(), text, cursor, anchor);
+}
+
+void text_input_set_content_type(wl_client* client,
+                                 wl_resource* resource,
+                                 uint32_t hint,
+                                 uint32_t purpose) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context()) {
+    zwp_input_method_context_v1_send_content_type(
+        text_input->input_method_context()->resource(), hint, purpose);
+  }
+}
+
+void text_input_set_cursor_rectangle(wl_client* client,
+                                     wl_resource* resource,
+                                     int32_t x,
+                                     int32_t y,
+                                     int32_t width,
+                                     int32_t height) {
+  TRACE();
+  NOTIMPLEMENTED();
+}
+
+void text_input_set_preferred_language(wl_client* client,
+                                       wl_resource* resource,
+                                       const char* language) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context()) {
+    zwp_input_method_context_v1_send_preferred_language(
+        text_input->input_method_context()->resource(), language);
+  }
+}
+
+void text_input_commit_state(wl_client* client,
+                             wl_resource* resource,
+                             uint32_t serial) {
+  TRACE();
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (text_input->input_method_context()) {
+    zwp_input_method_context_v1_send_commit_state(
+        text_input->input_method_context()->resource(), serial);
+  }
+}
+
+void text_input_invoke_action(wl_client* client,
+                              wl_resource* resource,
+                              uint32_t button,
+                              uint32_t index) {
+  auto* text_input = GetUserDataAs<TextInput>(resource);
+  if (!text_input->input_method_context())
+    return;
+
+  zwp_input_method_context_v1_send_invoke_action(
+      text_input->input_method_context()->resource(), button, index);
 }
 
 const struct zwp_text_input_v1_interface text_input_implementation = {
     text_input_activate,
+    text_input_deactivate,
+    text_input_show_input_panel,
+    text_input_hide_input_panel,
+    text_input_reset,
+    text_input_set_surrounding_text,
+    text_input_set_content_type,
+    text_input_set_cursor_rectangle,
+    text_input_set_preferred_language,
+    text_input_commit_state,
+    text_input_invoke_action};
 
-};
+void text_input_manager_create_text_input(wl_client* client,
+                                          wl_resource* resource,
+                                          uint32_t id) {
+  TRACE();
+  wl_resource* text_input_resource =
+      wl_resource_create(client, &zwp_text_input_v1_interface, 1, id);
+  auto text_input = std::make_unique<TextInput>(text_input_resource);
+  SetImplementation(text_input_resource, &text_input_implementation,
+                    std::move(text_input));
+}
+
+const struct zwp_text_input_manager_v1_interface
+    text_input_manager_implementation = {text_input_manager_create_text_input};
+
+void bind_text_input_manager(wl_client* client,
+                             void* data,
+                             uint32_t version,
+                             uint32_t id) {
+  TRACE();
+  wl_resource* text_input_manager = wl_resource_create(
+      client, &zwp_text_input_manager_v1_interface, version, id);
+  wl_resource_set_implementation(
+      text_input_manager, &text_input_manager_implementation, data, nullptr);
+}
 
 }  // namespace
 
@@ -1715,6 +2114,12 @@ Server::Server(Display* display)
                    &bind_xdg_shell_v5);
   wl_global_create(wl_display_, &wl_seat_interface, kSeatVersion, seat_.get(),
                    &bind_seat);
+  wl_global_create(wl_display_, &zwp_input_method_v1_interface, 1,
+                   seat_->input_method(), &bind_input_method);
+  wl_global_create(wl_display_, &zwp_input_panel_v1_interface, 1, nullptr,
+                   &bind_input_panel);
+  wl_global_create(wl_display_, &zwp_text_input_manager_v1_interface, 1,
+                   display_, bind_text_input_manager);
   wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
                    bind_data_device_manager);
 }

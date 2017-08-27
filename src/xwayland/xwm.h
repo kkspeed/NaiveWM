@@ -3,8 +3,10 @@
 
 #include <X11/Xlib.h>
 #include <wayland-server-protocol.h>
+#include <map>
 #include <memory>
 
+#include "base/geometry.h"
 #include "compositor/shell_surface.h"
 #include "wayland/display.h"
 
@@ -146,6 +148,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   Window root_;
   std::unique_ptr<Atoms> atoms_;
   std::vector<std::pair<Window, int32_t>> pending_surface_ids_;
+  std::map<Window, base::geometry::Rect> pending_configureations_;
   std::vector<std::unique_ptr<XWindow>> x_windows_;
 };
 

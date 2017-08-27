@@ -520,6 +520,15 @@ void Compositor::Draw() {
       wallpaper_window ? CompositorView::BuildCompositorViewHierarchyRecursive(
                              wallpaper_window, display_metrics_->scale)
                        : CompositorViewList();
+  // TODO: clean this up and L520 as well.
+  auto* panel_window = wm::WindowManager::Get()->panel_window();
+  if (panel_window) {
+    auto views = CompositorView::BuildCompositorViewHierarchyRecursive(
+        panel_window, display_metrics_->scale);
+    view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
+                     std::make_move_iterator(views.end()));
+  }
+
   for (auto* window : wm::WindowManager::Get()->windows()) {
     if (window->is_visible()) {
       CompositorViewList view_list_window =
@@ -529,15 +538,6 @@ void Compositor::Draw() {
                        std::make_move_iterator(view_list_window.begin()),
                        std::make_move_iterator(view_list_window.end()));
     }
-  }
-
-  // TODO: clean this up and L520 as well.
-  auto* panel_window = wm::WindowManager::Get()->panel_window();
-  if (panel_window) {
-    auto views = CompositorView::BuildCompositorViewHierarchyRecursive(
-        panel_window, display_metrics_->scale);
-    view_list.insert(view_list.end(), std::make_move_iterator(views.begin()),
-                     std::make_move_iterator(views.end()));
   }
 
   auto* ime_top_level = wm::WindowManager::Get()->input_panel_top_level();

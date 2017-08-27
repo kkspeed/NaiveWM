@@ -72,7 +72,6 @@ void XWindowManager::CreateManagedWindow(
   });
   shell_surface->set_activation_callback(
       [this, window]() { this->FocusWindow(window); });
-  // TODO: distinguish x window types
   shell_surface->window()->set_mouse_event_scale_override(1);
   if (!AdjustWindowFlags(window, shell_surface.get())) {
     shell_surface->window()->set_to_be_managed(true);
@@ -91,11 +90,25 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     return false;
   }
 
+  base::geometry::Rect rect;
+  if (pending_configureations_.find(window) != pending_configureations_.end()) {
+    rect = pending_configureations_[window];
+    pending_configureations_.erase(window);
+  }
+
   Atom window_type = GetAtomProp(window, atoms_->net_wm_window_type);
   Window transient_for_window;
   XGetTransientForHint(x_display_, window, &transient_for_window);
   ShellSurface* parent = GetShellSurfaceByWindow(transient_for_window);
   if (transient_for_window && parent) {
+    if (!rect.Empty()) {
+      TRACE("xwin: 0x%lx, window: %p, geometry: %s", window,
+            shell_surface->window(), rect.ToString().c_str());
+      int scale = shell_surface->window()->surface()->buffer_scale();
+      shell_surface->SetGeometry(
+          base::geometry::Rect(rect.x() / scale, rect.y() / scale,
+                               rect.width() / scale, rect.height() / scale));
+    }
     if (window_type == atoms_->net_wm_window_type_tooltip ||
         window_type == atoms_->net_wm_window_type_dropdown ||
         window_type == atoms_->net_wm_window_type_dnd ||
@@ -112,7 +125,7 @@ bool XWindowManager::AdjustWindowFlags(Window window,
       return true;
     }
     parent->window()->AddChild(shell_surface->window());
-    return false;
+    return true;
   }
   if (xa.override_redirect) {
     shell_surface->window()->set_popup(true);
@@ -216,33 +229,6 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
   XConfigureRequestEvent* ev = &event->xconfigurerequest;
   TRACE("window: 0x%lx, (%d, %d), width: %d, height: %d", ev->window, ev->x,
         ev->y, ev->width, ev->height);
-  /*
-  auto* shell_surface = GetShellSurfaceByWindow(ev->window);
-  if (shell_surface) {
-    base::geometry::Rect rect = shell_surface->window()->geometry();
-    TRACE("Has shell surface: %p, geometry: %s, is_popup: %d",
-          shell_surface->window(), rect.ToString().c_str(),
-          shell_surface->window()->is_popup() ||
-              shell_surface->window()->is_transient());
-    if (shell_surface->window()->is_popup() ||
-        shell_surface->window()->is_transient()) {
-      if (ev->value_mask & CWX)
-        rect.x_ = ev->x;
-      if (ev->value_mask & CWY)
-        rect.y_ = ev->y;
-      if (ev->value_mask & CWWidth)
-        rect.width_ = ev->width;
-      if (ev->value_mask & CWHeight)
-        rect.height_ = ev->height;
-      ConfigureEvent(ev->window, rect);
-      shell_surface->SetGeometry(rect);
-      XMoveResizeWindow(x_display_, ev->window, rect.x(), rect.y(),
-                        rect.width(), rect.height());
-    } else {
-      ConfigureEvent(ev->window, rect);
-    }
-  } else {
-  */
   XWindowChanges wc;
   wc.x = ev->x;
   wc.y = ev->y;
@@ -255,7 +241,6 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
   ev->value_mask &= ~CWSibling;
 
   XConfigureWindow(x_display_, ev->window, ev->value_mask, &wc);
-  //}
   XSync(x_display_, 0);
 }
 
@@ -320,15 +305,13 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
   ShellSurface* shell_surface = GetShellSurfaceByWindow(window);
   TRACE("window: 0x%lx, shell_surface: %p, (%d, %d), %d x %d", window,
         shell_surface, event->x, event->y, event->width, event->height);
-  return;
-  if (!shell_surface)
-    return;
-  XWindowAttributes xa;
-  if (!XGetWindowAttributes(x_display_, window, &xa))
-    return;
-  if (xa.override_redirect) {
-    shell_surface->SetGeometry(
+  if (!shell_surface) {
+    // ShellSurface has not been created.. we need to save this pending
+    // configuration and apply it once shell surface is created.
+    pending_configureations_.emplace(
+        event->window,
         base::geometry::Rect(event->x, event->y, event->width, event->height));
+    return;
   }
 }
 

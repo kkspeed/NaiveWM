@@ -369,6 +369,7 @@ void XWindowManager::FocusWindow(Window window) {
   XSetInputFocus(x_display_, window, RevertToPointerRoot, CurrentTime);
   XChangeProperty(x_display_, root_, atoms_->net_active_window, XA_WINDOW, 32,
                   PropModeReplace, (unsigned char*)&(window), 1);
+  XRaiseWindow(x_display_, window);
   SendEvent(window, atoms_->wm_take_focus);
 }
 

@@ -2,6 +2,7 @@
 #define WAYLAND_SERVER_H_
 
 #include <memory>
+#include <wayland-server-protocol.h>
 
 #include "base/macros.h"
 #include "wayland/display.h"
@@ -12,7 +13,11 @@ struct wl_display;
 };
 
 namespace naive {
+
 namespace wayland {
+
+template <class T>
+T* GetUserDataAs(wl_resource* resource);
 
 class Server {
  public:
@@ -20,6 +25,9 @@ class Server {
   void AddSocket();
   int GetFileDescriptor();
   void DispatchEvents();
+
+  wl_display* wayland_display() { return wl_display_; }
+  Display* display() { return display_; }
 
  private:
   Display* display_;

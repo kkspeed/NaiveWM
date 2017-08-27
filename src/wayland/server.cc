@@ -40,11 +40,6 @@ namespace wayland {
 namespace {
 
 template <class T>
-T* GetUserDataAs(wl_resource* resource) {
-  return static_cast<T*>(wl_resource_get_user_data(resource));
-}
-
-template <class T>
 std::unique_ptr<T> TakeUserDataAs(wl_resource* resource) {
   std::unique_ptr<T> user_data = std::unique_ptr<T>(GetUserDataAs<T>(resource));
   wl_resource_set_user_data(resource, nullptr);
@@ -219,14 +214,15 @@ const struct wl_region_interface region_implementation = {
 void compositor_create_surface(wl_client* client,
                                wl_resource* resource,
                                uint32_t id) {
-  std::unique_ptr<Surface> surface =
-      GetUserDataAs<Display>(resource)->CreateSurface();
+  auto* display = GetUserDataAs<Display>(resource);
+  std::unique_ptr<Surface> surface = display->CreateSurface();
   auto* display_metrics = compositor::Compositor::Get()->GetDisplayMetrics();
   surface->SetBufferScale(display_metrics->scale);
   wl_resource* surface_resource = wl_resource_create(
       client, &wl_surface_interface, wl_resource_get_version(resource), id);
   surface->set_resource(surface_resource);
   TRACE("creating %p, window: %p", surface.get(), surface->window());
+  display->NotifySurfaceCreated(surface.get(), id);
   SetImplementation(surface_resource, &surface_implementation,
                     std::move(surface));
 }
@@ -2095,6 +2091,11 @@ void bind_text_input_manager(wl_client* client,
 }
 
 }  // namespace
+
+template <class T>
+T* GetUserDataAs(wl_resource* resource) {
+  return static_cast<T*>(wl_resource_get_user_data(resource));
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // Server

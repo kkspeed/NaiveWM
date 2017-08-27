@@ -65,26 +65,32 @@ It's recommended that you do the following things:
 ## Default Configurations
 Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
 
-| Key                 | Action                                                 |
-|---------------------|--------------------------------------------------------|
-|Super + C            | Launches browser (default is qutebrowser)              |
-|Super + T            | Launches terminal (default is lxterminal               |
-|Super + D            | Launches drop down terminal (default is lxterminal)    |
-|Super + J            | Focus next window                                      |
-|Super + K            | Focus previous window                                  |
-|Super + Shift + Q    | Exit                                                   |
-|Super + Enter        | Bumps current window to head of the list               |
-|Super + P            | Save screenshot. Currently it saves to /tmp/output.png |
-|Super + 1..9         | Switch workspace to 1..9                               |
-|Super + Shift + 1..9 | Move current window to workspace 1..9                  |
-|Super + x            | Start XWayland                                         |
-|Super + Tab          | Jump to previous tag                                   |
+| Key                 | Action                                                                      |
+|---------------------|-----------------------------------------------------------------------------|
+|Super + C            | Launches browser (default is qutebrowser)                                   |
+|Super + T            | Launches terminal (default is lxterminal                                    |
+|Super + D            | Launches drop down terminal (default is lxterminal)                         |
+|Super + J            | Focus next window                                                           |
+|Super + K            | Focus previous window                                                       |
+|Super + Shift + Q    | Exit                                                                        |
+|Super + Enter        | Bumps current window to head of the list                                    |
+|Super + P            | Save screenshot. Currently it saves to /tmp/output.png                      |
+|Super + 1..9         | Switch workspace to 1..9                                                    |
+|Super + Shift + 1..9 | Move current window to workspace 1..9                                       |
+|Super + x            | Start XWayland (Needs to be compiled with <tt>NO\_XWAYLAND</tt>. See below) |
+|Super + Tab          | Jump to previous tag                                                        |
 
 NaiveWM should be able to guess the scale of your screen for high res screens.
 
 ## Run X Apps
-NaiveWM currently does not have well-integration for rootless XWayland but you can
-still run XWayland as if you are running a remote desktop.
+NaiveWM currently has very limited built-in XWayland support. The surfaces seems to
+be placed correctly but that's about it.. all edge cases: floating etc are not handled
+in any sense.
+
+![XWaylandMix](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/xwayland_mix.png)
+
+Alternatively you can use XWayland like a remote desktop. In such case, please compile
+with <tt> -DNO\_XWAYLAND</tt>.
 
 To start XWayland, run <tt>Xwayland +iglx :1</tt> or press <tt>Super + X</tt>.
 

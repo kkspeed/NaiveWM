@@ -1,6 +1,8 @@
 #ifndef WAYLAND_DISPLAY_H_
 #define WAYLAND_DISPLAY_H_
 
+#include <cstdint>
+#include <vector>
 #include <wayland-server.h>
 
 #include "compositor/shell_surface.h"
@@ -13,6 +15,11 @@ namespace wayland {
 
 class Pointer;
 
+class SurfaceCreatedObserver {
+ public:
+  virtual void OnSurfaceCreated(Surface* surface, int32_t id) = 0;
+};
+
 class Display {
  public:
   Display();
@@ -22,6 +29,13 @@ class Display {
                                                Surface* parent);
   std::unique_ptr<SharedMemory> CreateSharedMemory(int fd, int32_t size);
   std::unique_ptr<ShellSurface> CreateShellSurface(Surface* surface);
+
+  void AddSurfaceCreatedObserver(SurfaceCreatedObserver* observer);
+  void RemoveSurfaceCreatedObserver(SurfaceCreatedObserver* observer);
+  void NotifySurfaceCreated(Surface* surface, int32_t id);
+
+ private:
+  std::vector<SurfaceCreatedObserver*> surface_created_observers_;
 };
 
 }  // namespace wayland

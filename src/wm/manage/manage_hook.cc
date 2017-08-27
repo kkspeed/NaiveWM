@@ -93,6 +93,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 
+#ifdef NO_XWAYLAND
   // Launch X wayland and apply policy to for event scale to 1.
   if (event->super_pressed() && event->keycode() == KEY_X) {
     if (!event->pressed()) {
@@ -111,6 +112,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     }
     return true;
   }
+#endif
 
   if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
       event->keycode() == KEY_Q) {

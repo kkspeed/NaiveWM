@@ -21,8 +21,10 @@ INCLUDE(cmake_modules/FindXKBCommon.cmake)
 INCLUDE(cmake_modules/FindGlog.cmake)
 INCLUDE(cmake_modules/FindCairomm.cmake)
 INCLUDE(cmake_modules/FindDBus.cmake)
+INCLUDE(cmake_modules/FindXComposite.cmake)
 
 FIND_PACKAGE(PNG REQUIRED)
+FIND_PACKAGE(X11 REQUIRED)
 #FIND_PACKAGE(Glog REQUIRED)
 
 INCLUDE_DIRECTORIES(
@@ -40,6 +42,8 @@ INCLUDE_DIRECTORIES(
         ${GLOG_INCLUDE_DIR}
         ${CAIROMM_INCLUDE_DIRS}
         ${DBUS_INCLUDE_DIRS}
+        ${X11_INCLUDE_DIR}
+        ${XCOMPOSITE_INCLUDE_DIR}
         src
         src/protocols)
 
@@ -66,4 +70,6 @@ TARGET_LINK_LIBRARIES(
         ${PNG_LIBRARY}
         ${GLOG_LIBRARY}
         ${CAIROMM_LIBRARIES}
-        ${DBUS_LIBRARIES})
+        ${DBUS_LIBRARIES}
+        ${X11_LIBRARIES}
+        ${XCOMPOSITE_LIBRARY})

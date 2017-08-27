@@ -9,7 +9,7 @@ Wayland-based  tiling window manager.
 You'll need the following dependencies:
 
     libdrm, EGL, GLES2, libinput, libwayland, pixman, udev, xkbcommon, libpng, glog,
-    glm, dbus, cairomm
+    glm, dbus, cairomm, xlib, Xcomposite
 
 The packages needed under Fedora are:
 
@@ -83,9 +83,8 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 NaiveWM should be able to guess the scale of your screen for high res screens.
 
 ## Run X Apps
-NaiveWM currently has very limited built-in XWayland support. The surfaces seems to
-be placed correctly but that's about it.. all edge cases: floating etc are not handled
-in any sense.
+NaiveWM currently has limited built-in XWayland support. The surfaces seems to be placed correctly
+but that's about it.. some edge cases like transient child windows are not handled correctly. 
 
 ![XWaylandMix](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/xwayland_mix.png)
 

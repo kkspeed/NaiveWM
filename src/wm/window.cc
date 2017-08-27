@@ -216,9 +216,8 @@ void Window::TakeFocus() {
     return;
 
   if (!focused_) {
+    window_impl_->TakeFocus();
     focused_ = true;
-    auto size = geometry();
-    window_impl_->Configure(size.width(), size.height());
   }
 }
 

@@ -3,13 +3,13 @@
 
 #include "base/macros.h"
 
-#include <functional>
 #include <wayland-server-protocol.h>
+#include <functional>
 
-#include "wayland/keyboard.h"
 #include "compositor/surface.h"
-#include "protocols/text-input-unstable-v1.h"
 #include "protocols/input-method-unstable-v1.h"
+#include "protocols/text-input-unstable-v1.h"
+#include "wayland/keyboard.h"
 #include "wm/window_manager.h"
 
 namespace naive {

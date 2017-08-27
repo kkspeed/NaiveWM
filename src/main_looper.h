@@ -1,8 +1,8 @@
 #ifndef MAIN_LOOPER_H_
 #define MAIN_LOOPER_H_
 
-#include <functional>
 #include <poll.h>
+#include <functional>
 #include <vector>
 
 namespace naive {

@@ -26,6 +26,7 @@ class WindowImplWayland : public WindowImpl {
   void AddDamage(const base::geometry::Rect& rect) override;
   bool CanResize() override;
   void Configure(int32_t width, int32_t height) override;
+  void TakeFocus() override;
   void ForceCommit() override;
   bool HasCommit() override;
   Region DamagedRegion() override;

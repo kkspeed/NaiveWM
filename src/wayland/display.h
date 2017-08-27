@@ -1,9 +1,9 @@
 #ifndef WAYLAND_DISPLAY_H_
 #define WAYLAND_DISPLAY_H_
 
+#include <wayland-server.h>
 #include <cstdint>
 #include <vector>
-#include <wayland-server.h>
 
 #include "compositor/shell_surface.h"
 #include "compositor/subsurface.h"

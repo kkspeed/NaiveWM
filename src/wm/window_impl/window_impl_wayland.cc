@@ -54,6 +54,17 @@ void WindowImplWayland::Configure(int32_t width, int32_t height) {
   shell_surface_->Configure(width, height);
 }
 
+void WindowImplWayland::TakeFocus() {
+  if (!shell_surface_) {
+    LOG_ERROR << " only shell surface can call take focus." << std::endl;
+    return;
+  }
+
+  auto geometry = shell_surface_->window()->geometry();
+  shell_surface_->Configure(geometry.width(), geometry.height());
+  shell_surface_->Activate();
+}
+
 void WindowImplWayland::ForceCommit() {
   assert(surface_);
   surface_->force_commit();

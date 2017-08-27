@@ -42,6 +42,9 @@ class WindowImpl {
   // Provide hint from the window manager to resize the surface.
   virtual void Configure(int32_t width, int32_t height) = 0;
 
+  // Window receives focus.
+  virtual void TakeFocus() = 0;
+
   // Forces the surface to be fully redrawn.
   virtual void ForceCommit() = 0;
 

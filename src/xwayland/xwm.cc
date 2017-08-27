@@ -3,6 +3,7 @@
 #include <functional>
 #include <signal.h>
 #include <sys/socket.h>
+#include <X11/Xatom.h>
 #include <X11/Xproto.h>
 #include <X11/extensions/Xcomposite.h>
 
@@ -68,11 +69,53 @@ void XWindowManager::CreateManagedWindow(
     this->ConfigureWindow(window, width * buffer_scale, height * buffer_scale);
     return 0;
   });
+  shell_surface->set_activation_callback(
+      [this, window]() { this->FocusWindow(window); });
   // TODO: distinguish x window types
-  shell_surface->window()->set_to_be_managed(true);
   shell_surface->window()->set_mouse_event_scale_override(1);
+  if (!AdjustWindowFlags(window, shell_surface.get())) {
+    shell_surface->window()->set_to_be_managed(true);
+  }
+  uint32_t property[1] = {1};
+  XChangeProperty(x_display_, window, atoms_->allow_commits, XA_CARDINAL, 32,
+                  PropModeReplace, (uint8_t*)property, 1);
   x_windows_.push_back(
       std::make_unique<XWindow>(window, std::move(shell_surface)));
+}
+
+bool XWindowManager::AdjustWindowFlags(Window window,
+                                       ShellSurface* shell_surface) {
+  XWindowAttributes xa;
+  if (!XGetWindowAttributes(x_display_, window, &xa)) {
+    TRACE("No attributes for xwin: 0x%lx, window: %p, treating as transient.",
+          window, shell_surface->window())
+    shell_surface->window()->set_transient(true);
+    return false;
+  }
+  if (xa.override_redirect) {
+    Window transient_for_window;
+    XGetTransientForHint(x_display_, window, &transient_for_window);
+    ShellSurface* parent = GetShellSurfaceByWindow(transient_for_window);
+    TRACE(
+        "override_redirect xwin: 0x%lx, window: %p, treating as transient"
+        "for 0x%lx, window: %p",
+        window, shell_surface->window(), transient_for_window,
+        parent->window());
+    if (transient_for_window && parent) {
+      parent->window()->AddChild(shell_surface->window());
+      return true;
+    }
+    shell_surface->window()->set_popup(true);
+    return false;
+  }
+  Atom window_type = GetAtomProp(window, atoms_->net_wm_window_type);
+  if (window_type == atoms_->net_wm_window_type_dialog) {
+    TRACE("dialog xwin: 0x%lx, window: %p, treating as transient.", window,
+          shell_surface->window())
+    shell_surface->window()->set_popup(true);
+    return false;
+  }
+  return false;
 }
 
 void XWindowManager::SpawnXServer() {
@@ -110,6 +153,13 @@ void XWindowManager::OnXServerInitialized() {
   atoms_ = std::make_unique<Atoms>(x_display_);
   screen_ = DefaultScreen(x_display_);
   root_ = DefaultRootWindow(x_display_);
+
+  Atom net_atoms[] = {atoms_->net_active_window, atoms_->net_supported,
+                      atoms_->net_wm_window_type,
+                      atoms_->net_wm_window_type_dialog};
+  XChangeProperty(x_display_, root_, atoms_->net_supported, XA_ATOM, 32,
+                  PropModeReplace, (uint8_t*)net_atoms,
+                  sizeof(net_atoms) / sizeof(Atom));
 
   XSetWindowAttributes wa;
   wa.event_mask =
@@ -153,6 +203,9 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
 
 void XWindowManager::HandleMapRequest(XMapRequestEvent* event) {
   TRACE();
+  uint32_t property[1] = {0};
+  XChangeProperty(x_display_, event->window, atoms_->allow_commits, XA_CARDINAL,
+                  32, PropModeReplace, (uint8_t*)property, 1);
   XMapWindow(x_display_, event->window);
   XSync(x_display_, 0);
 }
@@ -213,6 +266,14 @@ void XWindowManager::ConfigureWindow(Window window,
   }
 }
 
+void XWindowManager::FocusWindow(Window window) {
+  TRACE("Focusing: xwindow: 0x%lx", window);
+  XSetInputFocus(x_display_, window, RevertToPointerRoot, CurrentTime);
+  XChangeProperty(x_display_, root_, atoms_->net_active_window, XA_WINDOW, 32,
+                  PropModeReplace, (unsigned char*)&(window), 1);
+  SendEvent(window, atoms_->wm_take_focus);
+}
+
 void XWindowManager::KillWindow(Window window) {
   if (!SendEvent(window, atoms_->wm_delete)) {
     XGrabServer(x_display_);
@@ -246,6 +307,27 @@ bool XWindowManager::SendEvent(Window window, Atom proto) {
     XSendEvent(x_display_, window, False, NoEventMask, &ev);
   }
   return exists;
+}
+
+Atom XWindowManager::GetAtomProp(Window window, Atom prop) {
+  int di;
+  unsigned long dl;
+  unsigned char* p = NULL;
+  Atom da, atom = None;
+
+  if (XGetWindowProperty(x_display_, window, prop, 0L, sizeof atom, False,
+                         XA_ATOM, &da, &di, &dl, &dl, &p) == Success &&
+      p) {
+    atom = *(Atom*)p;
+    XFree(p);
+  }
+  return atom;
+}
+
+ShellSurface* XWindowManager::GetShellSurfaceByWindow(Window window) {
+  auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
+                          [window](auto& w) { return w->window() == window; });
+  return pos == x_windows_.end() ? nullptr : (*pos)->shell_surface();
 }
 
 }  // namespace wayland

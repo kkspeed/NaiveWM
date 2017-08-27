@@ -1,8 +1,8 @@
 #ifndef WAYLAND_SERVER_H_
 #define WAYLAND_SERVER_H_
 
-#include <memory>
 #include <wayland-server-protocol.h>
+#include <memory>
 
 #include "base/macros.h"
 #include "wayland/display.h"

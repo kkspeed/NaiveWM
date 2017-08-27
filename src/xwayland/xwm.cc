@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <X11/Xatom.h>
 #include <X11/Xproto.h>
+#include <X11/Xutil.h>
 #include <X11/extensions/Xcomposite.h>
 
 #include "main_looper.h"
@@ -76,9 +77,6 @@ void XWindowManager::CreateManagedWindow(
   if (!AdjustWindowFlags(window, shell_surface.get())) {
     shell_surface->window()->set_to_be_managed(true);
   }
-  uint32_t property[1] = {1};
-  XChangeProperty(x_display_, window, atoms_->allow_commits, XA_CARDINAL, 32,
-                  PropModeReplace, (uint8_t*)property, 1);
   x_windows_.push_back(
       std::make_unique<XWindow>(window, std::move(shell_surface)));
 }
@@ -96,12 +94,12 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     Window transient_for_window;
     XGetTransientForHint(x_display_, window, &transient_for_window);
     ShellSurface* parent = GetShellSurfaceByWindow(transient_for_window);
-    TRACE(
-        "override_redirect xwin: 0x%lx, window: %p, treating as transient"
-        "for 0x%lx, window: %p",
-        window, shell_surface->window(), transient_for_window,
-        parent->window());
     if (transient_for_window && parent) {
+      TRACE(
+          "override_redirect xwin: 0x%lx, window: %p, treating as transient"
+          "for 0x%lx, window: %p",
+          window, shell_surface->window(), transient_for_window,
+          parent->window());
       parent->window()->AddChild(shell_surface->window());
       return true;
     }
@@ -162,9 +160,10 @@ void XWindowManager::OnXServerInitialized() {
                   sizeof(net_atoms) / sizeof(Atom));
 
   XSetWindowAttributes wa;
-  wa.event_mask =
-      SubstructureNotifyMask | SubstructureRedirectMask | PropertyChangeMask;
+  wa.event_mask = StructureNotifyMask | SubstructureNotifyMask |
+                  SubstructureRedirectMask | PropertyChangeMask;
   XChangeWindowAttributes(x_display_, root_, CWEventMask, &wa);
+  XSelectInput(x_display_, root_, wa.event_mask);
   XCompositeRedirectSubwindows(x_display_, root_, CompositeRedirectManual);
 
   DefaultErrorHandler = XSetErrorHandler(XError);
@@ -187,17 +186,49 @@ void XWindowManager::OnSurfaceCreated(Surface* surface, int32_t id) {
 }
 
 void XWindowManager::HandleConfigureRequest(XEvent* event) {
-  TRACE();
   XConfigureRequestEvent* ev = &event->xconfigurerequest;
+  TRACE("window: 0x%lx, (%d, %d), width: %d, height: %d", ev->window, ev->x,
+        ev->y, ev->width, ev->height);
+  /*
+  auto* shell_surface = GetShellSurfaceByWindow(ev->window);
+  if (shell_surface) {
+    base::geometry::Rect rect = shell_surface->window()->geometry();
+    TRACE("Has shell surface: %p, geometry: %s, is_popup: %d",
+          shell_surface->window(), rect.ToString().c_str(),
+          shell_surface->window()->is_popup() ||
+              shell_surface->window()->is_transient());
+    if (shell_surface->window()->is_popup() ||
+        shell_surface->window()->is_transient()) {
+      if (ev->value_mask & CWX)
+        rect.x_ = ev->x;
+      if (ev->value_mask & CWY)
+        rect.y_ = ev->y;
+      if (ev->value_mask & CWWidth)
+        rect.width_ = ev->width;
+      if (ev->value_mask & CWHeight)
+        rect.height_ = ev->height;
+      ConfigureEvent(ev->window, rect);
+      shell_surface->SetGeometry(rect);
+      XMoveResizeWindow(x_display_, ev->window, rect.x(), rect.y(),
+                        rect.width(), rect.height());
+    } else {
+      ConfigureEvent(ev->window, rect);
+    }
+  } else {
+  */
   XWindowChanges wc;
   wc.x = ev->x;
   wc.y = ev->y;
   wc.width = ev->width;
   wc.height = ev->height;
-  wc.border_width = ev->border_width;
+  wc.border_width = 0;  // ev->border_width;
   wc.sibling = ev->above;
   wc.stack_mode = ev->detail;
+  ev->value_mask &= ~CWStackMode;
+  ev->value_mask &= ~CWSibling;
+
   XConfigureWindow(x_display_, ev->window, ev->value_mask, &wc);
+  //}
   XSync(x_display_, 0);
 }
 
@@ -239,6 +270,20 @@ void XWindowManager::HandleDestroyNotify(XDestroyWindowEvent* event) {
   }
 }
 
+void XWindowManager::HandleUnmapNotify(XUnmapEvent* event) {
+  Window target = event->window;
+  auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
+                          [target](auto& w) { return w->window() == target; });
+  if (pos != x_windows_.end()) {
+    TRACE("Removing x_window: 0x%lx, shell_surface: %p", (*pos)->window(),
+          (*pos)->shell_surface());
+    if (event->send_event) {
+      SetClientState(event->window, WithdrawnState);
+    } else
+      x_windows_.erase(pos);
+  }
+}
+
 void XWindowManager::HandleXEvents() {
   XEvent event;
   while (XPending(x_display_)) {
@@ -250,6 +295,8 @@ void XWindowManager::HandleXEvents() {
         HandleMapRequest(&event.xmaprequest);
       case ClientMessage:
         HandleClientMessage(&event.xclient);
+      case UnmapNotify:
+        HandleUnmapNotify(&event.xunmap);
       case DestroyNotify:
         HandleDestroyNotify(&event.xdestroywindow);
     }
@@ -259,9 +306,21 @@ void XWindowManager::HandleXEvents() {
 void XWindowManager::ConfigureWindow(Window window,
                                      int32_t width,
                                      int32_t height) {
-  TRACE("width: %d, height: %d", width, height);
-  if (width != 0 && height != 0) {
+  XWindow* xwin = GetXWindowByWindow(window);
+  if (xwin) {
+    TRACE("0x%lx, width: %d, height: %d, wl_window: %p, surface: %p", window,
+          width, height, xwin->shell_surface()->window(),
+          xwin->shell_surface());
+  }
+
+  if (width != 0 && height != 0 && xwin) {
     XResizeWindow(x_display_, window, width, height);
+    if (!xwin->configured()) {
+      uint32_t property[1] = {0};
+      XChangeProperty(x_display_, window, atoms_->allow_commits, XA_CARDINAL,
+                      32, PropModeReplace, (uint8_t*)property, 1);
+      xwin->set_configured(true);
+    }
     XSync(x_display_, 0);
   }
 }
@@ -324,10 +383,39 @@ Atom XWindowManager::GetAtomProp(Window window, Atom prop) {
   return atom;
 }
 
+void XWindowManager::ConfigureEvent(Window window, base::geometry::Rect& rect) {
+  TRACE("window: 0x%lx, geometry: %s", window, rect.ToString().c_str());
+  XConfigureEvent ce;
+  ce.type = ConfigureNotify;
+  ce.display = x_display_;
+  ce.event = window;
+  ce.window = window;
+  ce.x = rect.x();
+  ce.y = rect.y();
+  ce.width = rect.width();
+  ce.height = rect.height();
+  ce.border_width = 0;
+  ce.above = None;
+  ce.override_redirect = False;
+  XSendEvent(x_display_, window, False, StructureNotifyMask, (XEvent*)&ce);
+}
+
+void XWindowManager::SetClientState(Window window, long state) {
+  long data[] = {state, None};
+  XChangeProperty(x_display_, window, atoms_->wm_state, atoms_->wm_state, 32,
+                  PropModeReplace, (unsigned char*)data, 2);
+}
+
 ShellSurface* XWindowManager::GetShellSurfaceByWindow(Window window) {
   auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
                           [window](auto& w) { return w->window() == window; });
   return pos == x_windows_.end() ? nullptr : (*pos)->shell_surface();
+}
+
+XWindow* XWindowManager::GetXWindowByWindow(Window window) {
+  auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
+                          [window](auto& w) { return w->window() == window; });
+  return pos == x_windows_.end() ? nullptr : (*pos).get();
 }
 
 }  // namespace wayland

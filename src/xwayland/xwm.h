@@ -22,6 +22,7 @@ class Atoms {
         wm_take_focus(XInternAtom(display, "WM_TAKE_FOCUS", 0)),
         wm_delete(XInternAtom(display, "WM_DELETE_WINDOW", 0)),
         wm_transient_for(XInternAtom(display, "WM_TRANSIENT_FOR", 0)),
+        wm_state(XInternAtom(display, "WM_STATE", 0)),
         wl_surface_id(XInternAtom(display, "WL_SURFACE_ID", 0)),
         net_active_window(XInternAtom(display, "_NET_ACTIVE_WINDOW", 0)),
         net_wm_window_type_dialog(
@@ -34,6 +35,7 @@ class Atoms {
   Atom wm_take_focus;
   Atom wm_delete;
   Atom wm_transient_for;
+  Atom wm_state;
   Atom wl_surface_id;
   Atom net_active_window;
   Atom net_wm_window_type_dialog;
@@ -48,9 +50,12 @@ class XWindow {
 
   ShellSurface* shell_surface() { return shell_surface_.get(); }
   Window window() { return window_; }
+  bool configured() { return configured_; }
+  void set_configured(bool c) { configured_ = c; }
 
  private:
   std::unique_ptr<ShellSurface> shell_surface_;
+  bool configured_{false};
   Window window_;
 };
 
@@ -76,12 +81,16 @@ class XWindowManager : public SurfaceCreatedObserver {
   void HandleMapRequest(XMapRequestEvent* event);
   void HandleClientMessage(XClientMessageEvent* event);
   void HandleDestroyNotify(XDestroyWindowEvent* event);
+  void HandleUnmapNotify(XUnmapEvent* event);
 
+  void ConfigureEvent(Window window, base::geometry::Rect& rect);
   void ConfigureWindow(Window window, int32_t width, int32_t height);
   void FocusWindow(Window window);
+  void SetClientState(Window window, long state);
   void KillWindow(Window window);
 
   ShellSurface* GetShellSurfaceByWindow(Window window);
+  XWindow* GetXWindowByWindow(Window window);
 
   bool SendEvent(Window window, Atom proto);
   Atom GetAtomProp(Window window, Atom prop);

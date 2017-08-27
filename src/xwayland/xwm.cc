@@ -90,25 +90,36 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     shell_surface->window()->set_transient(true);
     return false;
   }
-  if (xa.override_redirect) {
-    Window transient_for_window;
-    XGetTransientForHint(x_display_, window, &transient_for_window);
-    ShellSurface* parent = GetShellSurfaceByWindow(transient_for_window);
-    if (transient_for_window && parent) {
+
+  Atom window_type = GetAtomProp(window, atoms_->net_wm_window_type);
+  Window transient_for_window;
+  XGetTransientForHint(x_display_, window, &transient_for_window);
+  ShellSurface* parent = GetShellSurfaceByWindow(transient_for_window);
+  if (transient_for_window && parent) {
+    if (window_type == atoms_->net_wm_window_type_tooltip ||
+        window_type == atoms_->net_wm_window_type_dropdown ||
+        window_type == atoms_->net_wm_window_type_dnd ||
+        window_type == atoms_->net_wm_window_type_combo ||
+        window_type == atoms_->net_wm_window_type_popup ||
+        window_type == atoms_->net_wm_window_type_utility) {
       TRACE(
-          "override_redirect xwin: 0x%lx, window: %p, treating as transient"
+          "inactive transient for xwin: 0x%lx, window: %p, treating as "
+          "transient"
           "for 0x%lx, window: %p",
           window, shell_surface->window(), transient_for_window,
           parent->window());
       parent->window()->AddChild(shell_surface->window());
       return true;
     }
+    parent->window()->AddChild(shell_surface->window());
+    return false;
+  }
+  if (xa.override_redirect) {
     shell_surface->window()->set_popup(true);
     return false;
   }
-  Atom window_type = GetAtomProp(window, atoms_->net_wm_window_type);
   if (window_type == atoms_->net_wm_window_type_dialog) {
-    TRACE("dialog xwin: 0x%lx, window: %p, treating as transient.", window,
+    TRACE("dialog xwin: 0x%lx, window: %p, treating as popup.", window,
           shell_surface->window())
     shell_surface->window()->set_popup(true);
     return false;
@@ -152,9 +163,25 @@ void XWindowManager::OnXServerInitialized() {
   screen_ = DefaultScreen(x_display_);
   root_ = DefaultRootWindow(x_display_);
 
-  Atom net_atoms[] = {atoms_->net_active_window, atoms_->net_supported,
-                      atoms_->net_wm_window_type,
-                      atoms_->net_wm_window_type_dialog};
+  Atom net_atoms[] = {
+      atoms_->net_active_window,
+      atoms_->net_supported,
+      atoms_->net_wm_window_type,
+      atoms_->net_wm_window_type_dialog,
+      atoms_->net_wm_window_type_desktop,
+      atoms_->net_wm_window_type_dock,
+      atoms_->net_wm_window_type_toolbar,
+      atoms_->net_wm_window_type_menu,
+      atoms_->net_wm_window_type_utility,
+      atoms_->net_wm_window_type_splash,
+      atoms_->net_wm_window_type_dropdown,
+      atoms_->net_wm_window_type_popup,
+      atoms_->net_wm_window_type_tooltip,
+      atoms_->net_wm_window_type_notification,
+      atoms_->net_wm_window_type_combo,
+      atoms_->net_wm_window_type_dnd,
+      atoms_->net_wm_window_type_normal,
+  };
   XChangeProperty(x_display_, root_, atoms_->net_supported, XA_ATOM, 32,
                   PropModeReplace, (uint8_t*)net_atoms,
                   sizeof(net_atoms) / sizeof(Atom));
@@ -252,7 +279,10 @@ void XWindowManager::HandleClientMessage(XClientMessageEvent* event) {
           event->window,
           wayland_server_->display()->CreateShellSurface(surface));
     } else {
-      TRACE("Resource for surface id: %d has not been created yet", surface_id);
+      TRACE(
+          "Resource for surface id: %d (window: 0x%lx) has not been created "
+          "yet",
+          surface_id, event->window);
       pending_surface_ids_.push_back(
           std::pair<Window, int>(event->window, surface_id));
     }
@@ -284,6 +314,24 @@ void XWindowManager::HandleUnmapNotify(XUnmapEvent* event) {
   }
 }
 
+void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
+  Window window = event->window;
+
+  ShellSurface* shell_surface = GetShellSurfaceByWindow(window);
+  TRACE("window: 0x%lx, shell_surface: %p, (%d, %d), %d x %d", window,
+        shell_surface, event->x, event->y, event->width, event->height);
+  return;
+  if (!shell_surface)
+    return;
+  XWindowAttributes xa;
+  if (!XGetWindowAttributes(x_display_, window, &xa))
+    return;
+  if (xa.override_redirect) {
+    shell_surface->SetGeometry(
+        base::geometry::Rect(event->x, event->y, event->width, event->height));
+  }
+}
+
 void XWindowManager::HandleXEvents() {
   XEvent event;
   while (XPending(x_display_)) {
@@ -291,14 +339,22 @@ void XWindowManager::HandleXEvents() {
     switch (event.type) {
       case ConfigureRequest:
         HandleConfigureRequest(&event);
+        break;
+      case ConfigureNotify:
+        HandleConfigureNotify(&event.xconfigure);
+        break;
       case MapRequest:
         HandleMapRequest(&event.xmaprequest);
+        break;
       case ClientMessage:
         HandleClientMessage(&event.xclient);
+        break;
       case UnmapNotify:
         HandleUnmapNotify(&event.xunmap);
+        break;
       case DestroyNotify:
         HandleDestroyNotify(&event.xdestroywindow);
+        break;
     }
   }
 }

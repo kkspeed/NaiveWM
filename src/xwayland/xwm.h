@@ -27,6 +27,32 @@ class Atoms {
         net_active_window(XInternAtom(display, "_NET_ACTIVE_WINDOW", 0)),
         net_wm_window_type_dialog(
             XInternAtom(display, "_NET_WM_WINDOW_TYPE_DIALOG", 0)),
+        net_wm_window_type_desktop(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_DESKTOP", 0)),
+        net_wm_window_type_dock(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_DOCK", 0)),
+        net_wm_window_type_toolbar(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_TOOLBAR", 0)),
+        net_wm_window_type_menu(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_MENU", 0)),
+        net_wm_window_type_utility(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_UTILITY", 0)),
+        net_wm_window_type_splash(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_SPLASH", 0)),
+        net_wm_window_type_dropdown(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU", 0)),
+        net_wm_window_type_popup(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_POPUP_MENU", 0)),
+        net_wm_window_type_tooltip(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_TOOLTIP", 0)),
+        net_wm_window_type_notification(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_NOTIFICATION", 0)),
+        net_wm_window_type_combo(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_COMBO", 0)),
+        net_wm_window_type_dnd(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_DND", 0)),
+        net_wm_window_type_normal(
+            XInternAtom(display, "_NET_WM_WINDOW_TYPE_NORMAL", 0)),
         net_wm_window_type(XInternAtom(display, "_NET_WM_WINDOW_TYPE", 0)),
         net_supported(XInternAtom(display, "_NET_SUPPORTED", 0)),
         allow_commits(XInternAtom(display, "_XWAYLAND_ALLOW_COMMITS", 0)) {}
@@ -38,9 +64,25 @@ class Atoms {
   Atom wm_state;
   Atom wl_surface_id;
   Atom net_active_window;
+
   Atom net_wm_window_type_dialog;
+  Atom net_wm_window_type_desktop;
+  Atom net_wm_window_type_dock;
+  Atom net_wm_window_type_toolbar;
+  Atom net_wm_window_type_menu;
+  Atom net_wm_window_type_utility;
+  Atom net_wm_window_type_splash;
+  Atom net_wm_window_type_dropdown;
+  Atom net_wm_window_type_popup;
+  Atom net_wm_window_type_tooltip;
+  Atom net_wm_window_type_notification;
+  Atom net_wm_window_type_combo;
+  Atom net_wm_window_type_dnd;
+  Atom net_wm_window_type_normal;
+
   Atom net_wm_window_type;
   Atom net_supported;
+
   Atom allow_commits;
 };
 
@@ -78,6 +120,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   void HandleXEvents();
 
   void HandleConfigureRequest(XEvent* event);
+  void HandleConfigureNotify(XConfigureEvent* event);
   void HandleMapRequest(XMapRequestEvent* event);
   void HandleClientMessage(XClientMessageEvent* event);
   void HandleDestroyNotify(XDestroyWindowEvent* event);

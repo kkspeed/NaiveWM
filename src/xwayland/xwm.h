@@ -127,6 +127,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   void HandleClientMessage(XClientMessageEvent* event);
   void HandleDestroyNotify(XDestroyWindowEvent* event);
   void HandleUnmapNotify(XUnmapEvent* event);
+  void HandleReparentNotify(XReparentEvent* event);
 
   void ConfigureEvent(Window window, base::geometry::Rect& rect);
   void ConfigureWindow(Window window, int32_t width, int32_t height);

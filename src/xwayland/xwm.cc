@@ -3,6 +3,7 @@
 #include <functional>
 #include <signal.h>
 #include <sys/socket.h>
+#include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
@@ -105,9 +106,7 @@ bool XWindowManager::AdjustWindowFlags(Window window,
       TRACE("xwin: 0x%lx, window: %p, geometry: %s", window,
             shell_surface->window(), rect.ToString().c_str());
       int scale = shell_surface->window()->surface()->buffer_scale();
-      shell_surface->SetGeometry(
-          base::geometry::Rect(rect.x() / scale, rect.y() / scale,
-                               rect.width() / scale, rect.height() / scale));
+      shell_surface->SetGeometry(rect / scale);
     }
     if (window_type == atoms_->net_wm_window_type_tooltip ||
         window_type == atoms_->net_wm_window_type_dropdown ||
@@ -127,6 +126,17 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     parent->window()->AddChild(shell_surface->window());
     return true;
   }
+  if ((xa.override_redirect || transient_for_window == root_) &&
+      !rect.Empty()) {
+    TRACE(
+        "xwin: 0x%lx is transient for root or is override redirect, set "
+        "geometry to: %s",
+        window, rect.ToString().c_str());
+    shell_surface->SetGeometry(
+        rect / shell_surface->window()->surface()->buffer_scale());
+    shell_surface->window()->set_popup(true);
+    return false;
+  }
   if (xa.override_redirect) {
     shell_surface->window()->set_popup(true);
     return false;
@@ -135,6 +145,10 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     TRACE("dialog xwin: 0x%lx, window: %p, treating as popup.", window,
           shell_surface->window())
     shell_surface->window()->set_popup(true);
+    if (!rect.Empty()) {
+      shell_surface->SetGeometry(
+          rect / shell_surface->window()->surface()->buffer_scale());
+    }
     return false;
   }
   return false;
@@ -200,9 +214,10 @@ void XWindowManager::OnXServerInitialized() {
                   sizeof(net_atoms) / sizeof(Atom));
 
   XSetWindowAttributes wa;
+  wa.cursor = XCreateFontCursor(x_display_, XC_left_ptr);
   wa.event_mask = StructureNotifyMask | SubstructureNotifyMask |
                   SubstructureRedirectMask | PropertyChangeMask;
-  XChangeWindowAttributes(x_display_, root_, CWEventMask, &wa);
+  XChangeWindowAttributes(x_display_, root_, CWEventMask | CWCursor, &wa);
   XSelectInput(x_display_, root_, wa.event_mask);
   XCompositeRedirectSubwindows(x_display_, root_, CompositeRedirectManual);
 
@@ -315,6 +330,15 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
   }
 }
 
+void XWindowManager::HandleReparentNotify(XReparentEvent* event) {
+  Window xwin = event->window;
+  TRACE("xwin: 0x%lx", xwin);
+  auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
+                          [xwin](auto& w) { return w->window() == xwin; });
+  if (pos != x_windows_.end())
+    x_windows_.erase(pos);
+}
+
 void XWindowManager::HandleXEvents() {
   XEvent event;
   while (XPending(x_display_)) {
@@ -325,6 +349,9 @@ void XWindowManager::HandleXEvents() {
         break;
       case ConfigureNotify:
         HandleConfigureNotify(&event.xconfigure);
+        break;
+      case ReparentNotify:
+        HandleReparentNotify(&event.xreparent);
         break;
       case MapRequest:
         HandleMapRequest(&event.xmaprequest);

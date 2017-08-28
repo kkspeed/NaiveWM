@@ -74,8 +74,12 @@ void XWindowManager::CreateManagedWindow(
   shell_surface->set_activation_callback(
       [this, window]() { this->FocusWindow(window); });
   shell_surface->window()->set_mouse_event_scale_override(1);
-  if (!AdjustWindowFlags(window, shell_surface.get())) {
+
+  if (!AdjustWindowFlags(window, shell_surface.get()))
     shell_surface->window()->set_to_be_managed(true);
+  if (shell_surface->window()->is_popup() ||
+      shell_surface->window()->is_transient()) {
+    UpdateSizeHints(window, shell_surface.get());
   }
   x_windows_.push_back(
       std::make_unique<XWindow>(window, std::move(shell_surface)));
@@ -330,6 +334,31 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
   }
 }
 
+void XWindowManager::HandlePropertyNotify(XPropertyEvent* event) {
+  Window window = event->window;
+  TRACE("xwin: 0x%lx", window);
+  if (event->state == PropertyDelete)
+    return;
+
+  if (window == root_) {
+    // TODO: Root probably handles WM_NAME.
+    return;
+  }
+  if (event->atom == XA_WM_NORMAL_HINTS) {
+    ShellSurface* shell_surface = GetShellSurfaceByWindow(window);
+    UpdateSizeHints(window, shell_surface);
+    return;
+  }
+
+  if (event->atom == XA_WM_TRANSIENT_FOR) {
+    Window parent = 0;
+    if (!XGetTransientForHint(x_display_, window, &parent))
+      return;
+    TRACE("window: 0x%lx hints as transient for 0x%lx", window, parent);
+    return;
+  }
+}
+
 void XWindowManager::HandleReparentNotify(XReparentEvent* event) {
   Window xwin = event->window;
   TRACE("xwin: 0x%lx", xwin);
@@ -358,6 +387,9 @@ void XWindowManager::HandleXEvents() {
         break;
       case ClientMessage:
         HandleClientMessage(&event.xclient);
+        break;
+      case PropertyNotify:
+        HandlePropertyNotify(&event.xproperty);
         break;
       case UnmapNotify:
         HandleUnmapNotify(&event.xunmap);
@@ -465,6 +497,34 @@ void XWindowManager::ConfigureEvent(Window window, base::geometry::Rect& rect) {
   ce.above = None;
   ce.override_redirect = False;
   XSendEvent(x_display_, window, False, StructureNotifyMask, (XEvent*)&ce);
+}
+
+void XWindowManager::UpdateSizeHints(Window window,
+                                     ShellSurface* shell_surface) {
+  TRACE("xwin: 0x%lx, shell_surface: %p", window, shell_surface);
+  long msize;
+  XSizeHints size;
+  if (!XGetWMNormalHints(x_display_, window, &size, &msize))
+    return;
+  base::geometry::Rect rect;
+  if (size.flags & PPosition) {
+    rect.x_ = size.x;
+    rect.y_ = size.y;
+  }
+  if (size.flags & PSize) {
+    rect.width_ = size.width;
+    rect.height_ = size.height;
+  }
+  if (rect.Empty())
+    return;
+  TRACE("xwin: 0x%lx, size hint: %s", window, rect.ToString().c_str());
+  if (!shell_surface) {
+    TRACE("shell surface for window 0x%lx not created yet...", window);
+    pending_configureations_.emplace(window, rect);
+    return;
+  }
+  shell_surface->SetGeometry(
+      rect / shell_surface->window()->surface()->buffer_scale());
 }
 
 void XWindowManager::SetClientState(Window window, long state) {

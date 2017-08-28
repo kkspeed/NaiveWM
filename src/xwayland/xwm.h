@@ -125,6 +125,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   void HandleConfigureNotify(XConfigureEvent* event);
   void HandleMapRequest(XMapRequestEvent* event);
   void HandleClientMessage(XClientMessageEvent* event);
+  void HandlePropertyNotify(XPropertyEvent* event);
   void HandleDestroyNotify(XDestroyWindowEvent* event);
   void HandleUnmapNotify(XUnmapEvent* event);
   void HandleReparentNotify(XReparentEvent* event);
@@ -134,6 +135,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   void FocusWindow(Window window);
   void SetClientState(Window window, long state);
   void KillWindow(Window window);
+  void UpdateSizeHints(Window window, ShellSurface* shell_surface);
 
   ShellSurface* GetShellSurfaceByWindow(Window window);
   XWindow* GetXWindowByWindow(Window window);

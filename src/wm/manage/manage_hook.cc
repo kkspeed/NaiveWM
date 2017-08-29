@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "base/image_codec.h"
+#include "base/time.h"
 #include "base/utils.h"
 #include "compositor/compositor.h"
 #include "ui/image_view.h"
@@ -237,8 +238,10 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     TRACE("Saving screenshot...");
     compositor::Compositor::Get()->CopyScreen(
         std::make_unique<compositor::CopyRequest>(std::bind(
-            &base::EncodePngToFile, "/tmp/output.png", std::placeholders::_1,
-            std::placeholders::_2, std::placeholders::_3)));
+            &base::EncodePngToFile,
+            base::Time::GetTime("/tmp/screenshot-%Y-%m-%d-%H_%M_%S.png"),
+            std::placeholders::_1, std::placeholders::_2,
+            std::placeholders::_3)));
     TRACE("Screenshot saved...");
     return true;
   }

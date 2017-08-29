@@ -13,5 +13,14 @@ uint32_t Time::CurrentTimeMilliSeconds() {
           .count());
 }
 
+// static
+std::string Time::GetTime(const char* format) {
+  char buffer[256];
+  auto t = std::time(nullptr);
+  auto* tm = std::localtime(&t);
+  std::strftime(buffer, 256, format, tm);
+  return std::string(buffer);
+}
+
 }  // namespace base
 }  // namespace naive

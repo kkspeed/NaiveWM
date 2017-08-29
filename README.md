@@ -74,7 +74,7 @@ Here are a list of key bindings and actions. They can be changed in manage\_hook
 |Super + K            | Focus previous window                                                       |
 |Super + Shift + Q    | Exit                                                                        |
 |Super + Enter        | Bumps current window to head of the list                                    |
-|Super + P            | Save screenshot. Currently it saves to /tmp/output.png                      |
+|Super + P            | Save screenshot. Currently it saves to /tmp/screnshot-\<current\_time\>.png |
 |Super + 1..9         | Switch workspace to 1..9                                                    |
 |Super + Shift + 1..9 | Move current window to workspace 1..9                                       |
 |Super + x            | Start XWayland (Needs to be compiled with <tt>NO\_XWAYLAND</tt>. See below) |

@@ -38,16 +38,19 @@ Panel::Panel(int32_t x, int32_t y, int32_t width, int32_t height)
   SetTextAlignment(ui::TextAlignment::CENTER_VERTICAL |
                    ui::TextAlignment::LEFT);
 
-  SetText("<1>  2   3   4   5   6   7   8   9");
+  SetText("<1>");
 }
 
-void Panel::OnWorkspaceChanged(int32_t workspace) {
+void Panel::OnWorkspaceChanged(int32_t workspace,
+                               const std::vector<int32_t>& window_count) {
   std::stringstream ss;
 
   for (int i = 0; i < 9; i++) {
-    if (workspace == i)
+    if (workspace == i) {
       ss << "<" << i + 1 << "> ";
-    else
+      continue;
+    }
+    if (window_count[i] != 0)
       ss << " " << i + 1 << "  ";
   }
   SetText(ss.str());

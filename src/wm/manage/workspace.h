@@ -70,6 +70,7 @@ class Workspace {
   void ArrangeWindows(int32_t x, int32_t y, int32_t width, int32_t height);
   bool HasWindow(Window* window);
   ManageWindow* FindWindowByPid(pid_t pid);
+  int32_t window_count() { return windows_.size(); }
   uint32_t tag() { return tag_; }
 
  private:

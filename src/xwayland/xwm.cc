@@ -145,7 +145,8 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     shell_surface->window()->set_popup(true);
     return false;
   }
-  if (window_type == atoms_->net_wm_window_type_dialog) {
+  if (window_type == atoms_->net_wm_window_type_dialog ||
+      window_type == atoms_->net_wm_window_type_dock) {
     TRACE("dialog xwin: 0x%lx, window: %p, treating as popup.", window,
           shell_surface->window())
     shell_surface->window()->set_popup(true);
@@ -153,6 +154,8 @@ bool XWindowManager::AdjustWindowFlags(Window window,
       shell_surface->SetGeometry(
           rect / shell_surface->window()->surface()->buffer_scale());
     }
+    if (window_type == atoms_->net_wm_window_type_dock)
+      shell_surface->window()->override_border(true, false);
     return false;
   }
   return false;

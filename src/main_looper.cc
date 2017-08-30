@@ -30,7 +30,7 @@ void MainLooper::Run() {
   for (;;) {
     for (size_t i = 0; i < handlers_.size(); i++)
       handlers_[i]();
-    poll(fds_.data(), fds_.size(), 3);
+    poll(fds_.data(), fds_.size(), 1);
   }
 }
 

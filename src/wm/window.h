@@ -120,6 +120,12 @@ class Window {
   void enable_border(bool border) { has_border_ = border; }
   bool has_border() { return has_border_; }
 
+  // TODO: merge this with enable_border and update all the call sites.
+  void override_border(bool override_border, bool has_border) {
+    override_border_ = override_border;
+    has_border_ = has_border;
+  }
+
   pid_t GetPid();
 
   int32_t mouse_event_scale_override() { return mouse_event_scale_override_; }
@@ -132,6 +138,7 @@ class Window {
   bool focused_ = false;
   bool visible_ = true;
   bool has_border_ = false;
+  bool override_border_ = false;
 
   base::geometry::Rect geometry_, visible_region_;
 

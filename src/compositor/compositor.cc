@@ -103,7 +103,6 @@ void init_drm() {
   drmModeRes* resources;
   drmModeConnector* connector = nullptr;
   drmModeEncoder* encoder = nullptr;
-
   drm.fd = open("/dev/dri/card0", O_RDWR);
   assert(drm.fd >= 0);
 
@@ -461,8 +460,6 @@ Compositor* Compositor::Get() {
 
 Compositor::Compositor() {
   drm_egl_init();
-  int width = gl.display_width;
-  int height = gl.display_height;
   display_metrics_ = std::make_unique<wayland::DisplayMetrics>(
       gl.display_width, gl.display_height, drm.physical_width,
       drm.physical_height);

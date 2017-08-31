@@ -96,6 +96,11 @@ class XWindow {
   Window window() { return window_; }
   bool configured() { return configured_; }
   void set_configured(bool c) { configured_ = c; }
+  void ReplaceShellSurface(std::unique_ptr<ShellSurface> shell_surface) {
+    TRACE("replace shell surface for xwin: 0x%lx, %p -> %p", window_,
+          shell_surface_.get(), shell_surface.get());
+    shell_surface_ = std::move(shell_surface);
+  }
 
  private:
   std::unique_ptr<ShellSurface> shell_surface_;

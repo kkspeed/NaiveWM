@@ -81,8 +81,16 @@ void XWindowManager::CreateManagedWindow(
       shell_surface->window()->is_transient()) {
     UpdateSizeHints(window, shell_surface.get());
   }
-  x_windows_.push_back(
-      std::make_unique<XWindow>(window, std::move(shell_surface)));
+
+  auto pos =
+      std::find_if(x_windows_.begin(), x_windows_.end(),
+                   [window](auto& xwin) { return xwin->window() == window; });
+  if (pos != x_windows_.end()) {
+    (*pos)->ReplaceShellSurface(std::move(shell_surface));
+  } else {
+    x_windows_.push_back(
+        std::make_unique<XWindow>(window, std::move(shell_surface)));
+  }
 }
 
 bool XWindowManager::AdjustWindowFlags(Window window,

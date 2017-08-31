@@ -338,7 +338,10 @@ void ManageHook::SelectTag(size_t tag) {
   current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                                       width_ - kWorkspaceInsetX,
                                       height_ - kWorkspaceInsetY);
-  panel_->OnWorkspaceChanged(tag);
+  std::vector<int32_t> window_count;
+  for (auto& workspace : workspaces_)
+    window_count.push_back(workspace.window_count());
+  panel_->OnWorkspaceChanged(tag, window_count);
 }
 
 void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
@@ -354,6 +357,11 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                                       width_ - kWorkspaceInsetX,
                                       height_ - kWorkspaceInsetY);
+  // TODO: Merge this with L341, maybe passing workspace?
+  std::vector<int32_t> window_count;
+  for (auto& workspace : workspaces_)
+    window_count.push_back(workspace.window_count());
+  panel_->OnWorkspaceChanged(current_workspace_, window_count);
 }
 
 }  // namespace wm

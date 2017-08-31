@@ -120,8 +120,8 @@ bool XWindowManager::AdjustWindowFlags(Window window,
         window_type == atoms_->net_wm_window_type_utility) {
       TRACE(
           "inactive transient for xwin: 0x%lx, window: %p, treating as "
-          "transient"
-          "for 0x%lx, window: %p",
+          "transient for "
+          "0x%lx, window: %p",
           window, shell_surface->window(), transient_for_window,
           parent->window());
       parent->window()->AddChild(shell_surface->window());
@@ -266,8 +266,27 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
   XSync(x_display_, 0);
 }
 
+void XWindowManager::HandleCreateNotify(XCreateWindowEvent* event) {
+  TRACE("xwin: 0x%lx, (%d, %d), w: %d, h: %d", event->window, event->x,
+        event->y, event->width, event->height);
+  auto* shell_surface = GetShellSurfaceByWindow(event->window);
+  base::geometry::Rect r(event->x, event->y, event->width, event->height);
+  if (!shell_surface) {
+    pending_configureations_[event->window] = r;
+    return;
+  }
+  if (!shell_surface->window())
+    return;
+  if (shell_surface->window()->is_popup() ||
+      shell_surface->window()->is_transient()) {
+    auto rect_dp = r / shell_surface->window()->surface()->buffer_scale();
+    shell_surface->SetGeometry(rect_dp);
+    shell_surface->window()->PushProperty(true, rect_dp.x(), rect_dp.y());
+  }
+}
+
 void XWindowManager::HandleMapRequest(XMapRequestEvent* event) {
-  TRACE();
+  TRACE("xwin: 0x%lx", event->window);
   uint32_t property[1] = {0};
   XChangeProperty(x_display_, event->window, atoms_->allow_commits, XA_CARDINAL,
                   32, PropModeReplace, (uint8_t*)property, 1);
@@ -330,9 +349,19 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
   if (!shell_surface) {
     // ShellSurface has not been created.. we need to save this pending
     // configuration and apply it once shell surface is created.
-    pending_configureations_.emplace(
-        event->window,
-        base::geometry::Rect(event->x, event->y, event->width, event->height));
+    pending_configureations_[event->window] =
+        base::geometry::Rect(event->x, event->y, event->width, event->height);
+    return;
+  }
+  if (!shell_surface->window())
+    return;
+  if (shell_surface->window()->is_popup() ||
+      shell_surface->window()->is_transient()) {
+    auto rect_dp =
+        base::geometry::Rect(event->x, event->y, event->width, event->height) /
+        shell_surface->window()->surface()->buffer_scale();
+    shell_surface->SetGeometry(rect_dp);
+    shell_surface->window()->PushProperty(true, rect_dp.x(), rect_dp.y());
     return;
   }
 }
@@ -378,6 +407,9 @@ void XWindowManager::HandleXEvents() {
     switch (event.type) {
       case ConfigureRequest:
         HandleConfigureRequest(&event);
+        break;
+      case CreateNotify:
+        HandleCreateNotify(&event.xcreatewindow);
         break;
       case ConfigureNotify:
         HandleConfigureNotify(&event.xconfigure);
@@ -526,8 +558,11 @@ void XWindowManager::UpdateSizeHints(Window window,
     pending_configureations_.emplace(window, rect);
     return;
   }
-  shell_surface->SetGeometry(
-      rect / shell_surface->window()->surface()->buffer_scale());
+  if (!shell_surface->window())
+    return;
+  auto rect_dp = rect / shell_surface->window()->surface()->buffer_scale();
+  shell_surface->SetGeometry(rect_dp);
+  shell_surface->window()->PushProperty(true, rect_dp.x(), rect_dp.y());
 }
 
 void XWindowManager::SetClientState(Window window, long state) {

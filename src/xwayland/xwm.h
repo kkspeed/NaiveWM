@@ -123,6 +123,7 @@ class XWindowManager : public SurfaceCreatedObserver {
 
   void HandleConfigureRequest(XEvent* event);
   void HandleConfigureNotify(XConfigureEvent* event);
+  void HandleCreateNotify(XCreateWindowEvent* event);
   void HandleMapRequest(XMapRequestEvent* event);
   void HandleClientMessage(XClientMessageEvent* event);
   void HandlePropertyNotify(XPropertyEvent* event);

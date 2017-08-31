@@ -80,10 +80,41 @@ void ShellSurface::OnCommit(Surface* committed_surface) {
 
 void ShellSurface::OnSurfaceDestroyed(Surface* surface) {
   if (surface == surface_) {
+    CachedWindowState();
     wm::WindowManager::Get()->RemoveWindow(window_);
     surface_ = nullptr;
     window_ = nullptr;
   }
+}
+
+void ShellSurface::RecoverWindowState(ShellSurface* other) {
+  TRACE("this: %p, other: %p", this, other);
+  if (cached_window_state_) {
+    if (cached_window_state_->parent_)
+      cached_window_state_->parent_->AddChild(other->window_);
+    other->window_->override_border(cached_window_state_->has_border_,
+                                    cached_window_state_->has_border_);
+    other->window_->PushProperty(cached_window_state_->geometry_,
+                                 cached_window_state_->geometry_);
+    other->window_->set_transient(cached_window_state_->is_transient_);
+    other->window_->set_popup(cached_window_state_->is_popup_);
+    other->window_->WmSetPosition(cached_window_state_->wm_x_,
+                                  cached_window_state_->wm_y_);
+  }
+}
+
+void ShellSurface::CacheWindowState() {
+  TRACE("window: %p, shell: %p", window_, this);
+  if (!window_)
+    return;
+  cached_window_state_ = std::make_unique<CachedWindowState>();
+  cached_window_state_->geometry_ = window_->geometry();
+  cached_window_state_->is_popup_ = window_->is_popup();
+  cached_window_state_->is_transient_ = window_->is_transient();
+  cached_window_state_->wm_x_ = window_->wm_x();
+  cached_window_state_->wm_y_ = window_->wm_y();
+  cached_window_state_->parent_ = window_->parent();
+  cached_window_state_->has_border_ = window_->has_border();
 }
 
 }  // namespace naive

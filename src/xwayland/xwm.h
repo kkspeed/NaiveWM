@@ -99,6 +99,7 @@ class XWindow {
   void ReplaceShellSurface(std::unique_ptr<ShellSurface> shell_surface) {
     TRACE("replace shell surface for xwin: 0x%lx, %p -> %p", window_,
           shell_surface_.get(), shell_surface.get());
+    shell_surface_->RecoverWindowState(shell_surface.get());
     shell_surface_ = std::move(shell_surface);
   }
 

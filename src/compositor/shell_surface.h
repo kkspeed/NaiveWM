@@ -57,6 +57,9 @@ class ShellSurface : SurfaceObserver {
 
   wm::Window* window() { return window_; }
 
+  void RecoverWindowState(ShellSurface* other);
+  void CacheWindowState();
+
  private:
   struct ShellState {
     base::geometry::Rect geometry;
@@ -73,6 +76,19 @@ class ShellSurface : SurfaceObserver {
   wm::Window* window_;
   Surface* surface_;
   bool in_configure_ = false;
+
+  struct CachedWindowState {
+    bool has_border_{false};
+    bool is_popup_{false};
+    bool is_transient_{false};
+    wm::Window* parent_{nullptr};
+    int32_t wm_x_ = 0, wm_y_ = 0;
+    base::geometry::Rect geometry_;
+  };
+
+  // Used when window is destroyed before shell surface, so that
+  // we may use this information to recover the window state.
+  std::unique_ptr<CachedWindowState> cached_window_state_;
 };
 
 }  // namespace naive

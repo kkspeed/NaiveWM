@@ -19,6 +19,8 @@ ShellSurface::~ShellSurface() {
     wm::WindowManager::Get()->RemoveWindow(window_);
   if (surface_)
     surface_->RemoveSurfaceObserver(this);
+  if (cached_window_state_ && cached_window_state_->parent_)
+    cached_window_state_->parent_->surface()->RemoveSurfaceObserver(this);
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {
@@ -84,6 +86,12 @@ void ShellSurface::OnSurfaceDestroyed(Surface* surface) {
     wm::WindowManager::Get()->RemoveWindow(window_);
     surface_ = nullptr;
     window_ = nullptr;
+    return;
+  }
+  if (cached_window_state_ &&
+      surface->window() == cached_window_state_->parent_) {
+    cached_window_state_->parent_ = nullptr;
+    return;
   }
 }
 
@@ -116,6 +124,8 @@ void ShellSurface::CacheWindowState() {
   // TODO: possibly needs to observe parent destruction.. otherwise, it
   // might hit NPE.
   cached_window_state_->parent_ = window_->parent();
+  if (cached_window_state_->parent_)
+    cached_window_state_->parent_->surface()->AddSurfaceObserver(this);
   cached_window_state_->has_border_ = window_->has_border();
 }
 

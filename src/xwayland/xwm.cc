@@ -87,18 +87,20 @@ void XWindowManager::CreateManagedWindow(
 
 bool XWindowManager::AdjustWindowFlags(Window window,
                                        ShellSurface* shell_surface) {
+  base::geometry::Rect rect;
+  if (pending_configureations_.find(window) != pending_configureations_.end()) {
+    rect = pending_configureations_[window];
+    pending_configureations_.erase(window);
+  }
+  if (!shell_surface->window())
+    return true;
+
   XWindowAttributes xa;
   if (!XGetWindowAttributes(x_display_, window, &xa)) {
     TRACE("No attributes for xwin: 0x%lx, window: %p, treating as transient.",
           window, shell_surface->window())
     shell_surface->window()->set_transient(true);
     return false;
-  }
-
-  base::geometry::Rect rect;
-  if (pending_configureations_.find(window) != pending_configureations_.end()) {
-    rect = pending_configureations_[window];
-    pending_configureations_.erase(window);
   }
 
   Atom window_type = GetAtomProp(window, atoms_->net_wm_window_type);

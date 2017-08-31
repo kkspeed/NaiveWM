@@ -91,6 +91,21 @@ void XWindowManager::CreateManagedWindow(
     x_windows_.push_back(
         std::make_unique<XWindow>(window, std::move(shell_surface)));
   }
+
+  auto w = std::find_if(x_windows_.begin(), x_windows_.end(),
+                        [window](auto& w) { return w->window() == window; });
+  auto* xwin = (*w).get();
+  assert(xwin);
+  xwin->shell_surface()->set_visibility_changed_callback(
+      [this, xwin](bool visible) {
+        if (!xwin->shell_surface()->window() ||
+            !xwin->shell_surface()->window()->top_level())
+          return;
+
+        TRACE("xwin: 0x%lx visibility: %d", xwin->window(), visible);
+        XMoveWindow(this->x_display_, xwin->window(), visible ? 1 : -5000,
+                    visible ? 1 : -5000);
+      });
 }
 
 bool XWindowManager::AdjustWindowFlags(Window window,

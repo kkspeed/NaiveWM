@@ -66,6 +66,9 @@ class WindowImpl {
   // Returns the scale of underlining surface implemenation.
   virtual int32_t GetScale() = 0;
 
+  // Visibility changed callback for underlining implementation.
+  virtual void OnVisibilityChanged(bool visible){};
+
   void CacheTexture(std::unique_ptr<compositor::TextureDelegate> texture);
   compositor::TextureDelegate* CachedTexture();
 

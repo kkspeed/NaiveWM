@@ -113,6 +113,8 @@ void ShellSurface::CacheWindowState() {
   cached_window_state_->is_transient_ = window_->is_transient();
   cached_window_state_->wm_x_ = window_->wm_x();
   cached_window_state_->wm_y_ = window_->wm_y();
+  // TODO: possibly needs to observe parent destruction.. otherwise, it
+  // might hit NPE.
   cached_window_state_->parent_ = window_->parent();
   cached_window_state_->has_border_ = window_->has_border();
 }

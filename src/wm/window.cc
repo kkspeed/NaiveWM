@@ -244,6 +244,7 @@ void Window::set_visible(bool visible) {
     return;
   }
 
+  window_impl_->OnVisibilityChanged(visible);
   TRACE("%p -> visible: %d", this, visible);
   if (visible)
     surface()->ForceDamage(geometry());

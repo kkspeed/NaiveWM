@@ -103,5 +103,10 @@ int32_t WindowImplWayland::GetScale() {
   return surface_->buffer_scale();
 }
 
+void WindowImplWayland::OnVisibilityChanged(bool visible) {
+  if (shell_surface_)
+    shell_surface_->OnVisibilityChanged(visible);
+}
+
 }  // namespace wm
 }  // namespace naive

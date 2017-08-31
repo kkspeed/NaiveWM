@@ -34,6 +34,7 @@ class WindowImplWayland : public WindowImpl {
   void ClearCommit() override;
   void ClearDamage() override;
   int32_t GetScale() override;
+  void OnVisibilityChanged(bool visible) override;
 
  private:
   Surface* surface_{nullptr};

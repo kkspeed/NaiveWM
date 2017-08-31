@@ -29,6 +29,10 @@ class ShellSurface : SurfaceObserver {
   void OnCommit(Surface* committed_surface) override;
   void OnSurfaceDestroyed(Surface* surface) override;
 
+  void OnVisibilityChanged(bool visible) {
+    visibility_changed_callback_(visible);
+  }
+
   void set_close_callback(std::function<void()> callback) {
     close_callback_ = callback;
   }
@@ -44,6 +48,9 @@ class ShellSurface : SurfaceObserver {
   }
   void set_activation_callback(std::function<void()> callback) {
     activation_callback_ = callback;
+  }
+  void set_visibility_changed_callback(std::function<void(bool)> callback) {
+    visibility_changed_callback_ = callback;
   }
 
   void Configure(int32_t width, int32_t height);
@@ -72,6 +79,7 @@ class ShellSurface : SurfaceObserver {
   std::function<void()> destroy_callback_;
   std::function<void()> ungrab_callback_ = []() {};
   std::function<void()> activation_callback_ = []() {};
+  std::function<void(bool)> visibility_changed_callback_ = [](bool) {};
 
   wm::Window* window_;
   Surface* surface_;

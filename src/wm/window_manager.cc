@@ -23,10 +23,12 @@ void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
   // When a window is not visible, its descendants are all considered hidden.
   if (!window->is_visible())
     return;
-  accumulator.push_back(std::make_unique<Layer>(window, start_x, start_y));
+  int32_t real_start_x = start_x + window->geometry().x();
+  int32_t real_start_y = start_y + window->geometry().y();
+  accumulator.push_back(
+      std::make_unique<Layer>(window, real_start_x, real_start_y));
   for (auto* w : window->children())
-    CollectGlobalLayers(accumulator, w, start_x + w->geometry().x(),
-                        start_y + w->geometry().y());
+    CollectGlobalLayers(accumulator, w, real_start_x, real_start_y);
 }
 
 }  // namespace

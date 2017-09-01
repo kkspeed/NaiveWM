@@ -315,6 +315,8 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
 void ManageHook::PostSetupPolicy() {}
 
 void ManageHook::SelectTag(size_t tag) {
+  if (current_workspace_ == tag)
+    return;
   previous_tag_ = current_workspace_;
   if (popup_terminal_pid_) {
     ManageWindow* window =

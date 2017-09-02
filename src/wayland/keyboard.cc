@@ -64,12 +64,12 @@ bool Keyboard::CanReceiveEvent(Surface* surface) {
 
 void Keyboard::OnFocus(wm::Window* window) {
   TRACE("%p, target: %p", window, target_);
-  seat_->NotifyKeyboardFocusChanged(this);
   if (!window || window->window_type() != wm::WindowType::NORMAL) {
+    seat_->NotifyKeyboardFocusChanged(nullptr);
     return;
   }
-  // if (CanReceiveEvent(window->surface()))
-  //  seat_->NotifyKeyboardFocusChanged(this);
+  if (CanReceiveEvent(window->surface()))
+    seat_->NotifyKeyboardFocusChanged(this);
   if (window && window->surface() != target_ &&
       CanReceiveEvent(window->surface())) {
     TRACE("Adding %p as surface observer to %p", this, window->surface());

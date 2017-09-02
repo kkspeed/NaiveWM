@@ -1591,9 +1591,13 @@ void data_device_set_selection(wl_client* client,
 
 void data_device_release(wl_client* client, wl_resource* resource) {
   TRACE();
+  wl_resource_destroy(resource);
+}
+
+void UnbindDataDevice(wl_resource* resource) {
+  TRACE("%p", resource);
   auto* device = GetUserDataAs<DataDevice>(resource);
   device->Unbind(resource);
-  wl_resource_destroy(resource);
 }
 
 const struct wl_data_device_interface data_device_implementation = {
@@ -1652,7 +1656,7 @@ void data_device_manager_get_data_device(wl_client* client,
   seat->data_device()->AddClient(data_device_resource);
   wl_resource_set_implementation(data_device_resource,
                                  &data_device_implementation,
-                                 seat->data_device(), nullptr);
+                                 seat->data_device(), UnbindDataDevice);
 }
 
 const struct wl_data_device_manager_interface

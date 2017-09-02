@@ -4,6 +4,7 @@
 #include <wayland-server-protocol.h>
 #include <set>
 
+#include "base/logging.h"
 #include "wayland/data_source.h"
 
 namespace naive {
@@ -18,8 +19,14 @@ class DataDevice : public DataSourceListener {
   DataSource* selection() { return selection_; }
   void set_selection(DataSource* selection);
 
-  void AddClient(wl_resource* resource) { bindings_.insert(resource); }
-  void Unbind(wl_resource* resource) { bindings_.erase(resource); }
+  void AddClient(wl_resource* resource) {
+    TRACE("resource: %p", resource);
+    bindings_.insert(resource);
+  }
+  void Unbind(wl_resource* resource) {
+    TRACE("resource: %p", resource);
+    bindings_.erase(resource);
+  }
   wl_resource* GetBinding(wl_client* client) {
     for (auto iter = bindings_.begin(); iter != bindings_.end(); iter++) {
       if (wl_resource_get_client(*iter) == client)

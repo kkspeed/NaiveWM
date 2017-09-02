@@ -3,6 +3,8 @@
 #include "compositor/buffer.h"
 #include "compositor/surface.h"
 #include "wm/window_manager.h"
+#include "wm/window_impl.h"
+#include "wm/window_impl/window_impl_wayland.h"
 
 namespace naive {
 
@@ -15,8 +17,11 @@ ShellSurface::ShellSurface(Surface* surface)
 
 ShellSurface::~ShellSurface() {
   TRACE("%p", this);
-  if (window_)
+  if (window_) {
+    static_cast<wm::WindowImplWayland*>(window_->window_impl())
+        ->set_shell_surface(nullptr);
     wm::WindowManager::Get()->RemoveWindow(window_);
+  }
   if (surface_)
     surface_->RemoveSurfaceObserver(this);
   if (cached_window_state_ && cached_window_state_->parent_)

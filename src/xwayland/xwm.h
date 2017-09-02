@@ -91,6 +91,7 @@ class Atoms {
 class XWindow {
  public:
   XWindow(Window window, std::unique_ptr<ShellSurface> shell_surface);
+  ~XWindow() { TRACE("win: 0x%lx, %p", window_, this); }
 
   ShellSurface* shell_surface() { return shell_surface_.get(); }
   Window window() { return window_; }

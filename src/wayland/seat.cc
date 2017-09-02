@@ -25,7 +25,8 @@ void Seat::RemoveKeyboard(wl_client* client) {
 }
 
 void Seat::NotifyKeyboardFocusChanged(Keyboard* to_keyboard) {
-  TRACE();
+  TRACE("focused keyboard: %p, to_keyboard: %p", focused_keyboard_,
+        to_keyboard);
   if (focused_keyboard_ != to_keyboard) {
     if (focused_keyboard_) {
       focused_keyboard_->Grab(nullptr);

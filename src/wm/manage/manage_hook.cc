@@ -52,7 +52,7 @@ void ManageHook::WindowCreated(Window* window) {
   auto* mw =
       workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
   std::remove_if(window_added_callback_.begin(), window_added_callback_.end(),
-                 [mw](auto f) { return f(mw); });
+                 [mw](auto& f) { return f(mw); });
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
   workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                             width_ - kWorkspaceInsetX,
@@ -71,7 +71,7 @@ void ManageHook::WindowDestroyed(Window* window) {
       mw->Show(false);
       std::remove_if(window_removed_callback_.begin(),
                      window_removed_callback_.end(),
-                     [&mw](auto f) { return f(mw.get()); });
+                     [&mw](auto& f) { return f(mw.get()); });
       if (workspace.tag() == current_workspace_) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);

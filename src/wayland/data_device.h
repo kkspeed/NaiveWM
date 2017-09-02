@@ -15,7 +15,7 @@ class DataDevice : public DataSourceListener {
  public:
   explicit DataDevice(Seat* seat);
   ~DataDevice();
-  DataSource* selection() { return selection_; };
+  DataSource* selection() { return selection_; }
   void set_selection(DataSource* selection);
 
   void AddClient(wl_resource* resource) { bindings_.insert(resource); }

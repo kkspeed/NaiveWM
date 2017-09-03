@@ -20,7 +20,7 @@ class EglContext;
 
 class X11Backend: public Backend, public event::EventHub {
 public:
-  X11Backend();
+  X11Backend(const char* display);
   ~X11Backend() = default;
 
   // EventHub overrides.

@@ -16,8 +16,8 @@
 int main(int argc, char* argv[]) {
   // Decide backend based on -x11 argument
   std::unique_ptr<naive::backend::Backend> backend;
-  if (argc > 1 && strncmp(argv[1], "-x11", 5) == 0)
-    backend = std::make_unique<naive::backend::X11Backend>();
+  if (argc > 2 && strncmp(argv[1], "-x11", 5) == 0)
+    backend = std::make_unique<naive::backend::X11Backend>(argv[2]);
   else
     backend = std::make_unique<naive::backend::DrmBackend>();
 

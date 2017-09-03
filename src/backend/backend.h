@@ -18,7 +18,7 @@ class EglContext;
 class Backend {
  public:
   virtual bool SupportHwCursor() { return false; }
-  virtual void* PointerData() = 0;
+  virtual void* PointerData() { return nullptr; }
   virtual void MoveCursor(int32_t x, int32_t y) {}
   virtual void FinalizeDraw(bool did_draw) = 0;
   virtual EglContext* egl() = 0;

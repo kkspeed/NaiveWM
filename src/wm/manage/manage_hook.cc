@@ -10,6 +10,7 @@
 #include "base/utils.h"
 #include "compositor/compositor.h"
 #include "ui/image_view.h"
+#include "wayland/display_metrics.h"
 #include "wm/keyboard_event.h"
 #include "wm/manage/panel.h"
 #include "wm/mouse_event.h"
@@ -34,11 +35,13 @@ ManageHook::ManageHook() {
 }
 
 void ManageHook::PostWmInitialize() {
-  wallpaper_view_ =
-      std::make_unique<ui::ImageView>(0, 0, 2560, 1440, kWallpaperPath);
+  auto* display_metrics = compositor::Compositor::Get()->GetDisplayMetrics();
+  wallpaper_view_ = std::make_unique<ui::ImageView>(
+      0, 0, display_metrics->width_pixels, display_metrics->height_pixels,
+      kWallpaperPath);
   wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
-  panel_ = std::make_unique<Panel>(0, 0, 2560, 20);
+  panel_ = std::make_unique<Panel>(0, 0, display_metrics->width_pixels, 20);
   wm::WindowManager::Get()->set_panel_window(panel_->window());
 }
 

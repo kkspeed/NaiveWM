@@ -54,8 +54,13 @@ void ManageHook::WindowCreated(Window* window) {
   auto* workspace = current_workspace();
   auto* mw =
       workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
-  std::remove_if(window_added_callback_.begin(), window_added_callback_.end(),
-                 [mw](auto& f) { return f(mw); });
+  auto iter = std::remove_if(window_added_callback_.begin(),
+                             window_added_callback_.end(), [mw](auto& f) {
+                               bool res = f(mw);
+                               return res;
+                             });
+  if (iter != window_added_callback_.end())
+    window_added_callback_.erase(iter);
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
   workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                             width_ - kWorkspaceInsetX,
@@ -71,10 +76,13 @@ void ManageHook::WindowDestroyed(Window* window) {
   for (Workspace& workspace : workspaces_) {
     if (workspace.HasWindow(window)) {
       auto mw = workspace.PopWindow(window);
+      // TODO: No need to set visibility anymore?
       mw->Show(false);
-      std::remove_if(window_removed_callback_.begin(),
-                     window_removed_callback_.end(),
-                     [&mw](auto& f) { return f(mw.get()); });
+      auto iter = std::remove_if(window_removed_callback_.begin(),
+                                 window_removed_callback_.end(),
+                                 [&mw](auto& f) { return f(mw.get()); });
+      if (iter != window_removed_callback_.end())
+        window_removed_callback_.erase(iter);
       if (workspace.tag() == current_workspace_) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);

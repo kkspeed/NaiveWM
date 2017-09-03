@@ -16,7 +16,6 @@
 #include <EGL/eglplatform.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
-#include <EGL/eglplatform.h>
 
 #include "base/logging.h"
 #include "base/looper.h"

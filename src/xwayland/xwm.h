@@ -112,6 +112,9 @@ class XWindow {
   int32_t configured_width() { return configured_width_; }
   int32_t configured_height() { return configured_height_; }
 
+  void set_focusable(bool focusable) { focusable_ = focusable; }
+  bool focusable() { return focusable_; }
+
  private:
   std::unique_ptr<ShellSurface> shell_surface_;
   bool configured_{false};
@@ -119,6 +122,7 @@ class XWindow {
 
   int32_t configured_width_{0};
   int32_t configured_height_{0};
+  bool focusable_{true};
 };
 
 class XWindowManager : public SurfaceCreatedObserver {
@@ -155,6 +159,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   void SetClientState(Window window, long state);
   void KillWindow(Window window);
   void UpdateSizeHints(Window window, ShellSurface* shell_surface);
+  void UpdateWMHints(Window window);
 
   ShellSurface* GetShellSurfaceByWindow(Window window);
   XWindow* GetXWindowByWindow(Window window);
@@ -170,6 +175,7 @@ class XWindowManager : public SurfaceCreatedObserver {
   Window root_;
   std::unique_ptr<Atoms> atoms_;
   std::vector<std::pair<Window, int32_t>> pending_surface_ids_;
+  std::map<Window, bool> pending_focusable_;
   std::map<Window, base::geometry::Rect> pending_configureations_;
   std::vector<std::unique_ptr<XWindow>> x_windows_;
 };

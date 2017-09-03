@@ -93,9 +93,12 @@ void XWindowManager::CreateManagedWindow(
         std::make_unique<XWindow>(window, std::move(shell_surface)));
   }
 
+  UpdateWMHints(window);
+
   auto w = std::find_if(x_windows_.begin(), x_windows_.end(),
                         [window](auto& w) { return w->window() == window; });
   auto* xwin = (*w).get();
+
   assert(xwin);
   xwin->shell_surface()->set_visibility_changed_callback(
       [this, xwin](bool visible) {
@@ -164,11 +167,11 @@ bool XWindowManager::AdjustWindowFlags(Window window,
         window, rect.ToString().c_str());
     shell_surface->SetGeometry(
         rect / shell_surface->window()->surface()->buffer_scale());
-    shell_surface->window()->set_popup(true);
+    shell_surface->window()->set_transient(true);
     return false;
   }
   if (xa.override_redirect) {
-    shell_surface->window()->set_popup(true);
+    shell_surface->window()->set_transient(true);
     return false;
   }
   if (window_type == atoms_->net_wm_window_type_dialog ||
@@ -409,7 +412,8 @@ void XWindowManager::HandlePropertyNotify(XPropertyEvent* event) {
   }
   if (event->atom == XA_WM_NORMAL_HINTS) {
     ShellSurface* shell_surface = GetShellSurfaceByWindow(window);
-    UpdateSizeHints(window, shell_surface);
+    if (shell_surface)
+      UpdateSizeHints(window, shell_surface);
     return;
   }
 
@@ -418,6 +422,11 @@ void XWindowManager::HandlePropertyNotify(XPropertyEvent* event) {
     if (!XGetTransientForHint(x_display_, window, &parent))
       return;
     TRACE("window: 0x%lx hints as transient for 0x%lx", window, parent);
+    return;
+  }
+
+  if (event->atom == XA_WM_HINTS) {
+    UpdateWMHints(window);
     return;
   }
 }
@@ -492,6 +501,9 @@ void XWindowManager::ConfigureWindow(Window window,
 
 void XWindowManager::FocusWindow(Window window) {
   TRACE("Focusing: xwindow: 0x%lx", window);
+  XWindow* xwin = GetXWindowByWindow(window);
+  if (xwin && !xwin->focusable())
+    return;
   XSetInputFocus(x_display_, window, RevertToPointerRoot, CurrentTime);
   XChangeProperty(x_display_, root_, atoms_->net_active_window, XA_WINDOW, 32,
                   PropModeReplace, (unsigned char*)&(window), 1);
@@ -564,6 +576,30 @@ void XWindowManager::ConfigureEvent(Window window, base::geometry::Rect& rect) {
   ce.above = None;
   ce.override_redirect = False;
   XSendEvent(x_display_, window, False, StructureNotifyMask, (XEvent*)&ce);
+}
+
+void XWindowManager::UpdateWMHints(Window window) {
+  TRACE();
+  XWMHints* wmh = XGetWMHints(x_display_, window);
+  XWindow* xwin = GetXWindowByWindow(window);
+
+  if (pending_focusable_.find(window) != pending_focusable_.end()) {
+    xwin->set_focusable(pending_focusable_[window]);
+    pending_focusable_.erase(window);
+  }
+
+  if (wmh && (wmh->flags & InputHint)) {
+    bool focusable = true;
+    focusable = (wmh->input != 0);
+    if (xwin) {
+      xwin->set_focusable(focusable);  // wmh->input != 0);
+    } else {
+      TRACE("XA_WM_HINTS: window: 0x%lx has not been created yet..", window);
+      pending_focusable_[window] = focusable;
+    }
+  }
+
+  XFree(wmh);
 }
 
 void XWindowManager::UpdateSizeHints(Window window,

@@ -75,8 +75,12 @@ void WindowManager::Manage(Window* window) {
   window->set_managed(true);
   for (auto& policy : policy_actions_)
     policy(window);
-  std::remove_if(policy_actions_once_.begin(), policy_actions_once_.end(),
-                 [window](auto& policy) { return policy(window); });
+  TRACE("policy_actions_once size: %ld", policy_actions_once_.size());
+  auto iter =
+      (std::remove_if(policy_actions_once_.begin(), policy_actions_once_.end(),
+                      [window](auto& policy) { return policy(window); }));
+  if (iter != policy_actions_once_.end())
+    policy_actions_once_.erase(iter);
   // We'll skip popup windows for configure.
   if (window->is_popup() || window->is_transient())
     return;

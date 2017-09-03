@@ -1,7 +1,7 @@
 #include "backend/x11_backend/x11_backend.h"
 
-#include <cstdint>
 #include <linux/input.h>
+#include <cstdint>
 
 #include "backend/egl_context.h"
 #include "wayland/display_metrics.h"

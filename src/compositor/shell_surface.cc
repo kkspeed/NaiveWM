@@ -2,9 +2,9 @@
 
 #include "compositor/buffer.h"
 #include "compositor/surface.h"
-#include "wm/window_manager.h"
 #include "wm/window_impl.h"
 #include "wm/window_impl/window_impl_wayland.h"
+#include "wm/window_manager.h"
 
 namespace naive {
 

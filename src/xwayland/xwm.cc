@@ -1,13 +1,13 @@
 #include "xwayland/xwm.h"
 
-#include <functional>
-#include <signal.h>
-#include <sys/socket.h>
-#include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
+#include <X11/cursorfont.h>
 #include <X11/extensions/Xcomposite.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <functional>
 
 #include "main_looper.h"
 #include "wayland/display.h"
@@ -276,11 +276,16 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
   XConfigureRequestEvent* ev = &event->xconfigurerequest;
   TRACE("window: 0x%lx, (%d, %d), width: %d, height: %d", ev->window, ev->x,
         ev->y, ev->width, ev->height);
+  XWindow* xwin = GetXWindowByWindow(ev->window);
   XWindowChanges wc;
   wc.x = ev->x;
   wc.y = ev->y;
   wc.width = ev->width;
   wc.height = ev->height;
+  if (xwin && xwin->configured_width() && xwin->configured_height()) {
+    wc.width = xwin->configured_width();
+    wc.height = xwin->configured_height();
+  }
   wc.border_width = 0;  // ev->border_width;
   wc.sibling = ev->above;
   wc.stack_mode = ev->detail;
@@ -472,6 +477,7 @@ void XWindowManager::ConfigureWindow(Window window,
   }
 
   if (width != 0 && height != 0 && xwin) {
+    xwin->set_configured_size(width, height);
     XResizeWindow(x_display_, window, width, height);
     if (!xwin->configured()) {
       uint32_t property[1] = {0};

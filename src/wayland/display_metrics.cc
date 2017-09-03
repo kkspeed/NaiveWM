@@ -22,6 +22,7 @@ DisplayMetrics::DisplayMetrics(int32_t w, int32_t h, int32_t pw, int32_t ph) {
   if (scale < 1)
     scale = 1;
 
+  TRACE("Scale: %d", scale);
   width_dp = width_pixels / scale;
   height_dp = height_pixels / scale;
 }

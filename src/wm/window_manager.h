@@ -84,8 +84,9 @@ class Layer {
 
 class WindowManager : public event::EventObserver, public WMPrimitives {
  public:
-  WindowManager(WmEventObserver* wm_event_observer);
-  static void InitializeWindowManager(WmEventObserver* wm_event_observer);
+  WindowManager(WmEventObserver* wm_event_observer, event::EventHub* event_hub);
+  static void InitializeWindowManager(WmEventObserver* wm_event_observer,
+                                      event::EventHub* event_hub);
   static WindowManager* Get();
   void Manage(Window* window);
   void RemoveWindow(Window* window);

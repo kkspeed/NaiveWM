@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 
-#include "base/time.h"
 #include "base/logging.h"
+#include "base/time.h"
 
 namespace naive {
 namespace wm {

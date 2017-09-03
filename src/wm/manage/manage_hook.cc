@@ -1,8 +1,8 @@
 #include "wm/manage/manage_hook.h"
 
 #include <linux/input.h>
-#include <memory>
 #include <signal.h>
+#include <memory>
 #include <vector>
 
 #include "base/image_codec.h"

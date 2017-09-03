@@ -11,6 +11,10 @@
 #include "wayland/display_metrics.h"
 
 namespace naive {
+namespace backend {
+class EglContext;
+class Backend;
+}  // namespace backend
 
 namespace wm {
 class Window;
@@ -24,10 +28,10 @@ using CopyRequest = std::function<void(std::vector<uint8_t>, int32_t, int32_t)>;
 
 class Compositor {
  public:
-  static void InitializeCompoistor();
+  static void InitializeCompoistor(backend::Backend* backend);
   static Compositor* Get();
 
-  Compositor();
+  Compositor(backend::Backend* backend);
 
   wayland::DisplayMetrics* GetDisplayMetrics();
 
@@ -46,7 +50,9 @@ class Compositor {
 
  private:
   static Compositor* g_compositor;
-  std::unique_ptr<wayland::DisplayMetrics> display_metrics_;
+  backend::Backend* backend_;
+  backend::EglContext* egl_;
+  wayland::DisplayMetrics* display_metrics_;
   bool draw_forced_ = true;
   std::unique_ptr<CopyRequest> copy_request_;
   Region global_damage_region_ = Region::Empty();

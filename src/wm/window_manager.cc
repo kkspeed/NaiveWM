@@ -37,9 +37,9 @@ void CollectGlobalLayers(std::vector<std::unique_ptr<Layer>>& accumulator,
 WindowManager* WindowManager::g_window_manager = nullptr;
 
 // static
-void WindowManager::InitializeWindowManager(
-    WmEventObserver* wm_event_observer) {
-  g_window_manager = new WindowManager(wm_event_observer);
+void WindowManager::InitializeWindowManager(WmEventObserver* wm_event_observer,
+                                            event::EventHub* event_hub) {
+  g_window_manager = new WindowManager(wm_event_observer, event_hub);
   wm_event_observer->PostWmInitialize();
 }
 
@@ -49,7 +49,8 @@ WindowManager* WindowManager::Get() {
 }
 
 // TODO: use real dimension
-WindowManager::WindowManager(WmEventObserver* wm_event_observer)
+WindowManager::WindowManager(WmEventObserver* wm_event_observer,
+                             event::EventHub* event_hub)
     : wm_event_observer_(wm_event_observer),
       display_metrics_(compositor::Compositor::Get()->GetDisplayMetrics()) {
   screen_width_ = display_metrics_->width_dp;
@@ -59,7 +60,7 @@ WindowManager::WindowManager(WmEventObserver* wm_event_observer)
   last_mouse_position_ = mouse_position_;
   wm_event_observer_->set_wm_primitives(this);
   wm_event_observer_->set_workspace_dimension(screen_width_, screen_height_);
-  event::EventHub::Get()->AddEventObserver(this);
+  event_hub->AddEventObserver(this);
 }
 
 void WindowManager::Manage(Window* window) {

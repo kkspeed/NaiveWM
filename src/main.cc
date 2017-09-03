@@ -5,26 +5,25 @@
 #include "wayland/display.h"
 #include "wayland/server.h"
 
+#include "backend/backend.h"
+#include "backend/drm_backend/drm_backend.h"
 #include "compositor/compositor.h"
-#include "event/event_hub.h"
 #include "wm/manage/manage_hook.h"
 #include "wm/window_manager.h"
 #include "xwayland/xwm.h"
 
 int main() {
-  naive::event::EventHub::InitializeEventHub();
-  naive::compositor::Compositor::InitializeCompoistor();
+  auto backend = std::make_unique<naive::backend::DrmBackend>();
+  naive::compositor::Compositor::InitializeCompoistor(backend.get());
 
   auto manage_hook = std::make_unique<naive::wm::ManageHook>();
-  naive::wm::WindowManager::InitializeWindowManager(manage_hook.get());
+  naive::wm::WindowManager::InitializeWindowManager(manage_hook.get(),
+                                                    backend->GetEventHub());
   manage_hook->PostSetupPolicy();
 
   auto display = std::make_unique<naive::wayland::Display>();
   auto server = std::make_unique<naive::wayland::Server>(display.get());
   int wayland_fd = server->GetFileDescriptor();
-
-  auto* libinput = naive::event::EventHub::Get();
-  int libinput_fd = libinput->GetFileDescriptor();
 
 #ifndef NO_XWAYLAND
   auto xwm = std::make_unique<naive::wayland::XWindowManager>(server.get());
@@ -32,8 +31,8 @@ int main() {
 #endif
 
   auto* looper = naive::MainLooper::Get();
+  backend->AddHandler(looper);
   looper->AddFd(wayland_fd, [&server]() { server->DispatchEvents(); });
-  looper->AddFd(libinput_fd, [libinput]() { libinput->HandleEvents(); });
   looper->AddHandler([]() { naive::compositor::Compositor::Get()->Draw(); });
   looper->Run();
 

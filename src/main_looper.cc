@@ -13,7 +13,7 @@ MainLooper* MainLooper::Get() {
   return g_looper;
 }
 
-void MainLooper::AddFd(int fd, HandlerFunc handler) {
+void MainLooper::AddFd(int fd, base::HandlerFunc handler) {
   if (std::find_if(fds_.begin(), fds_.end(),
                    [fd](pollfd& pfd) { return pfd.fd == fd; }) != fds_.end())
     return;
@@ -22,7 +22,7 @@ void MainLooper::AddFd(int fd, HandlerFunc handler) {
   handlers_.push_back(handler);
 }
 
-void MainLooper::AddHandler(HandlerFunc handler) {
+void MainLooper::AddHandler(base::HandlerFunc handler) {
   handlers_.push_back(handler);
 }
 

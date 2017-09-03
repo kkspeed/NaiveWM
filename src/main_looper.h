@@ -5,23 +5,24 @@
 #include <functional>
 #include <vector>
 
+#include "base/looper.h"
+
 namespace naive {
 
-using HandlerFunc = std::function<void()>;
-
-class MainLooper {
+class MainLooper : public base::Looper {
  public:
   MainLooper() = default;
   static MainLooper* Get();
 
-  void AddFd(int fd, HandlerFunc handler);
-  void AddHandler(HandlerFunc handler);
+  // base::Looper overrides.
+  void AddFd(int fd, base::HandlerFunc handler) override;
+  void AddHandler(base::HandlerFunc handler) override;
 
   void Run();
 
  private:
   std::vector<pollfd> fds_;
-  std::vector<HandlerFunc> handlers_;
+  std::vector<base::HandlerFunc> handlers_;
 };
 
 }  // namespace naive

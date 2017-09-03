@@ -1,4 +1,4 @@
-#include "event_hub.h"
+#include "event/event_hub_libinput.h"
 
 #include <fcntl.h>
 #include <libinput.h>
@@ -45,39 +45,24 @@ libinput* open_libinput_udev(const struct libinput_interface* interface,
 
 }  // namespace
 
-// static
-EventHub* EventHub::g_event_hub = nullptr;
-
-// static
-void EventHub::InitializeEventHub() {
-  assert(!g_event_hub);
-  g_event_hub = new EventHub();
-}
-
-// static
-EventHub* EventHub::Get() {
-  assert(g_event_hub);
-  return g_event_hub;
-}
-
-EventHub::EventHub() {
+EventHubLibInput::EventHubLibInput() {
   libinput_ = open_libinput_udev(&interface, "seat0");
   HandleEvents();
 }
 
-EventHub::~EventHub() {
+EventHubLibInput::~EventHubLibInput() {
   libinput_unref(libinput_);
 }
 
-void EventHub::AddEventObserver(EventObserver* observer) {
+void EventHubLibInput::AddEventObserver(EventObserver* observer) {
   observers_.push_back(observer);
 }
 
-int EventHub::GetFileDescriptor() {
+int EventHubLibInput::GetFileDescriptor() {
   return libinput_get_fd(libinput_);
 }
 
-void EventHub::HandleEvents() {
+void EventHubLibInput::HandleEvents() {
   libinput_event* ev;
   libinput_dispatch(libinput_);
   while ((ev = libinput_get_event(libinput_))) {
@@ -163,7 +148,8 @@ void EventHub::HandleEvents() {
   }
 }
 
-bool EventHub::MaybeChangeLockStates(libinput_device* device, uint32_t key) {
+bool EventHubLibInput::MaybeChangeLockStates(libinput_device* device,
+                                             uint32_t key) {
   switch (key) {
     case KEY_CAPSLOCK:
       leds_ = static_cast<libinput_led>(leds_ ^ LIBINPUT_LED_CAPS_LOCK);
@@ -182,7 +168,7 @@ bool EventHub::MaybeChangeLockStates(libinput_device* device, uint32_t key) {
   }
 }
 
-bool EventHub::UpdateModifiers(uint32_t key, libinput_key_state state) {
+bool EventHubLibInput::UpdateModifiers(uint32_t key, libinput_key_state state) {
   if (key == KEY_LEFTCTRL || key == KEY_RIGHTCTRL) {
     if (state == LIBINPUT_KEY_STATE_PRESSED)
       modifiers_ |= KeyModifiers::CONTROL;

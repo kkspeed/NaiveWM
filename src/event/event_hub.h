@@ -44,25 +44,9 @@ class EventObserver {
 // establishes a connection between libevent and window manager.
 class EventHub {
  public:
-  static void InitializeEventHub();
-  static EventHub* Get();
-
-  EventHub();
-  ~EventHub();
-
-  int GetFileDescriptor();
-  void HandleEvents();
-
-  void AddEventObserver(EventObserver* observer);
-
- private:
-  bool MaybeChangeLockStates(libinput_device* device, uint32_t key);
-  bool UpdateModifiers(uint32_t key, libinput_key_state state);
-  static EventHub* g_event_hub;
-  libinput* libinput_;
-  std::vector<EventObserver*> observers_;
-  libinput_led leds_ = static_cast<libinput_led>(0);
-  uint32_t modifiers_ = 0;
+  virtual int GetFileDescriptor() = 0;
+  virtual void HandleEvents() = 0;
+  virtual void AddEventObserver(EventObserver* observer) = 0;
 };
 
 }  // namespace event

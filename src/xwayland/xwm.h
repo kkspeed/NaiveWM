@@ -104,10 +104,21 @@ class XWindow {
     shell_surface_ = std::move(shell_surface);
   }
 
+  void set_configured_size(int32_t width, int32_t height) {
+    configured_width_ = width;
+    configured_height_ = height;
+  }
+
+  int32_t configured_width() { return configured_width_; }
+  int32_t configured_height() { return configured_height_; }
+
  private:
   std::unique_ptr<ShellSurface> shell_surface_;
   bool configured_{false};
   Window window_;
+
+  int32_t configured_width_{0};
+  int32_t configured_height_{0};
 };
 
 class XWindowManager : public SurfaceCreatedObserver {

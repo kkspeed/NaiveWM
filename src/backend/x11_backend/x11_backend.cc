@@ -6,6 +6,14 @@
 #include "backend/egl_context.h"
 #include "wayland/display_metrics.h"
 
+#ifndef Button6
+#define Button6 6
+#endif
+
+#ifndef Button7
+#define Button7 7
+#endif
+
 namespace naive {
 namespace backend {
 
@@ -74,11 +82,13 @@ void X11Backend::HandleMotionEvent(XMotionEvent* event) {
 }
 
 void X11Backend::HandleButtonEvent(XButtonEvent* event) {
-  uint32_t button = GetButton(event->button);
   for (auto* observer : observers_) {
-    if (button == Button4 || button == Button5) {
-      // TODO: This does not work with ThinkPad...
-      observer->OnMouseScroll(button == Button4 ? -2 : 2, 0,
+    if (event->button == Button4 || event->button == Button5) {
+      observer->OnMouseScroll(0, event->button == Button4 ? -6 : 6,
+                              GetModifiers(event->state),
+                              static_cast<event::Leds>(0));
+    } else if (event->button == Button6 || event->button == Button7) {
+      observer->OnMouseScroll(event->button == Button6 ? -6 : 6, 0,
                               GetModifiers(event->state),
                               static_cast<event::Leds>(0));
     } else {
@@ -106,8 +116,7 @@ uint32_t X11Backend::GetButton(uint32_t button) {
       return BTN_RIGHT;
   }
 
-  LOG_ERROR << "Unknown button: %d" << button;
-  return 0;
+  return button;
 }
 
 uint32_t X11Backend::GetModifiers(uint32_t state) {

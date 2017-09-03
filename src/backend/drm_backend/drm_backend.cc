@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <gbm.h>
 
+#include <EGL/eglplatform.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
@@ -260,7 +261,8 @@ DrmBackend::DrmBackend()
   FD_SET(0, &fds);
   FD_SET(drm.fd, &fds);
   init_gbm();
-  egl_ = std::make_unique<EglContext>(gbm.dev, gbm.surface);
+  egl_ =
+      std::make_unique<EglContext>(gbm.dev, gbm.surface, EGL_PLATFORM_GBM_KHR);
   egl_->SwapBuffers();
   bo = gbm_surface_lock_front_buffer(gbm.surface);
   fb = drm_fb_get_from_bo(bo);

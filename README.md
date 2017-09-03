@@ -103,6 +103,22 @@ which can help you launch X applications:
 
 ![XWayland](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/xwayland.png)
 
+## Run NaiveWM Under X Server
+NaiveWM comes with an X server backend that runs as a regular window in any X desktop.
+This makes debugging a little bit easier.
+
+To use this mode, simply compile and run <tt>./naive -x11</tt>. Note that I have swapped
+*Super* and *Alt* key in order not to interfere with my X11's tiling window setup.
+
+Inside the session, you'll need to set <tt>DISPLAY</tt> to <tt>:1</tt> in order to use
+XWayland (otherwise it just connects to your regular X11 session).
+
+Also, you'll need to tweak the resolution for your screen as well. It's defined as 
+<tt>kWidthPixels, kHeightPixels, kScaleFactor</tt> in
+<tt>backend/x11\_backend/x11\_backend.cc</tt>.
+
+![X11 Backend](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/x11_backend.png)
+
 ## Disclaimer
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!

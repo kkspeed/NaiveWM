@@ -16,9 +16,9 @@ class EventHubLibInput : public EventHub {
   EventHubLibInput();
   ~EventHubLibInput();
 
+  // EventHub overrides
   int GetFileDescriptor() override;
   void HandleEvents() override;
-
   void AddEventObserver(EventObserver* observer) override;
 
  private:

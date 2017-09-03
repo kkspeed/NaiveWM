@@ -282,7 +282,8 @@ void Compositor::Draw() {
   }
 
   backend_->FinalizeDraw(did_draw);
-  DrawPointer();
+  if (backend_->SupportHwCursor())
+    DrawPointer();
 }
 
 void Compositor::FillRect(base::geometry::Rect rect,

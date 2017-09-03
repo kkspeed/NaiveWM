@@ -12,7 +12,7 @@ namespace backend {
 
 class EglContext {
  public:
-  EglContext(void* native_display, void* native_window);
+  EglContext(void* native_display, void* native_window, int32_t platform);
   ~EglContext() = default;
   void CreateDrawBuffer(int32_t width, int32_t height);
   void BindDrawBuffer(bool bind);

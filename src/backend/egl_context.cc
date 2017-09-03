@@ -19,7 +19,9 @@ struct {
 
 }  // namespace
 
-EglContext::EglContext(void* native_display, void* native_window) {
+EglContext::EglContext(void* native_display,
+                       void* native_window,
+                       int32_t platform) {
   EGLint major, minor, n;
 
   const EGLint context_attribs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
@@ -42,8 +44,7 @@ EglContext::EglContext(void* native_display, void* native_window) {
       (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress(
           "eglGetPlatformDisplayEXT");
   assert(get_platform_display);
-  gl.display =
-      get_platform_display(EGL_PLATFORM_GBM_KHR, native_display, nullptr);
+  gl.display = get_platform_display(platform, native_display, nullptr);
   assert(eglInitialize(gl.display, &major, &minor));
   assert(eglBindAPI(EGL_OPENGL_ES_API));
   assert(eglChooseConfig(gl.display, config_attributes, &gl.config, 1, &n));

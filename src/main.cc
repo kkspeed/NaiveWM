@@ -7,13 +7,20 @@
 
 #include "backend/backend.h"
 #include "backend/drm_backend/drm_backend.h"
+#include "backend/x11_backend/x11_backend.h"
 #include "compositor/compositor.h"
 #include "wm/manage/manage_hook.h"
 #include "wm/window_manager.h"
 #include "xwayland/xwm.h"
 
-int main() {
-  auto backend = std::make_unique<naive::backend::DrmBackend>();
+int main(int argc, char* argv[]) {
+  // Decide backend based on -x11 argument
+  std::unique_ptr<naive::backend::Backend> backend;
+  if (argc > 1 && strncmp(argv[1], "-x11", 5) == 0)
+    backend = std::make_unique<naive::backend::X11Backend>();
+  else
+    backend = std::make_unique<naive::backend::DrmBackend>();
+
   naive::compositor::Compositor::InitializeCompoistor(backend.get());
 
   auto manage_hook = std::make_unique<naive::wm::ManageHook>();

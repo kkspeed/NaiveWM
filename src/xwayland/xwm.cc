@@ -17,6 +17,7 @@ namespace naive {
 namespace wayland {
 namespace {
 
+const char* kXWaylandDisplay = ":1";
 std::function<void()> sigusr_callback;
 
 void SigUsr1(int num) {
@@ -197,8 +198,8 @@ void XWindowManager::SpawnXServer() {
     snprintf(s, sizeof(s), "%d", fd);
     setenv("WAYLAND_SOCKET", s, 1);
     LOG(ERROR) << "Spawining XServer";
-    if (execlp("Xwayland", "Xwayland", "-rootless", "+iglx", ":1", nullptr) <
-        0) {
+    if (execlp("Xwayland", "Xwayland", "-rootless", "+iglx", kXWaylandDisplay,
+               nullptr) < 0) {
       LOG(ERROR) << "unable to spawn xserver";
       exit(1);
     }
@@ -215,7 +216,7 @@ int XWindowManager::GetFileDescriptor() {
 }
 
 void XWindowManager::OnXServerInitialized() {
-  x_display_ = XOpenDisplay(nullptr);
+  x_display_ = XOpenDisplay(kXWaylandDisplay);
   assert(x_display_);
   TRACE("XDisplay: %p", x_display_);
   atoms_ = std::make_unique<Atoms>(x_display_);

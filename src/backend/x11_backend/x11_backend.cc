@@ -14,10 +14,11 @@ const int32_t kWidthPixels = 2560;
 const int32_t kHeightPixels = 1440;
 const int32_t kScaleFactor = 2;
 const int32_t k1xPixelPerMm = 4;
+const char* kX11Display = ":0";
 }  // namespace
 
 X11Backend::X11Backend() {
-  x_display_ = XOpenDisplay(nullptr);
+  x_display_ = XOpenDisplay(kX11Display);
   XSetWindowAttributes swa;
   swa.event_mask = ExposureMask | PointerMotionMask | ButtonPressMask |
                    ButtonReleaseMask | KeyPressMask | KeyReleaseMask;

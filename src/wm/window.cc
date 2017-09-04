@@ -192,6 +192,14 @@ void Window::WmSetSize(int32_t width, int32_t height) {
     return;
   }
 
+  TRACE("%p, width: %d, height: %d", this, width, height);
+  auto bounds = global_bound();
+  if (bounds.width() == width && bounds.height() == height)
+    return;
+  int32_t mw = std::max(bounds.width(), width);
+  int32_t mh = std::max(bounds.height(), height);
+  compositor::Compositor::Get()->AddGlobalDamage(
+      base::geometry::Rect(bounds.x(), bounds.y(), mw, mh), this);
   window_impl_->Configure(width, height);
 }
 

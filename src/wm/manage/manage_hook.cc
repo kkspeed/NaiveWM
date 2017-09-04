@@ -71,6 +71,8 @@ void ManageHook::WindowDestroying(Window* window) {
   TRACE();
   if (scoped_move_window_)
     scoped_move_window_->OnWindowDestroying(window);
+  if (scoped_resize_window_)
+    scoped_resize_window_->OnWindowDestroying(window);
 }
 
 void ManageHook::WindowDestroyed(Window* window) {
@@ -313,7 +315,7 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
   if (event->super_pressed()) {
     if (event->type() == wm::MouseEventType::MouseButtonDown &&
         event->get_button() == BTN_LEFT) {
-      if (!event->window())
+      if (!event->window() || !event->window()->is_popup())
         return true;
       scoped_move_window_.reset(
           new wm::ScopedMoveWindow(event->window(), event->x(), event->y()));
@@ -332,8 +334,32 @@ bool ManageHook::OnMouseEvent(MouseEvent* event) {
         return true;
       }
     }
+
+    if (event->type() == wm::MouseEventType::MouseButtonDown &&
+        event->get_button() == BTN_RIGHT) {
+      if (!event->window() ||
+          (!event->window()->is_popup() && event->window()->is_top_level()))
+        return true;
+      scoped_resize_window_.reset(
+          new wm::ScopedResizeWindow(event->window(), event->x(), event->y()));
+      return true;
+    }
+
+    if (event->type() == wm::MouseEventType::MouseButtonUp &&
+        event->get_button() == BTN_RIGHT) {
+      scoped_resize_window_.reset();
+      return true;
+    }
+
+    if (event->type() == wm::MouseEventType::MouseMotion) {
+      if (scoped_resize_window_) {
+        scoped_resize_window_->OnMouseMove(event->x(), event->y());
+        return true;
+      }
+    }
     return true;
   }
+
   auto* current_manage_window = current_workspace()->CurrentWindow();
   if (event->window() && event->type() == MouseEventType::MouseButtonDown) {
     auto* top_level = event->window()->top_level();

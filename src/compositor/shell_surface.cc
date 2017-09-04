@@ -29,6 +29,7 @@ ShellSurface::~ShellSurface() {
 }
 
 void ShellSurface::Configure(int32_t width, int32_t height) {
+  TRACE("configuring: %p, width: %d, height: %d", this, width, height);
   if (!window_ || window_->is_transient())
     return;
   in_configure_ = true;

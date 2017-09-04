@@ -10,6 +10,7 @@
 #include "wm/manage/workspace.h"
 #include "wm/window_manager.h"
 #include "wm/scoped_move_window.h"
+#include "wm/scoped_resize_window.h"
 
 namespace naive {
 
@@ -64,6 +65,7 @@ class ManageHook : public WmEventObserver {
   pid_t popup_terminal_pid_{0};
 
   std::unique_ptr<wm::ScopedMoveWindow> scoped_move_window_;
+  std::unique_ptr<wm::ScopedResizeWindow> scoped_resize_window_;
 };
 
 }  // wm

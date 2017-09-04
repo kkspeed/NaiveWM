@@ -17,7 +17,7 @@ ScopedMoveWindow::ScopedMoveWindow(Window* window, int32_t x, int32_t y)
 
 void ScopedMoveWindow::OnMouseMove(int32_t x, int32_t y) {
   TRACE("x: %d, y: %d", x, y);
-  if (!window_ || !window_->is_popup())
+  if (!window_)
     return;
   int32_t delta_x = x - initial_x_;
   int32_t delta_y = y - initial_y_;

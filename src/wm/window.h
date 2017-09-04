@@ -37,6 +37,7 @@ class Window {
       result = result->parent();
     return result;
   }
+  bool is_top_level() { return top_level() == this; }
   void set_parent(Window* parent) { parent_ = parent; }
   void set_transient(bool transient) { is_transient_ = transient; }
   void set_fullscreen(bool fullscreen);

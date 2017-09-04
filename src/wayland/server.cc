@@ -1375,7 +1375,7 @@ if (!shell_surface->window()->IsManaged()) {
 
   shell_surface->set_close_callback(
       std::bind(&HandleXdgPopupV6CloseCallback, xdg_popup_resource));
-  shell_surface->set_configure_callback([](uint32_t, uint32_t) {
+  shell_surface->set_configure_callback([](uint32_t width, uint32_t height) {
     TRACE();
     return 0;
   });

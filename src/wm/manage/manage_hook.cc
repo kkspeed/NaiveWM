@@ -313,6 +313,7 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
 
 bool ManageHook::OnMouseEvent(MouseEvent* event) {
   if (event->super_pressed()) {
+    // TODO: collpase these into single function
     if (event->type() == wm::MouseEventType::MouseButtonDown &&
         event->get_button() == BTN_LEFT) {
       if (!event->window() || !event->window()->is_popup())

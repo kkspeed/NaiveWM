@@ -54,13 +54,13 @@ void ManageHook::WindowCreated(Window* window) {
   auto* workspace = current_workspace();
   auto* mw =
       workspace->AddWindow(std::make_unique<ManageWindow>(window, primitives_));
-  auto iter = std::remove_if(window_added_callback_.begin(),
-                             window_added_callback_.end(), [mw](auto& f) {
-                               bool res = f(mw);
-                               return res;
-                             });
-  if (iter != window_added_callback_.end())
-    window_added_callback_.erase(iter);
+  window_added_callback_.erase(std::remove_if(window_added_callback_.begin(),
+                                              window_added_callback_.end(),
+                                              [mw](auto& f) {
+                                                bool res = f(mw);
+                                                return res;
+                                              }),
+                               window_added_callback_.end());
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
   workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
                             width_ - kWorkspaceInsetX,
@@ -78,11 +78,11 @@ void ManageHook::WindowDestroyed(Window* window) {
       auto mw = workspace.PopWindow(window);
       // TODO: No need to set visibility anymore?
       mw->Show(false);
-      auto iter = std::remove_if(window_removed_callback_.begin(),
-                                 window_removed_callback_.end(),
-                                 [&mw](auto& f) { return f(mw.get()); });
-      if (iter != window_removed_callback_.end())
-        window_removed_callback_.erase(iter);
+      window_removed_callback_.erase(
+          std::remove_if(window_removed_callback_.begin(),
+                         window_removed_callback_.end(),
+                         [&mw](auto& f) { return f(mw.get()); }),
+          window_removed_callback_.end());
       if (workspace.tag() == current_workspace_) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);

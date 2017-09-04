@@ -7,6 +7,7 @@
 
 #include "base/geometry.h"
 #include "base/logging.h"
+#include "compositor/compositor.h"
 #include "compositor/shell_surface.h"
 #include "compositor/surface.h"
 
@@ -75,8 +76,17 @@ class Window {
   // TODO: This needs to commit as well.
   void WmSetSize(int32_t width, int32_t height);
   void WmSetPosition(int32_t x, int32_t y) {
+    auto bounds = geometry();
+    compositor::Compositor::Get()->AddGlobalDamage(
+        base::geometry::Rect(bounds.x() + wm_x_, bounds.y() + wm_y_,
+                             bounds.width(), bounds.height()),
+        this);
     wm_x_ = x;
     wm_y_ = y;
+    compositor::Compositor::Get()->AddGlobalDamage(
+        base::geometry::Rect(bounds.x() + wm_x_, bounds.y() + wm_y_,
+                             bounds.width(), bounds.height()),
+        this);
     surface_->force_commit();
   }
   base::geometry::Rect GetToDrawRegion() {

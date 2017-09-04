@@ -179,7 +179,8 @@ void WindowManager::OnMouseButton(uint32_t button,
       FindMouseEventTarget(),
       pressed ? MouseEventType::MouseButtonDown : MouseEventType::MouseButtonUp,
       base::Time::CurrentTimeMilliSeconds(), modifiers, data,
-      mouse_position_.x(), mouse_position_.y(), leds));
+      mouse_position_.x() / display_metrics_->scale,
+      mouse_position_.y() / display_metrics_->scale, leds));
 }
 
 void WindowManager::OnMouseMotion(float dx,

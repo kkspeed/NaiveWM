@@ -69,6 +69,8 @@ void ManageHook::WindowCreated(Window* window) {
 
 void ManageHook::WindowDestroying(Window* window) {
   TRACE();
+  if (scoped_move_window_)
+    scoped_move_window_->OnWindowDestroying(window);
 }
 
 void ManageHook::WindowDestroyed(Window* window) {
@@ -308,6 +310,30 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
 }
 
 bool ManageHook::OnMouseEvent(MouseEvent* event) {
+  if (event->super_pressed()) {
+    if (event->type() == wm::MouseEventType::MouseButtonDown &&
+        event->get_button() == BTN_LEFT) {
+      if (!event->window())
+        return true;
+      scoped_move_window_.reset(
+          new wm::ScopedMoveWindow(event->window(), event->x(), event->y()));
+      return true;
+    }
+
+    if (event->type() == wm::MouseEventType::MouseButtonUp &&
+        event->get_button() == BTN_LEFT) {
+      scoped_move_window_.reset();
+      return true;
+    }
+
+    if (event->type() == wm::MouseEventType::MouseMotion) {
+      if (scoped_move_window_) {
+        scoped_move_window_->OnMouseMove(event->x(), event->y());
+        return true;
+      }
+    }
+    return true;
+  }
   auto* current_manage_window = current_workspace()->CurrentWindow();
   if (event->window() && event->type() == MouseEventType::MouseButtonDown) {
     auto* top_level = event->window()->top_level();

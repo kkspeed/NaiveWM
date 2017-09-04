@@ -9,6 +9,7 @@
 #include "wm/manage/panel.h"
 #include "wm/manage/workspace.h"
 #include "wm/window_manager.h"
+#include "wm/scoped_move_window.h"
 
 namespace naive {
 
@@ -61,6 +62,8 @@ class ManageHook : public WmEventObserver {
 
   int32_t previous_tag_{0};
   pid_t popup_terminal_pid_{0};
+
+  std::unique_ptr<wm::ScopedMoveWindow> scoped_move_window_;
 };
 
 }  // wm

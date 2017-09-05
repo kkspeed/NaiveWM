@@ -309,8 +309,14 @@ void XWindowManager::HandleCreateNotify(XCreateWindowEvent* event) {
     pending_configureations_[event->window] = r;
     return;
   }
-  if (!shell_surface->window())
+  if (!shell_surface->window()) {
+    auto* bounds = shell_surface->CachedBounds();
+    if (!bounds)
+      return;
+    int32_t scale = shell_surface->CachedBufferScale();
+    *bounds = r / scale;
     return;
+  }
   if (shell_surface->window()->is_popup() ||
       shell_surface->window()->is_transient()) {
     auto rect_dp = r / shell_surface->window()->surface()->buffer_scale();
@@ -387,8 +393,16 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
         base::geometry::Rect(event->x, event->y, event->width, event->height);
     return;
   }
-  if (!shell_surface->window())
+  if (!shell_surface->window()) {
+    // TODO: collapse this with CreateNotify
+    auto* bounds = shell_surface->CachedBounds();
+    if (!bounds)
+      return;
+    int32_t scale = shell_surface->CachedBufferScale();
+    *bounds = base::geometry::Rect(event->x / scale, event->y / scale,
+                                   event->width / scale, event->height / scale);
     return;
+  }
   if (shell_surface->window()->is_popup() ||
       shell_surface->window()->is_transient()) {
     auto rect_dp =

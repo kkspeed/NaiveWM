@@ -66,6 +66,17 @@ class ShellSurface : SurfaceObserver {
 
   void RecoverWindowState(ShellSurface* other);
   void CacheWindowState();
+  int32_t CachedBufferScale() {
+    if (!cached_window_state_)
+      return -1;
+    return cached_window_state_->buffer_scale_;
+  }
+
+  base::geometry::Rect* CachedBounds() {
+    if (!cached_window_state_)
+      return nullptr;
+    return &cached_window_state_->geometry_;
+  }
 
  private:
   struct ShellState {
@@ -92,6 +103,7 @@ class ShellSurface : SurfaceObserver {
     wm::Window* parent_{nullptr};
     int32_t wm_x_ = 0, wm_y_ = 0;
     base::geometry::Rect geometry_;
+    int32_t buffer_scale_ = 1;
   };
 
   // Used when window is destroyed before shell surface, so that

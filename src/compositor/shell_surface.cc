@@ -133,6 +133,7 @@ void ShellSurface::CacheWindowState() {
   if (cached_window_state_->parent_)
     cached_window_state_->parent_->surface()->AddSurfaceObserver(this);
   cached_window_state_->has_border_ = window_->has_border();
+  cached_window_state_->buffer_scale_ = window_->surface()->buffer_scale();
 }
 
 }  // namespace naive

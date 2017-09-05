@@ -48,6 +48,15 @@ int XError(XDisplay* display, XErrorEvent* ee) {
   return DefaultErrorHandler(display, ee); /* may call exit */
 }
 
+void CascadeWindowBounds(ShellSurface* shell_surface,
+                         const base::geometry::Rect& r) {
+  auto* bounds = shell_surface->CachedBounds();
+  if (!bounds)
+    return;
+  int32_t scale = shell_surface->CachedBufferScale();
+  *bounds = r / scale;
+}
+
 }  // namespace
 
 XWindow::XWindow(Window window, std::unique_ptr<ShellSurface> shell_surface)
@@ -310,11 +319,7 @@ void XWindowManager::HandleCreateNotify(XCreateWindowEvent* event) {
     return;
   }
   if (!shell_surface->window()) {
-    auto* bounds = shell_surface->CachedBounds();
-    if (!bounds)
-      return;
-    int32_t scale = shell_surface->CachedBufferScale();
-    *bounds = r / scale;
+    CascadeWindowBounds(shell_surface, r);
     return;
   }
   if (shell_surface->window()->is_popup() ||
@@ -394,13 +399,9 @@ void XWindowManager::HandleConfigureNotify(XConfigureEvent* event) {
     return;
   }
   if (!shell_surface->window()) {
-    // TODO: collapse this with CreateNotify
-    auto* bounds = shell_surface->CachedBounds();
-    if (!bounds)
-      return;
-    int32_t scale = shell_surface->CachedBufferScale();
-    *bounds = base::geometry::Rect(event->x / scale, event->y / scale,
-                                   event->width / scale, event->height / scale);
+    CascadeWindowBounds(
+        shell_surface,
+        base::geometry::Rect(event->x, event->y, event->width, event->height));
     return;
   }
   if (shell_surface->window()->is_popup() ||
@@ -640,8 +641,10 @@ void XWindowManager::UpdateSizeHints(Window window,
     pending_configureations_.emplace(window, rect);
     return;
   }
-  if (!shell_surface->window())
+  if (!shell_surface->window()) {
+    CascadeWindowBounds(shell_surface, rect);
     return;
+  }
   auto rect_dp = rect / shell_surface->window()->surface()->buffer_scale();
   shell_surface->SetGeometry(rect_dp);
   shell_surface->window()->PushProperty(true, rect_dp.x(), rect_dp.y());

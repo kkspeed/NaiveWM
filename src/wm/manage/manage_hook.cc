@@ -69,10 +69,6 @@ void ManageHook::WindowCreated(Window* window) {
 
 void ManageHook::WindowDestroying(Window* window) {
   TRACE();
-  if (scoped_move_window_)
-    scoped_move_window_->OnWindowDestroying(window);
-  if (scoped_resize_window_)
-    scoped_resize_window_->OnWindowDestroying(window);
 }
 
 void ManageHook::WindowDestroyed(Window* window) {

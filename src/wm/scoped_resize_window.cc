@@ -15,7 +15,14 @@ ScopedResizeWindow::ScopedResizeWindow(Window* window,
       init_mouse_y_(init_mouse_y),
       last_mouse_x_(init_mouse_x),
       last_mouse_y_(init_mouse_y),
-      window_bounds_(window->geometry()) {}
+      window_bounds_(window->geometry()) {
+  window_->AddWindowObserver(this);
+}
+
+ScopedResizeWindow::~ScopedResizeWindow() {
+  if (window_)
+    window_->RemoveWindowObserver(this);
+}
 
 void ScopedResizeWindow::OnMouseMove(int32_t x, int32_t y) {
   if (!window_)
@@ -33,7 +40,7 @@ void ScopedResizeWindow::OnMouseMove(int32_t x, int32_t y) {
   window_->WmSetSize(new_width, new_height);
 }
 
-void ScopedResizeWindow::OnWindowDestroying(Window* window) {
+void ScopedResizeWindow::OnWindowDestroyed(Window* window) {
   if (window == window_)
     window_ = nullptr;
 }

@@ -4,19 +4,23 @@
 #include <cstdint>
 
 #include "base/geometry.h"
+#include "wm/window.h"
 
 namespace naive {
 namespace wm {
 
-class Window;
-
-class ScopedResizeWindow {
-public:
-  explicit ScopedResizeWindow(Window* window, int32_t init_mouse_x,
+class ScopedResizeWindow : WindowObserver {
+ public:
+  explicit ScopedResizeWindow(Window* window,
+                              int32_t init_mouse_x,
                               int32_t init_mouse_y);
+  ~ScopedResizeWindow();
   void OnMouseMove(int32_t x, int32_t y);
-  void OnWindowDestroying(Window* window);
-private:
+
+  // WindowObserver override
+  void OnWindowDestroyed(Window* window) override;
+
+ private:
   int32_t init_mouse_x_, init_mouse_y_;
   int32_t last_mouse_x_, last_mouse_y_;
   base::geometry::Rect window_bounds_;

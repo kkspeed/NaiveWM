@@ -13,6 +13,12 @@ ScopedMoveWindow::ScopedMoveWindow(Window* window, int32_t x, int32_t y)
       window_initial_y_(window->wm_y()) {
   TRACE("wx: %d, wy: %d, initial_x_: %d, initial_y_: %d", window_initial_x_,
         window_initial_y_, initial_x_, initial_y_);
+  window_->AddWindowObserver(this);
+}
+
+ScopedMoveWindow::~ScopedMoveWindow() {
+  if (window_)
+    window_->RemoveWindowObserver(this);
 }
 
 void ScopedMoveWindow::OnMouseMove(int32_t x, int32_t y) {
@@ -25,7 +31,7 @@ void ScopedMoveWindow::OnMouseMove(int32_t x, int32_t y) {
                          window_initial_y_ + delta_y);
 }
 
-void ScopedMoveWindow::OnWindowDestroying(Window* window) {
+void ScopedMoveWindow::OnWindowDestroyed(Window* window) {
   if (window == window_)
     window_ = nullptr;
 }

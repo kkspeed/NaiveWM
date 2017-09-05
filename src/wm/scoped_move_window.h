@@ -3,17 +3,22 @@
 
 #include <cstdint>
 
+#include "wm/window.h"
+
 namespace naive {
 namespace wm {
 
-class Window;
-
-class ScopedMoveWindow {
-public:
+class ScopedMoveWindow : WindowObserver {
+ public:
   explicit ScopedMoveWindow(Window* window, int32_t x, int32_t y);
+  ~ScopedMoveWindow();
+
   void OnMouseMove(int32_t x, int32_t y);
-  void OnWindowDestroying(Window* window);
-private:
+
+  // WindowObserver overrides.
+  void OnWindowDestroyed(Window* window) override;
+
+ private:
   Window* window_;
   int32_t initial_x_, initial_y_;
   int32_t window_initial_x_, window_initial_y_;

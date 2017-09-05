@@ -23,6 +23,13 @@ namespace wm {
 class WindowImpl;
 enum class WindowType { NORMAL, CONTAINER, WIDGET, ROOT };
 
+class Window;
+
+class WindowObserver {
+ public:
+  virtual void OnWindowDestroyed(Window* window) = 0;
+};
+
 class Window {
  public:
   explicit Window(Surface* surface);
@@ -144,6 +151,16 @@ class Window {
     mouse_event_scale_override_ = override;
   }
 
+  void AddWindowObserver(WindowObserver* observer) {
+    window_observers_.push_back(observer);
+  }
+
+  void RemoveWindowObserver(WindowObserver* observer) {
+    window_observers_.erase(
+        std::find(window_observers_.begin(), window_observers_.end(), observer),
+        window_observers_.end());
+  }
+
  private:
   bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
@@ -165,6 +182,8 @@ class Window {
 
   std::unique_ptr<WindowImpl> window_impl_;
   ui::Widget* widget_;
+
+  std::vector<WindowObserver*> window_observers_;
 };
 
 }  // namespace wm

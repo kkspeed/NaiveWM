@@ -31,6 +31,8 @@ Window::Window(ui::Widget* widget)
 
 Window::~Window() {
   TRACE("%p", this);
+  for (auto* observer : window_observers_)
+    observer->OnWindowDestroyed(this);
   compositor::Compositor::Get()->AddGlobalDamage(global_bound(), this);
   wm::WindowManager::Get()->RemoveWindow(this);
   if (parent_) {

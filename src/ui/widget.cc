@@ -16,8 +16,8 @@ Widget::Widget(int32_t x, int32_t y, int32_t width, int32_t height)
 }
 
 void* Widget::GetTexture(int32_t& width, int32_t& height) {
-  width = bounds_.width();
-  height = bounds_.height();
+  width = surface_->get_width();
+  height = surface_->get_height();
   return surface_->get_data();
 }
 

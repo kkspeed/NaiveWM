@@ -14,6 +14,10 @@
 
 namespace naive {
 
+namespace wayland {
+class DisplayMetrics;
+}  // namespace wayland
+
 namespace wm {
 
 class Window;
@@ -66,6 +70,8 @@ class ManageHook : public WmEventObserver {
 
   std::unique_ptr<wm::ScopedMoveWindow> scoped_move_window_;
   std::unique_ptr<wm::ScopedResizeWindow> scoped_resize_window_;
+
+  wayland::DisplayMetrics* display_metrics_;
 };
 
 }  // wm

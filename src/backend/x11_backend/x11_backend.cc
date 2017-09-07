@@ -18,8 +18,8 @@ namespace naive {
 namespace backend {
 
 namespace {
-const int32_t kWidthPixels = 2560;
-const int32_t kHeightPixels = 1440;
+const int32_t kWidthPixels = 2200;
+const int32_t kHeightPixels = 1200;
 const int32_t kScaleFactor = 2;
 const int32_t k1xPixelPerMm = 4;
 }  // namespace

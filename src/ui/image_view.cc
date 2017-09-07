@@ -20,10 +20,11 @@ ImageView::ImageView(int32_t x,
         surface_->get_height());
   surface_ = Cairo::ImageSurface::create_from_png(path);
 
+  context_->paint();
   context_->save();
   context_->set_source(surface_, 0.0, 0.0);
-  context_->scale(width * 1.0f / surface_->get_width(),
-                  height * 1.0f / surface_->get_height());
+  // context_->scale(width * 1.0f / surface_->get_width(),
+  //                height * 1.0f / surface_->get_height());
   context_->paint();
 
   context_->restore();

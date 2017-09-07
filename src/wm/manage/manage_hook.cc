@@ -35,13 +35,13 @@ ManageHook::ManageHook() {
 }
 
 void ManageHook::PostWmInitialize() {
-  auto* display_metrics = compositor::Compositor::Get()->GetDisplayMetrics();
+  display_metrics_ = compositor::Compositor::Get()->GetDisplayMetrics();
   wallpaper_view_ = std::make_unique<ui::ImageView>(
-      0, 0, display_metrics->width_pixels, display_metrics->height_pixels,
+      0, 0, display_metrics_->width_pixels, display_metrics_->height_pixels,
       kWallpaperPath);
   wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
-  panel_ = std::make_unique<Panel>(0, 0, display_metrics->width_pixels, 20);
+  panel_ = std::make_unique<Panel>(0, 0, display_metrics_->width_pixels, 20);
   wm::WindowManager::Get()->set_panel_window(panel_->window());
 }
 
@@ -267,7 +267,8 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       window_added_callback_.push_back([this](ManageWindow* mw) {
         if (this->popup_terminal_pid_ &&
             mw->window()->GetPid() == this->popup_terminal_pid_) {
-          mw->MoveResize(0, 10, 1280, 450);
+          mw->MoveResize(0, 10, this->display_metrics_->width_dp,
+                         this->display_metrics_->height_dp * 0.6f);
           mw->set_floating(true);
           mw->SetShowPredicate([](bool show, ManageWindowShowReason reason) {
             return show && reason == ManageWindowShowReason::SHOW_TOGGLE;

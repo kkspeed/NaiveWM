@@ -3,6 +3,7 @@
 #include <linux/input.h>
 #include <cstdint>
 
+#include "config.h"
 #include "backend/egl_context.h"
 #include "wayland/display_metrics.h"
 
@@ -18,9 +19,6 @@ namespace naive {
 namespace backend {
 
 namespace {
-const int32_t kWidthPixels = 2200;
-const int32_t kHeightPixels = 1200;
-const int32_t kScaleFactor = 2;
 const int32_t k1xPixelPerMm = 4;
 }  // namespace
 
@@ -31,7 +29,8 @@ X11Backend::X11Backend(const char* display) {
                    ButtonReleaseMask | KeyPressMask | KeyReleaseMask;
 
   x_window_ = XCreateWindow(x_display_, DefaultRootWindow(x_display_), 0, 0,
-                            kWidthPixels, kHeightPixels, 0, CopyFromParent,
+                            config::kX11WindowWidthPixels,
+                            config::kX11WindowHeightPixels, 0, CopyFromParent,
                             InputOutput, CopyFromParent, CWEventMask, &swa);
 
   XSetWindowAttributes xattr;
@@ -49,9 +48,11 @@ X11Backend::X11Backend(const char* display) {
   egl_ = std::make_unique<EglContext>(x_display_, (void*)x_window_,
                                       EGL_PLATFORM_X11_KHR);
   display_metrics_ = std::make_unique<wayland::DisplayMetrics>(
-      kWidthPixels, kHeightPixels,
-      kWidthPixels / (kScaleFactor * k1xPixelPerMm),
-      kHeightPixels / (kScaleFactor * k1xPixelPerMm));
+      config::kX11WindowWidthPixels, config::kX11WindowHeightPixels,
+      config::kX11WindowWidthPixels /
+          (config::kX11WindowScaleFactor * k1xPixelPerMm),
+      config::kX11WindowHeightPixels /
+          (config::kX11WindowScaleFactor * k1xPixelPerMm));
   egl_->CreateDrawBuffer(display_metrics_->width_pixels,
                          display_metrics_->height_pixels);
   egl_->SwapBuffers();

@@ -8,6 +8,7 @@
 #include "base/image_codec.h"
 #include "base/time.h"
 #include "base/utils.h"
+#include "config.h"
 #include "compositor/compositor.h"
 #include "ui/image_view.h"
 #include "wayland/display_metrics.h"
@@ -20,16 +21,9 @@
 namespace naive {
 namespace wm {
 
-namespace {
-// Change this to your wallpaper's path.
-constexpr char kWallpaperPath[] = "/home/bruce/Downloads/test_wallpaper.png";
-constexpr int32_t kWorkspaceInsetX = 0;
-constexpr int32_t kWorkspaceInsetY = 10;
-}  // namespace
-
 ManageHook::ManageHook() {
   for (uint32_t i = 0; i < 9; i++) {
-    workspaces_.push_back(Workspace(i, kWorkspaceInsetY));
+    workspaces_.push_back(Workspace(i, config::kWorkspaceInsetY));
     current_workspace_ = 0;
   }
 }
@@ -38,7 +32,7 @@ void ManageHook::PostWmInitialize() {
   display_metrics_ = compositor::Compositor::Get()->GetDisplayMetrics();
   wallpaper_view_ = std::make_unique<ui::ImageView>(
       0, 0, display_metrics_->width_pixels, display_metrics_->height_pixels,
-      kWallpaperPath);
+      config::kWallpaperPath);
   wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
   panel_ = std::make_unique<Panel>(0, 0, display_metrics_->width_pixels, 20);
@@ -62,9 +56,9 @@ void ManageHook::WindowCreated(Window* window) {
                                               }),
                                window_added_callback_.end());
   primitives_->FocusWindow(workspace->CurrentWindow()->window());
-  workspace->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                            width_ - kWorkspaceInsetX,
-                            height_ - kWorkspaceInsetY);
+  workspace->ArrangeWindows(config::kWorkspaceInsetX, config::kWorkspaceInsetY,
+                            width_ - config::kWorkspaceInsetX,
+                            height_ - config::kWorkspaceInsetY);
 }
 
 void ManageHook::WindowDestroying(Window* window) {
@@ -87,9 +81,10 @@ void ManageHook::WindowDestroyed(Window* window) {
         ManageWindow* next_window = workspace.CurrentWindow();
         primitives_->FocusWindow(next_window ? next_window->window() : nullptr);
         // TODO: maybe pass this to workspace and coords for multiscreen?
-        workspace.ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                                 width_ - kWorkspaceInsetX,
-                                 height_ - kWorkspaceInsetY);
+        workspace.ArrangeWindows(config::kWorkspaceInsetX,
+                                 config::kWorkspaceInsetY,
+                                 width_ - config::kWorkspaceInsetX,
+                                 height_ - config::kWorkspaceInsetY);
       }
       break;
     }
@@ -221,9 +216,10 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     auto* current = current_workspace()->CurrentWindow();
     if (current) {
       current->set_maximized(!current->is_maximized());
-      current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                                          width_ - kWorkspaceInsetX,
-                                          height_ - kWorkspaceInsetY);
+      current_workspace()->ArrangeWindows(config::kWorkspaceInsetX,
+                                          config::kWorkspaceInsetY,
+                                          width_ - config::kWorkspaceInsetX,
+                                          height_ - config::kWorkspaceInsetY);
     }
     return true;
   }
@@ -236,9 +232,10 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       auto poped = current_workspace()->PopWindow(current->window());
       current_workspace()->AddWindowToHead(std::move(poped));
       current_workspace()->SetCurrentWindow(current->window());
-      current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                                          width_ - kWorkspaceInsetX,
-                                          height_ - kWorkspaceInsetY);
+      current_workspace()->ArrangeWindows(config::kWorkspaceInsetX,
+                                          config::kWorkspaceInsetY,
+                                          width_ - config::kWorkspaceInsetX,
+                                          height_ - config::kWorkspaceInsetY);
     }
     return true;
   }
@@ -398,9 +395,9 @@ void ManageHook::SelectTag(size_t tag) {
   }
 
   primitives_->FocusWindow(manage_window ? manage_window->window() : nullptr);
-  current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                                      width_ - kWorkspaceInsetX,
-                                      height_ - kWorkspaceInsetY);
+  current_workspace()->ArrangeWindows(
+      config::kWorkspaceInsetX, config::kWorkspaceInsetY,
+      width_ - config::kWorkspaceInsetX, height_ - config::kWorkspaceInsetY);
   std::vector<int32_t> window_count;
   for (auto& workspace : workspaces_)
     window_count.push_back(workspace.window_count());
@@ -417,9 +414,9 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   TRACE("arrange for workspace %d", current_workspace()->tag());
   auto* current = current_workspace()->CurrentWindow();
   primitives_->FocusWindow(current ? current->window() : nullptr);
-  current_workspace()->ArrangeWindows(kWorkspaceInsetX, kWorkspaceInsetY,
-                                      width_ - kWorkspaceInsetX,
-                                      height_ - kWorkspaceInsetY);
+  current_workspace()->ArrangeWindows(
+      config::kWorkspaceInsetX, config::kWorkspaceInsetY,
+      width_ - config::kWorkspaceInsetX, height_ - config::kWorkspaceInsetY);
   // TODO: Merge this with L341, maybe passing workspace?
   std::vector<int32_t> window_count;
   for (auto& workspace : workspaces_)

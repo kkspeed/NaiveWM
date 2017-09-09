@@ -54,13 +54,10 @@ It's recommended that you do the following things:
    <tt>qutebrowser --qt-args platform wayland</tt> in the terminal.
 
 3. You'll need to specify a wallpaper file via variable <tt>kWallpaperPath</tt> in 
-   <tt>manage\_hook.cc</tt> and uncomment the code in <tt>PostWmInitialize</tt> to
-   enable wallpaper.
+   <tt>config.h</tt>.
 
-4. You can uncomment the panel code in <tt>manage\_hook.cc</tt> to enable panel.
-   You can modify <tt>panel.cc</tt> to tweak it (sorry for not having good configration
-   file). Currently it offers a battery indicator (needs UPower), a clock and
-   a workspace indicator.
+4. There is a built-in panel. You can modify <tt>config.h</tt> to tweak it. Currently
+   it offers a battery indicator (needs UPower), a clock and a workspace indicator.
 
 ## Default Configurations
 Here are a list of key bindings and actions. They can be changed in manage\_hook.cc
@@ -116,8 +113,8 @@ Inside the session, you'll need to set <tt>DISPLAY</tt> to <tt>:1</tt> in order 
 XWayland (otherwise it just connects to your regular X11 session).
 
 Also, you'll need to tweak the resolution for your screen. It's defined as 
-<tt>kWidthPixels, kHeightPixels, kScaleFactor</tt> in
-<tt>backend/x11\_backend/x11\_backend.cc</tt>.
+<tt>kX11WindowWidthPixels, kX11WindowHeightPixels, kX11WindowScaleFactor</tt> in
+<tt>config.h</tt>.
 
 ![X11 Backend](https://raw.githubusercontent.com/kkspeed/NaiveWM/master/images/x11_backend.png)
 

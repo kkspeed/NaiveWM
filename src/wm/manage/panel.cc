@@ -5,6 +5,7 @@
 
 #include "base/logging.h"
 #include "base/time.h"
+#include "config.h"
 
 namespace naive {
 namespace wm {
@@ -12,8 +13,8 @@ namespace wm {
 TimeView::TimeView(int32_t x, int32_t y, int32_t width, int32_t height)
     : TextView(x, y, width, height) {
   TRACE("x: %d, y: %d, width: %d, height: %d", x, y, width, height);
-  SetTextColor(0xFFFFFF00);
-  SetTextSize(16);
+  SetTextColor(config::kPanelTimeColor);
+  SetTextSize(config::kPanelTextSize);
 }
 
 void TimeView::OnDrawFrame() {
@@ -33,8 +34,8 @@ Panel::Panel(int32_t x, int32_t y, int32_t width, int32_t height)
   AddChild(&time_view_);
   AddChild(&power_indicator_);
 
-  SetTextColor(0xFF00FF00);
-  SetTextSize(16);
+  SetTextColor(config::kPanelWorkspaceIndicatorColor);
+  SetTextSize(config::kPanelTextSize);
   SetTextAlignment(ui::TextAlignment::CENTER_VERTICAL |
                    ui::TextAlignment::LEFT);
 

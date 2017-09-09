@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include "base/logging.h"
+#include "config.h"
 
 namespace naive {
 namespace extra {
@@ -120,7 +121,7 @@ T DBusCon::GetProperty(const char* bus_name,
 int64_t DBusCon::GetRemainingTime() {
   // TODO: do not hard code this interface.
   int64_t result = GetProperty<int64_t>(
-      "org.freedesktop.UPower", "/org/freedesktop/UPower/devices/battery_BAT0",
+      "org.freedesktop.UPower", config::kDBusBatteryInterface,
       "org.freedesktop.UPower.Device", "TimeToEmpty");
   HandleError();
   return result;
@@ -129,7 +130,7 @@ int64_t DBusCon::GetRemainingTime() {
 double DBusCon::GetPercentage() {
   // TODO: do not hard code this interface.
   double result = GetProperty<double>(
-      "org.freedesktop.UPower", "/org/freedesktop/UPower/devices/battery_BAT0",
+      "org.freedesktop.UPower", config::kDBusBatteryInterface,
       "org.freedesktop.UPower.Device", "Percentage");
   HandleError();
   return result;
@@ -140,8 +141,8 @@ PowerIndicator::PowerIndicator(int32_t x,
                                int32_t width,
                                int32_t height)
     : TextView(x, y, width, height) {
-  SetTextColor(0xFF00FFFF);
-  SetTextSize(16);
+  SetTextColor(config::kPowerIndicatorTextColor);
+  SetTextSize(config::kPanelTextSize);
 }
 
 void PowerIndicator::OnDrawFrame() {
@@ -167,9 +168,9 @@ void PowerIndicator::UpdatePowerInfo() {
                  remaining);
   SetText(std::string(buffer));
   if (hour == 0 && minute <= 30 && minute > 0 && remaining <= 15)
-    SetBackgroundColor(0xFFDD0000);
+    SetBackgroundColor(config::kPowerIndicatorBackgroundColorUrgent);
   else
-    SetBackgroundColor(0xFF000000);
+    SetBackgroundColor(config::kPowerIndicatorBackgroundColorNormal);
 }
 
 }  // namespace extra

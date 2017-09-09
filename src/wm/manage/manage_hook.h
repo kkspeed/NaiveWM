@@ -58,7 +58,7 @@ class ManageHook : public WmEventObserver {
 
   int32_t width_, height_;
   WMPrimitives* primitives_ = nullptr;
-  std::unique_ptr<ui::ImageView> wallpaper_view_;
+  std::unique_ptr<ui::Widget> wallpaper_view_;
   std::unique_ptr<Panel> panel_;
 
   using ManageWindowPolicy = std::function<bool(ManageWindow* mw)>;

@@ -11,6 +11,7 @@
 #include "config.h"
 #include "compositor/compositor.h"
 #include "ui/image_view.h"
+#include "ui/text_view.h"
 #include "wayland/display_metrics.h"
 #include "wm/keyboard_event.h"
 #include "wm/manage/panel.h"
@@ -30,9 +31,18 @@ ManageHook::ManageHook() {
 
 void ManageHook::PostWmInitialize() {
   display_metrics_ = compositor::Compositor::Get()->GetDisplayMetrics();
-  wallpaper_view_ = std::make_unique<ui::ImageView>(
-      0, 0, display_metrics_->width_pixels, display_metrics_->height_pixels,
-      config::kWallpaperPath);
+  if (strnlen(config::kWallpaperPath, 255) == 0) {
+    auto text_view = std::make_unique<ui::TextView>(
+        0, 0, display_metrics_->width_pixels, display_metrics_->height_pixels);
+    text_view->SetBackgroundColor(0xFF808080);
+    text_view->SetTextSize(80);
+    text_view->SetText("Simple! Sometimes Naive!");
+    wallpaper_view_ = std::move(text_view);
+  } else {
+    wallpaper_view_ = std::make_unique<ui::ImageView>(
+        0, 0, display_metrics_->width_pixels, display_metrics_->height_pixels,
+        config::kWallpaperPath);
+  }
   wm::WindowManager::Get()->set_wallpaper_window(wallpaper_view_->window());
 
   panel_ = std::make_unique<Panel>(0, 0, display_metrics_->width_pixels, 20);

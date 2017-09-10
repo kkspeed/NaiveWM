@@ -14,6 +14,7 @@
 #include "text-input-unstable-v1.h"
 #include "xdg-shell-unstable-v5.h"
 #include "xdg-shell-unstable-v6.h"
+#include "xwayland-keyboard-grab-unstable-v1.h"
 
 #include "base/geometry.h"
 #include "base/logging.h"
@@ -2094,6 +2095,80 @@ void bind_text_input_manager(wl_client* client,
       text_input_manager, &text_input_manager_implementation, data, nullptr);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// zwp_xwayland_keyboard_grab interfaces:
+
+class ScopedKeyboardGrab {
+ public:
+  explicit ScopedKeyboardGrab(Keyboard* keyboard, Surface* surface)
+      : keyboard_(keyboard) {
+    keyboard->set_grab_target(surface);
+    Keyboard::ActivateGlobalGrab(true);
+  }
+
+  ~ScopedKeyboardGrab() {
+    keyboard_->set_grab_target(nullptr);
+    Keyboard::ActivateGlobalGrab(false);
+  }
+
+ private:
+  Keyboard* keyboard_;
+};
+
+void zwp_xwayland_keyboard_grab_v1_destroy(struct wl_client* client,
+                                           struct wl_resource* resource) {
+  wl_resource_destroy(resource);
+}
+
+const struct zwp_xwayland_keyboard_grab_v1_interface
+    zwp_xwayland_keyboard_grab_v1_implementation = {
+        zwp_xwayland_keyboard_grab_v1_destroy};
+
+void zwp_xwayland_keyboard_grab_manager_v1_destroy(wl_client* client,
+                                                   wl_resource* resource) {
+  // Do nothing, since zwp_xwayland_keyboard_grab_manager_v1 is a global and
+  // we assume only 1 xwayland session running and it never dies.
+}
+
+void zwp_xwayland_keyboard_grab_manager_v1_grab_keyboard(
+    struct wl_client* client,
+    struct wl_resource* resource,
+    uint32_t id,
+    struct wl_resource* surface,
+    struct wl_resource* seat_resource) {
+  TRACE();
+  Seat* seat = GetUserDataAs<Seat>(seat_resource);
+  Keyboard* keyboard = seat->GetKeyboardByClient(client);
+  if (keyboard == nullptr)
+    return;
+
+  auto* grab_resource =
+      wl_resource_create(client, &zwp_xwayland_keyboard_grab_v1_interface,
+                         wl_resource_get_version(resource), id);
+  auto grab = std::make_unique<ScopedKeyboardGrab>(
+      keyboard, GetUserDataAs<Surface>(surface));
+  SetImplementation(grab_resource,
+                    &zwp_xwayland_keyboard_grab_v1_implementation,
+                    std::move(grab));
+}
+
+const struct zwp_xwayland_keyboard_grab_manager_v1_interface
+    zwp_xwayland_keyboard_grab_manager_v1_implementation = {
+        zwp_xwayland_keyboard_grab_manager_v1_destroy,
+        zwp_xwayland_keyboard_grab_manager_v1_grab_keyboard};
+
+void bind_zwp_xwayland_keyboard_grab_manager_v1(wl_client* client,
+                                                void* data,
+                                                uint32_t version,
+                                                uint32_t id) {
+  TRACE();
+  wl_resource* resource = wl_resource_create(
+      client, &zwp_xwayland_keyboard_grab_manager_v1_interface, version, id);
+  wl_resource_set_implementation(
+      resource, &zwp_xwayland_keyboard_grab_manager_v1_implementation, data,
+      nullptr);
+}
+
 }  // namespace
 
 template <class T>
@@ -2130,6 +2205,9 @@ Server::Server(Display* display)
                    &bind_input_panel);
   wl_global_create(wl_display_, &zwp_text_input_manager_v1_interface, 1,
                    display_, bind_text_input_manager);
+  wl_global_create(wl_display_,
+                   &zwp_xwayland_keyboard_grab_manager_v1_interface, 1,
+                   display_, &bind_zwp_xwayland_keyboard_grab_manager_v1);
   wl_global_create(wl_display_, &wl_data_device_manager_interface, 1, display_,
                    bind_data_device_manager);
 }

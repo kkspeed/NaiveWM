@@ -15,13 +15,18 @@ Seat::Seat(
       new_offer_(new_offer),
       input_method_(this) {}
 
-void Seat::RegisterKeyboard(wl_client* client,
-                            std::unique_ptr<Keyboard> keyboard) {
-  keyboard_bindings_.emplace(client, std::move(keyboard));
+void Seat::RegisterKeyboard(wl_client* client, Keyboard* keyboard) {
+  if (keyboard_bindings_.find(client) != keyboard_bindings_.end())
+    TRACE(
+        "Keyboard already exists.. not one client per keyboard? client: %p, "
+        "keyboard: %p",
+        client, keyboard);
+  keyboard_bindings_[client] = keyboard;
 }
 
 void Seat::RemoveKeyboard(wl_client* client) {
   keyboard_bindings_.erase(client);
+  TRACE("client: %p, now has %lu keyboards", client, keyboard_bindings_.size());
 }
 
 void Seat::NotifyKeyboardFocusChanged(Keyboard* to_keyboard) {
@@ -42,6 +47,8 @@ void Seat::NotifyKeyboardDestroyed(Keyboard* keyboard) {
   TRACE();
   if (focused_keyboard_ == keyboard)
     focused_keyboard_ = nullptr;
+  if (keyboard)
+    RemoveKeyboard(wl_resource_get_client(keyboard->resource()));
 }
 
 void Seat::OfferSelection() {

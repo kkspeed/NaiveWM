@@ -17,6 +17,7 @@ class Seat;
 class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
  public:
   explicit Keyboard(wl_resource* resource, Seat* seat);
+  explicit Keyboard(wl_resource* resource, Seat* seat, Surface* surface);
   ~Keyboard();
 
   // KeyboardObserver overrides
@@ -35,6 +36,14 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   wl_resource* resource() { return resource_; }
   Surface* target_surface() { return target_; }
 
+  void set_grab_target(Surface* target) {
+    grab_target_ = target;
+    if (target)
+      target->AddSurfaceObserver(this);
+  }
+
+  static void ActivateGlobalGrab(bool activate);
+
  private:
   void UpdateKeyStates(wm::KeyboardEvent* key_event);
   void SendLayout();
@@ -50,6 +59,10 @@ class Keyboard : public wm::KeyboardObserver, public SurfaceObserver {
   Keyboard* grab_ = nullptr;
   Keyboard* grabbing_ = nullptr;
   Seat* seat_;
+
+  Surface* grab_target_{nullptr};
+
+  static bool global_grab_activated_;
 };
 
 }  // namespace wayland

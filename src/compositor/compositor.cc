@@ -204,6 +204,7 @@ void Compositor::Draw() {
     auto* window = view->window();
     window->window_impl()->ClearDamage();
     window->NotifyFrameCallback();
+
     if (window->window_impl()->HasCommit()) {
       window->window_impl()->ClearCommit();
       auto quad = window->window_impl()->GetQuad();
@@ -214,7 +215,13 @@ void Compositor::Draw() {
         window->window_impl()->CacheTexture(std::move(texture));
       }
     }
-    for (auto& rect : view->damaged_region().rectangles()) {
+    std::vector<base::geometry::Rect> rectangles;
+#ifdef __NAIVE_COMPOSITOR__
+    rectangles.push_back(view->global_bounds());
+#else
+    rectangles = view->damaged_region().rectangles();
+#endif
+    for (auto& rect : rectangles) {
       auto bounds = view->global_bounds();
       TRACE("rectangle: %s, window %p, global bounds: %s, did draw: %d",
             rect.ToString().c_str(), view->window(), bounds.ToString().c_str(),

@@ -34,11 +34,10 @@ If you are unable to move mouse or type anything, it's likely that you are
 not in <tt>input</tt> group. Add yourself by <tt>gpasswd -a your\_name 
 input</tt>.
 
-### Reduce CPU Load by Using More Efficient Compositor
-On my Thinkpad X1 Carbon 2016, it uses roughly 6% CPU when idle. It is
-because that it redraws fullscreen each frame. A more efficient compositor
-is being developed but is currently disabled by default. To enable it, remove
-the <tt>-DNAIVE\_COMPOISTOR</tt> from <tt>CMAKE\_CXX\_FLAGS</tt> in 
+### Enable Alpha Composition
+Currently the alpha composition enabled compositor will use more CPU as
+it currently requires fullscreen redraw. To enable alpha composition, add
+<tt>-D\_\_NAIVE\_COMPOISTOR\_\_</tt> to <tt>CMAKE\_CXX\_FLAGS</tt> in
 <tt>CMakeLists.txt</tt>.
 
 ## Recommended Configurations

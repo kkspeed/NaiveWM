@@ -215,11 +215,10 @@ void Compositor::Draw() {
         window->window_impl()->CacheTexture(std::move(texture));
       }
     }
-    std::vector<base::geometry::Rect> rectangles;
 #ifdef __NAIVE_COMPOSITOR__
-    rectangles.push_back(view->global_bounds());
+    auto rectangles = std::vector<base::geometry::Rect>{view->global_bounds()};
 #else
-    rectangles = view->damaged_region().rectangles();
+    auto rectangles(view->damaged_region().rectangles());
 #endif
     for (auto& rect : rectangles) {
       auto bounds = view->global_bounds();

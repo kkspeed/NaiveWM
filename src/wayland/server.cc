@@ -2171,11 +2171,6 @@ void bind_zwp_xwayland_keyboard_grab_manager_v1(wl_client* client,
 
 }  // namespace
 
-template <class T>
-T* GetUserDataAs(wl_resource* resource) {
-  return static_cast<T*>(wl_resource_get_user_data(resource));
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // Server
 Server::Server(Display* display)

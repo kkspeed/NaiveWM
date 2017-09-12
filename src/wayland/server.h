@@ -17,7 +17,9 @@ namespace naive {
 namespace wayland {
 
 template <class T>
-T* GetUserDataAs(wl_resource* resource);
+T* GetUserDataAs(wl_resource* resource) {
+  return static_cast<T*>(wl_resource_get_user_data(resource));
+}
 
 class Server {
  public:

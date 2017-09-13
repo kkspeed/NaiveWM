@@ -125,7 +125,7 @@ Also, you'll need to tweak the resolution for your screen. It's defined as
 This project is VERY far from useable. So you may not try it unless you know
 what you are doing!
 
-For a list of things I'm working on, please see <tt>TODO.md</tt>.
+For a list of things I'm working on, please see [TODO.md](./TODO.md).
 
 ## Credits
 Sincerely thanks to all the open source libraries that back up this project. 

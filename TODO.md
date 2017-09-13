@@ -42,6 +42,8 @@ created each time during rendering.
 
 - For Intel graphics card, XWayland seems to run in soft rendering mode.
 
+- Copy paste between X11 windows and Wayland windows.
+
 ## Config
   Refactor code (especially key handlers) in <tt>manage\_hook.cc</tt> to configuration
   files that could be easily modified.

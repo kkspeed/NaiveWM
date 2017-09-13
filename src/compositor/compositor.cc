@@ -134,7 +134,7 @@ wayland::DisplayMetrics* Compositor::GetDisplayMetrics() {
 }
 
 void Compositor::Draw() {
-  egl_->MakeCurrent();
+  // egl_->MakeCurrent();
   egl_->BindDrawBuffer(true);
   auto* wallpaper_window = wm::WindowManager::Get()->wallpaper_window();
   CompositorViewList view_list =
@@ -196,48 +196,63 @@ void Compositor::Draw() {
     }
   }
 
+  bool has_any_commit = !global_damage_region_.is_empty();
+
   if (!global_damage_region_.is_empty())
     global_damage_region_.Clear();
 
-  bool did_draw = false;
   for (auto& view : view_list) {
     auto* window = view->window();
-    window->window_impl()->ClearDamage();
     window->NotifyFrameCallback();
+    if (window->window_impl()->HasCommit())
+      has_any_commit = true;
+  }
 
-    if (window->window_impl()->HasCommit()) {
-      window->window_impl()->ClearCommit();
-      auto quad = window->window_impl()->GetQuad();
-      if (quad.has_data()) {
-        auto texture = std::make_unique<Texture>(quad.width(), quad.height(),
-                                                 quad.format(), quad.data(),
-                                                 renderer_.get());
-        window->window_impl()->CacheTexture(std::move(texture));
+  bool did_draw = false;
+  if (has_any_commit) {
+    for (auto& view : view_list) {
+      has_any_commit = false;
+      auto* window = view->window();
+      window->window_impl()->ClearDamage();
+      // window->NotifyFrameCallback();
+
+      if (window->window_impl()->HasCommit()) {
+        window->window_impl()->ClearCommit();
+        has_any_commit = true;
+        auto quad = window->window_impl()->GetQuad();
+        if (quad.has_data()) {
+          auto texture = std::make_unique<Texture>(quad.width(), quad.height(),
+                                                   quad.format(), quad.data(),
+                                                   renderer_.get());
+          window->window_impl()->CacheTexture(std::move(texture));
+        }
       }
-    }
 #ifdef __NAIVE_COMPOSITOR__
-    auto rectangles = std::vector<base::geometry::Rect>{view->global_bounds()};
+      auto rectangles =
+          std::vector<base::geometry::Rect>{view->global_bounds()};
 #else
-    auto rectangles(view->damaged_region().rectangles());
+      auto rectangles(view->damaged_region().rectangles());
 #endif
-    for (auto& rect : rectangles) {
-      auto bounds = view->global_bounds();
-      TRACE("rectangle: %s, window %p, global bounds: %s, did draw: %d",
-            rect.ToString().c_str(), view->window(), bounds.ToString().c_str(),
-            did_draw);
-      if (window->window_impl()->CachedTexture()) {
-        int32_t physical_x = bounds.x();  // * display_metrics_->scale;
-        int32_t physical_y = bounds.y();  // * display_metrics_->scale;
-        int32_t to_draw_x =
-            (rect.x() - bounds.x());  // * display_metrics_->scale;
-        int32_t to_draw_y =
-            (rect.y() - bounds.y());              // * display_metrics_->scale;
-        int32_t physical_width = rect.width();    // * display_metrics_->scale;
-        int32_t physical_height = rect.height();  // * display_metrics_->scale;
-        window->window_impl()->CachedTexture()->Draw(
-            physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
-            physical_height);
-        did_draw = true;
+      for (auto& rect : rectangles) {
+        auto bounds = view->global_bounds();
+        TRACE("rectangle: %s, window %p, global bounds: %s, did draw: %d",
+              rect.ToString().c_str(), view->window(),
+              bounds.ToString().c_str(), did_draw);
+        if (window->window_impl()->CachedTexture()) {
+          int32_t physical_x = bounds.x();  // * display_metrics_->scale;
+          int32_t physical_y = bounds.y();  // * display_metrics_->scale;
+          int32_t to_draw_x =
+              (rect.x() - bounds.x());  // * display_metrics_->scale;
+          int32_t to_draw_y =
+              (rect.y() - bounds.y());            // * display_metrics_->scale;
+          int32_t physical_width = rect.width();  // * display_metrics_->scale;
+          int32_t physical_height =
+              rect.height();  // * display_metrics_->scale;
+          window->window_impl()->CachedTexture()->Draw(
+              physical_x, physical_y, to_draw_x, to_draw_y, physical_width,
+              physical_height);
+          did_draw = true;
+        }
       }
     }
   }

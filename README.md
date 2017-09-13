@@ -34,10 +34,14 @@ If you are unable to move mouse or type anything, it's likely that you are
 not in <tt>input</tt> group. Add yourself by <tt>gpasswd -a your\_name 
 input</tt>.
 
-### Enable Alpha Composition
-Currently the alpha composition enabled compositor will use more CPU as
-it currently requires fullscreen redraw. To enable alpha composition, add
-<tt>-D\_\_NAIVE\_COMPOISTOR\_\_</tt> to <tt>CMAKE\_CXX\_FLAGS</tt> in
+Naive compositor is used by default. Whenever it sees any change, it will
+attempt to redraw fullscreen. This seems necessary to allow alpha composition
+but there might be some optimizations. 
+
+### Use Incremental Composition
+Instead, you can use incremental composition with damage. But currently it's
+a little bit buggy with cairo surfaces. To do it, just remove
+<tt>-D\_\_NAIVE\_COMPOISTOR\_\_</tt> in <tt>CMAKE\_CXX\_FLAGS</tt> in
 <tt>CMakeLists.txt</tt>.
 
 ## Recommended Configurations

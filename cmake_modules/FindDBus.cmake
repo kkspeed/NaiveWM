@@ -71,6 +71,7 @@ find_path(DBUS_ARCH_INCLUDE_DIR
     PATHS
     /usr/lib/dbus-1.0/include
     /usr/lib/i386-linux-gnu/dbus-1.0/include/
+    /usr/lib/x86_64-linux-gnu/dbus-1.0/include/
     include/
     include/dbus-1.0/
     dbus-1.0/

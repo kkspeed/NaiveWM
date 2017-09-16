@@ -22,11 +22,17 @@
 namespace naive {
 namespace wm {
 
-ManageHook::ManageHook() {
+ManageHook::ManageHook()
+    : ctrl_(KeyFilter::Ctrl, this),
+      shift_(KeyFilter::Shift, this),
+      alt_(KeyFilter::Alt, this),
+      super_(KeyFilter::Super, this) {
   for (uint32_t i = 0; i < 9; i++) {
     workspaces_.push_back(Workspace(i, config::kWorkspaceInsetY));
     current_workspace_ = 0;
   }
+
+  RegisterKeys();
 }
 
 void ManageHook::PostWmInitialize() {
@@ -102,11 +108,11 @@ void ManageHook::WindowDestroyed(Window* window) {
 }
 
 bool ManageHook::OnKey(KeyboardEvent* event) {
-  if (event->super_pressed() && event->keycode() == KEY_T) {
-    if (!event->pressed()) {
-      const char* args[] = {"lxtemrinal", "--no-remote", nullptr};
-      base::LaunchProgram("lxterminal", (char**)args);
-    }
+  uint64_t key = GetKey(event);
+  if (key_actions_.find(key) != key_actions_.end()) {
+    if (event->pressed())
+      return true;
+    key_actions_[key]();
     return true;
   }
 
@@ -131,35 +137,6 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
   }
 #endif
 
-  if (!event->pressed() && event->super_pressed() && event->shift_pressed() &&
-      event->keycode() == KEY_Q) {
-    exit(0);
-  }
-
-  if (event->super_pressed() && event->keycode() >= KEY_1 &&
-      event->keycode() <= KEY_9) {
-    if (event->pressed())
-      return true;
-    size_t tag = event->keycode() - KEY_1;
-    if (event->shift_pressed()) {
-      ManageWindow* current = current_workspace()->CurrentWindow();
-      if (current)
-        MoveWindowToTag(current->window(), tag);
-      current = current_workspace()->CurrentWindow();
-      primitives_->FocusWindow(current ? current->window() : nullptr);
-      return true;
-    }
-    SelectTag(tag);
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_TAB) {
-    if (event->pressed())
-      return true;
-    SelectTag(previous_tag_);
-    return true;
-  }
-
   if (event->super_pressed() && event->keycode() == KEY_R) {
     if (event->pressed())
       return true;
@@ -183,84 +160,6 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
       return false;
     });
 
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_J) {
-    if (event->pressed())
-      return true;
-    auto* next = current_workspace()->NextVisibleWindow();
-    primitives_->FocusWindow(next ? next->window() : nullptr);
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_K) {
-    if (event->pressed())
-      return true;
-    auto* prev = current_workspace()->PrevVisibleWindow();
-    primitives_->FocusWindow(prev ? prev->window() : nullptr);
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_C) {
-    if (event->pressed())
-      return true;
-    const char* args[] = {"qutebrowser", "--qt-arg", "platform", "wayland",
-                          nullptr};
-    base::LaunchProgram("qutebrowser", (char**)args);
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_F4) {
-    if (event->pressed())
-      return true;
-    auto* current = current_workspace()->CurrentWindow();
-    if (current)
-      current->window()->Close();
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_M) {
-    if (event->pressed())
-      return true;
-    auto* current = current_workspace()->CurrentWindow();
-    if (current) {
-      current->set_maximized(!current->is_maximized());
-      current_workspace()->ArrangeWindows(config::kWorkspaceInsetX,
-                                          config::kWorkspaceInsetY,
-                                          width_ - config::kWorkspaceInsetX,
-                                          height_ - config::kWorkspaceInsetY);
-    }
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_ENTER) {
-    if (event->pressed())
-      return true;
-    auto* current = current_workspace()->CurrentWindow();
-    if (current) {
-      auto poped = current_workspace()->PopWindow(current->window());
-      current_workspace()->AddWindowToHead(std::move(poped));
-      current_workspace()->SetCurrentWindow(current->window());
-      current_workspace()->ArrangeWindows(config::kWorkspaceInsetX,
-                                          config::kWorkspaceInsetY,
-                                          width_ - config::kWorkspaceInsetX,
-                                          height_ - config::kWorkspaceInsetY);
-    }
-    return true;
-  }
-
-  if (event->super_pressed() && event->keycode() == KEY_P) {
-    if (event->pressed())
-      return true;
-    TRACE("Saving screenshot...");
-    compositor::Compositor::Get()->CopyScreen(
-        std::make_unique<compositor::CopyRequest>(std::bind(
-            &base::EncodePngToFile,
-            base::Time::GetTime("/tmp/screenshot-%Y-%m-%d-%H_%M_%S.png"),
-            std::placeholders::_1, std::placeholders::_2,
-            std::placeholders::_3)));
-    TRACE("Screenshot saved...");
     return true;
   }
 
@@ -432,6 +331,99 @@ void ManageHook::MoveWindowToTag(Window* window, size_t tag) {
   for (auto& workspace : workspaces_)
     window_count.push_back(workspace.window_count());
   panel_->OnWorkspaceChanged(current_workspace_, window_count);
+}
+
+void ManageHook::RegisterKeys() {
+  (super_ + KEY_T).Action([this]() {
+    const char* args[] = {"lxtemrinal", "--no-remote", nullptr};
+    base::LaunchProgram("lxterminal", (char**)args);
+  });
+
+  (super_ + KEY_C).Action([this]() {
+    const char* args[] = {"qutebrowser", "--qt-arg", "platform", "wayland",
+                          nullptr};
+    base::LaunchProgram("qutebrowser", (char**)args);
+  });
+
+  (super_ + KEY_F4).Action([this]() {
+    this->WithCurrentWindow([](auto* w) { w->window()->Close(); });
+  });
+
+  (super_ + shift_ + KEY_Q).Action([]() { exit(0); });
+
+  (super_ + KEY_ENTER).Action([this]() {
+    this->WithCurrentWindow([this](auto* w) { this->ZoomWindow(w); });
+  });
+
+  (super_ + KEY_M).Action([this]() {
+    this->WithCurrentWindow([this](auto* mw) { this->MaximizeWindow(mw); });
+  });
+
+  (super_ + KEY_TAB).Action([this]() { this->SelectTag(this->previous_tag_); });
+
+  (super_ + KEY_J).Action([this]() {
+    auto* next = this->current_workspace()->NextVisibleWindow();
+    this->primitives_->FocusWindow(next ? next->window() : nullptr);
+  });
+
+  (super_ + KEY_K).Action([this]() {
+    auto* prev = this->current_workspace()->PrevVisibleWindow();
+    this->primitives_->FocusWindow(prev ? prev->window() : nullptr);
+  });
+
+  (super_ + KEY_P).Action([this]() { this->TakeScreenshot(); });
+
+  for (uint32_t k = KEY_1; k <= KEY_9; k++) {
+    uint32_t tag = k - KEY_1;
+    (super_ + k).Action([tag, this]() { this->SelectTag(tag); });
+    (super_ + shift_ + k).Action([tag, this]() {
+      ManageWindow* current = this->current_workspace()->CurrentWindow();
+      if (current)
+        this->MoveWindowToTag(current->window(), tag);
+      current = this->current_workspace()->CurrentWindow();
+      this->primitives_->FocusWindow(current ? current->window() : nullptr);
+    });
+  }
+}
+
+uint64_t ManageHook::GetKey(KeyboardEvent* event) {
+  uint64_t result = 0;
+  if (event->ctrl_pressed())
+    result |= KeyFilter::Ctrl;
+  if (event->alt_pressed())
+    result |= KeyFilter::Alt;
+  if (event->super_pressed())
+    result |= KeyFilter::Super;
+  if (event->shift_pressed())
+    result |= KeyFilter::Shift;
+  return (result << 32) | event->keycode();
+}
+
+void ManageHook::ZoomWindow(ManageWindow* window) {
+  auto poped = current_workspace()->PopWindow(window->window());
+  current_workspace()->AddWindowToHead(std::move(poped));
+  current_workspace()->SetCurrentWindow(window->window());
+  current_workspace()->ArrangeWindows(
+      config::kWorkspaceInsetX, config::kWorkspaceInsetY,
+      width_ - config::kWorkspaceInsetX, height_ - config::kWorkspaceInsetY);
+}
+
+void ManageHook::MaximizeWindow(ManageWindow* mw) {
+  mw->set_maximized(!mw->is_maximized());
+  current_workspace()->ArrangeWindows(
+      config::kWorkspaceInsetX, config::kWorkspaceInsetY,
+      width_ - config::kWorkspaceInsetX, height_ - config::kWorkspaceInsetY);
+}
+
+void ManageHook::TakeScreenshot() {
+  TRACE("Saving screenshot...");
+  compositor::Compositor::Get()->CopyScreen(
+      std::make_unique<compositor::CopyRequest>(std::bind(
+          &base::EncodePngToFile,
+          base::Time::GetTime("/tmp/screenshot-%Y-%m-%d-%H_%M_%S.png"),
+          std::placeholders::_1, std::placeholders::_2,
+          std::placeholders::_3)));
+  TRACE("Screenshot saved...");
 }
 
 }  // namespace wm

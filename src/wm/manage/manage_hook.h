@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <vector>
 
 #include "ui/image_view.h"
@@ -52,7 +53,58 @@ class ManageHook : public WmEventObserver {
   void SelectTag(size_t tag);
   void MoveWindowToTag(Window* window, size_t tag);
 
+  void RegisterAction(uint32_t modifier,
+                      uint32_t keycode,
+                      const std::function<void()>& action) {
+    uint64_t key = ((static_cast<uint64_t>(modifier) << 32) | keycode);
+    key_actions_[key] = action;
+  }
+
+  void WithCurrentWindow(const std::function<void(ManageWindow* mw)>& proc) {
+    auto* current = current_workspace()->CurrentWindow();
+    if (current)
+      proc(current);
+  }
+
+  void ZoomWindow(ManageWindow* window);
+  void MaximizeWindow(ManageWindow* mw);
+  void TakeScreenshot();
+
+ protected:
+  class KeyFilter {
+   public:
+    enum Modifiers { Ctrl = 1, Shift = 1 << 1, Alt = 1 << 2, Super = 1 << 3 };
+
+    KeyFilter(uint32_t modifiers, ManageHook* hook)
+        : modifiers_{modifiers}, hook_{hook} {}
+
+    KeyFilter operator+(KeyFilter& that) {
+      KeyFilter result(modifiers_ | that.modifiers_, hook_);
+      result.keycode_ = that.keycode_;
+      return result;
+    }
+
+    KeyFilter operator+(uint32_t keycode) {
+      keycode_ = keycode;
+      return *this;
+    }
+
+    void Action(const std::function<void()>& action) {
+      hook_->RegisterAction(modifiers_, keycode_, action);
+    }
+
+   private:
+    uint32_t modifiers_ = 0;
+    uint32_t keycode_ = 0;
+    ManageHook* hook_;
+  };
+
+  virtual void RegisterKeys();
+  KeyFilter ctrl_, shift_, alt_, super_;
+
  private:
+  uint64_t GetKey(KeyboardEvent* event);
+
   std::vector<Workspace> workspaces_;
   size_t current_workspace_;
 
@@ -70,6 +122,8 @@ class ManageHook : public WmEventObserver {
 
   std::unique_ptr<wm::ScopedMoveWindow> scoped_move_window_;
   std::unique_ptr<wm::ScopedResizeWindow> scoped_resize_window_;
+
+  std::map<uint64_t, std::function<void()>> key_actions_;
 
   wayland::DisplayMetrics* display_metrics_;
 };

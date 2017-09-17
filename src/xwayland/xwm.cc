@@ -60,7 +60,9 @@ void CascadeWindowBounds(ShellSurface* shell_surface,
 }  // namespace
 
 XWindow::XWindow(Window window, std::unique_ptr<ShellSurface> shell_surface)
-    : window_(window), shell_surface_(std::move(shell_surface)) {}
+    : window_(window), shell_surface_(std::move(shell_surface)) {
+  TRACE("Create window: 0x%lx", window_);
+}
 
 XWindowManager::XWindowManager(Server* server) : wayland_server_{server} {
   wayland_server_->display()->AddSurfaceCreatedObserver(this);
@@ -73,6 +75,7 @@ XWindowManager::~XWindowManager() {
 void XWindowManager::CreateManagedWindow(
     Window window,
     std::unique_ptr<ShellSurface> shell_surface) {
+  TRACE("window: 0x%lx", window);
   int32_t buffer_scale = shell_surface->window()->surface()->buffer_scale();
   shell_surface->set_close_callback(
       [this, window]() { this->KillWindow(window); });
@@ -365,9 +368,11 @@ void XWindowManager::HandleDestroyNotify(XDestroyWindowEvent* event) {
   auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
                           [target](auto& w) { return w->window() == target; });
   if (pos != x_windows_.end()) {
-    TRACE("Removing x_window: 0x%lx, shell_surface: %p", (*pos)->window(),
-          (*pos)->shell_surface());
+    TRACE("Removing x_window: 0x%lx, shell_surface: %p, remaining windows: %ld",
+          (*pos)->window(), (*pos)->shell_surface(), x_windows_.size());
+    auto local = std::move(*pos);
     x_windows_.erase(pos);
+    TRACE("x_windows_ sz: %ld", x_windows_.size());
   }
 }
 
@@ -376,12 +381,15 @@ void XWindowManager::HandleUnmapNotify(XUnmapEvent* event) {
   auto pos = std::find_if(x_windows_.begin(), x_windows_.end(),
                           [target](auto& w) { return w->window() == target; });
   if (pos != x_windows_.end()) {
-    TRACE("Removing x_window: 0x%lx, shell_surface: %p", (*pos)->window(),
-          (*pos)->shell_surface());
+    TRACE("Removing x_window: 0x%lx, shell_surface: %p, remaining windows: %ld",
+          (*pos)->window(), (*pos)->shell_surface(), x_windows_.size());
     if (event->send_event) {
       SetClientState(event->window, WithdrawnState);
-    } else
+    } else {
+      auto local = std::move(*pos);
       x_windows_.erase(pos);
+    }
+    TRACE("x_windows_ sz: %ld", x_windows_.size());
   }
 }
 

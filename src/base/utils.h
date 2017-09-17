@@ -7,6 +7,7 @@ namespace naive {
 namespace base {
 
 pid_t LaunchProgram(const char* command, char* const argv[]);
+pid_t LaunchProgramV(const char* command, const char* arg, ...);
 
 }  // namespace base
 }  // namespace naive

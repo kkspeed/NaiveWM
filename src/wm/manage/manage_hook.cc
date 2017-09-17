@@ -348,10 +348,7 @@ void ManageHook::RegisterKeys() {
 
   (super_ + KEY_P).Action([this]() { this->TakeScreenshot(); });
 
-  (super_ + KEY_R).Action([]() {
-    const char* args[] = {"synapse", nullptr};
-    base::LaunchProgram("synapse", (char**)args);
-  });
+  (super_ + KEY_R).Action([]() { base::LaunchProgramV("kupfer", nullptr); });
 
   for (uint32_t k = KEY_1; k <= KEY_9; k++) {
     uint32_t tag = k - KEY_1;
@@ -367,9 +364,9 @@ void ManageHook::RegisterKeys() {
 }
 
 void ManageHook::AddWindowCallbacks() {
-  // Special case window with id "synapse".
+  // Special case window with id "kupfer.py".
   window_added_callback_.push_back([](ManageWindow* mw) {
-    if (mw->window()->app_id() == "synapse") {
+    if (mw->window()->app_id() == "kupfer.py") {
       mw->set_floating(true);
       mw->window()->enable_border(false);
     }

@@ -80,6 +80,9 @@ class Window {
   void GrabDone();
 
   bool focused() { return focused_; }
+
+  std::string app_id() { return app_id_; }
+
   // Sets the window size via window manager.
   // TODO: This needs to commit as well.
   void WmSetSize(int32_t width, int32_t height);

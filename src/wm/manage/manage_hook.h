@@ -99,6 +99,7 @@ class ManageHook : public WmEventObserver {
     ManageHook* hook_;
   };
 
+  virtual void AddWindowCallbacks();
   virtual void RegisterKeys();
   KeyFilter ctrl_, shift_, alt_, super_;
 

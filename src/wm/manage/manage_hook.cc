@@ -33,6 +33,7 @@ ManageHook::ManageHook()
   }
 
   RegisterKeys();
+  AddWindowCallbacks();
 }
 
 void ManageHook::PostWmInitialize() {
@@ -136,32 +137,6 @@ bool ManageHook::OnKey(KeyboardEvent* event) {
     return true;
   }
 #endif
-
-  if (event->super_pressed() && event->keycode() == KEY_R) {
-    if (event->pressed())
-      return true;
-    const char* args[] = {"kupfer", nullptr};
-    pid_t pid = base::LaunchProgram("kupfer", (char**)args);
-    window_added_callback_.push_back([pid](ManageWindow* mw) {
-      if (mw->window()->GetPid() == pid) {
-        mw->set_floating(true);
-        mw->MoveResize(0, 10, 600, 300);
-        mw->window()->enable_border(false);
-        return true;
-      }
-      return false;
-    });
-
-    window_removed_callback_.push_back([pid](ManageWindow* mw) {
-      if (mw->window()->GetPid() == pid) {
-        kill(pid, SIGTERM);
-        return true;
-      }
-      return false;
-    });
-
-    return true;
-  }
 
   if (event->super_pressed() && event->keycode() == KEY_D) {
     if (event->pressed())
@@ -373,6 +348,11 @@ void ManageHook::RegisterKeys() {
 
   (super_ + KEY_P).Action([this]() { this->TakeScreenshot(); });
 
+  (super_ + KEY_R).Action([]() {
+    const char* args[] = {"synapse", nullptr};
+    base::LaunchProgram("synapse", (char**)args);
+  });
+
   for (uint32_t k = KEY_1; k <= KEY_9; k++) {
     uint32_t tag = k - KEY_1;
     (super_ + k).Action([tag, this]() { this->SelectTag(tag); });
@@ -384,6 +364,18 @@ void ManageHook::RegisterKeys() {
       this->primitives_->FocusWindow(current ? current->window() : nullptr);
     });
   }
+}
+
+void ManageHook::AddWindowCallbacks() {
+  // Special case window with id "synapse".
+  window_added_callback_.push_back([](ManageWindow* mw) {
+    if (mw->window()->app_id() == "synapse") {
+      mw->set_floating(true);
+      mw->window()->enable_border(false);
+    }
+    // This is a persist rule.. should not be deleted if applied.
+    return false;
+  });
 }
 
 uint64_t ManageHook::GetKey(KeyboardEvent* event) {

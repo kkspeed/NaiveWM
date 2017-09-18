@@ -5,6 +5,8 @@
   next release of 5.10 in Nov, 2017 would fix it.
 
 - Popups that have parents are not movable atm.. 
+- Window stack order hint.. for apps like Cairo Dock, we'll need to pin it on top of
+  everything else.
 
 ## panel:
 The features on top of my head:
@@ -43,6 +45,9 @@ created each time during rendering.
 - For Intel graphics card, XWayland seems to run in soft rendering mode.
 
 - Copy paste between X11 windows and Wayland windows.
+
+- No managed toplevel floating window support.. this is needed for apps like
+  Lazarus.
 
 ## Config
   Refactor code (especially key handlers) in <tt>manage\_hook.cc</tt> to configuration

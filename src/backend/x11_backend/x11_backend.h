@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/logging.h"
 #include "backend/backend.h"
+#include "base/logging.h"
 #include "event/event_hub.h"
 
 namespace naive {
@@ -18,8 +18,8 @@ class DisplayMetrics;
 namespace backend {
 class EglContext;
 
-class X11Backend: public Backend, public event::EventHub {
-public:
+class X11Backend : public Backend, public event::EventHub {
+ public:
   X11Backend(const char* display);
   ~X11Backend() = default;
 
@@ -35,10 +35,13 @@ public:
 
   void FinalizeDraw(bool did_draw) override;
   EglContext* egl() override { return egl_.get(); }
-  wayland::DisplayMetrics* display_metrics() override { return display_metrics_.get(); }
+  wayland::DisplayMetrics* display_metrics() override {
+    return display_metrics_.get();
+  }
   event::EventHub* GetEventHub() override { return this; }
   void AddHandler(base::Looper* handler) override;
-private:
+
+ private:
   void DispatchEvents();
   void HandleKeyEvent(XKeyEvent* event);
   void HandleButtonEvent(XButtonEvent* event);

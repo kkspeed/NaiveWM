@@ -3,11 +3,11 @@
 #ifndef XWAYLAND_KEYBOARD_GRAB_UNSTABLE_V1_SERVER_PROTOCOL_H
 #define XWAYLAND_KEYBOARD_GRAB_UNSTABLE_V1_SERVER_PROTOCOL_H
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "wayland-server.h"
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -15,7 +15,8 @@ struct wl_client;
 struct wl_resource;
 
 /**
- * @page page_xwayland_keyboard_grab_unstable_v1 The xwayland_keyboard_grab_unstable_v1 protocol
+ * @page page_xwayland_keyboard_grab_unstable_v1 The
+ * xwayland_keyboard_grab_unstable_v1 protocol
  * Protocol for grabbing the keyboard from Xwayland
  *
  * @section page_desc_xwayland_keyboard_grab_unstable_v1 Description
@@ -59,8 +60,10 @@ struct wl_resource;
  * reset.
  *
  * @section page_ifaces_xwayland_keyboard_grab_unstable_v1 Interfaces
- * - @subpage page_iface_zwp_xwayland_keyboard_grab_manager_v1 - context object for keyboard grab manager
- * - @subpage page_iface_zwp_xwayland_keyboard_grab_v1 - interface for grabbing the keyboard
+ * - @subpage page_iface_zwp_xwayland_keyboard_grab_manager_v1 - context object
+ * for keyboard grab manager
+ * - @subpage page_iface_zwp_xwayland_keyboard_grab_v1 - interface for grabbing
+ * the keyboard
  * @section page_copyright_xwayland_keyboard_grab_unstable_v1 Copyright
  * <pre>
  *
@@ -92,7 +95,8 @@ struct zwp_xwayland_keyboard_grab_manager_v1;
 struct zwp_xwayland_keyboard_grab_v1;
 
 /**
- * @page page_iface_zwp_xwayland_keyboard_grab_manager_v1 zwp_xwayland_keyboard_grab_manager_v1
+ * @page page_iface_zwp_xwayland_keyboard_grab_manager_v1
+ * zwp_xwayland_keyboard_grab_manager_v1
  * @section page_iface_zwp_xwayland_keyboard_grab_manager_v1_desc Description
  *
  * A global interface used for grabbing the keyboard.
@@ -100,11 +104,13 @@ struct zwp_xwayland_keyboard_grab_v1;
  * See @ref iface_zwp_xwayland_keyboard_grab_manager_v1.
  */
 /**
- * @defgroup iface_zwp_xwayland_keyboard_grab_manager_v1 The zwp_xwayland_keyboard_grab_manager_v1 interface
+ * @defgroup iface_zwp_xwayland_keyboard_grab_manager_v1 The
+ * zwp_xwayland_keyboard_grab_manager_v1 interface
  *
  * A global interface used for grabbing the keyboard.
  */
-extern const struct wl_interface zwp_xwayland_keyboard_grab_manager_v1_interface;
+extern const struct wl_interface
+    zwp_xwayland_keyboard_grab_manager_v1_interface;
 /**
  * @page page_iface_zwp_xwayland_keyboard_grab_v1 zwp_xwayland_keyboard_grab_v1
  * @section page_iface_zwp_xwayland_keyboard_grab_v1_desc Description
@@ -114,7 +120,8 @@ extern const struct wl_interface zwp_xwayland_keyboard_grab_manager_v1_interface
  * See @ref iface_zwp_xwayland_keyboard_grab_v1.
  */
 /**
- * @defgroup iface_zwp_xwayland_keyboard_grab_v1 The zwp_xwayland_keyboard_grab_v1 interface
+ * @defgroup iface_zwp_xwayland_keyboard_grab_v1 The
+ * zwp_xwayland_keyboard_grab_v1 interface
  *
  * A global interface used for grabbing the keyboard.
  */
@@ -125,46 +132,44 @@ extern const struct wl_interface zwp_xwayland_keyboard_grab_v1_interface;
  * @struct zwp_xwayland_keyboard_grab_manager_v1_interface
  */
 struct zwp_xwayland_keyboard_grab_manager_v1_interface {
-	/**
-	 * destroy the keyboard grab manager
-	 *
-	 * Destroy the keyboard grab manager.
-	 */
-	void (*destroy)(struct wl_client *client,
-			struct wl_resource *resource);
-	/**
-	 * grab the keyboard to a surface
-	 *
-	 * The grab_keyboard request asks for a grab of the keyboard,
-	 * forcing the keyboard focus for the given seat upon the given
-	 * surface.
-	 *
-	 * The protocol provides no guarantee that the grab is ever
-	 * satisfied, and does not require the compositor to send an error
-	 * if the grab cannot ever be satisfied. It is thus possible to
-	 * request a keyboard grab that will never be effective.
-	 *
-	 * The protocol:
-	 *
-	 * * does not guarantee that the grab itself is applied for a
-	 * surface, the grab request may be silently ignored by the
-	 * compositor, * does not guarantee that any events are sent to
-	 * this client even if the grab is applied to a surface, * does not
-	 * guarantee that events sent to this client are exhaustive, a
-	 * compositor may filter some events for its own consumption, *
-	 * does not guarantee that events sent to this client are
-	 * continuous, a compositor may change and reroute keyboard events
-	 * while the grab is nominally active.
-	 * @param surface surface to report keyboard events to
-	 * @param seat the seat for which the keyboard should be grabbed
-	 */
-	void (*grab_keyboard)(struct wl_client *client,
-			      struct wl_resource *resource,
-			      uint32_t id,
-			      struct wl_resource *surface,
-			      struct wl_resource *seat);
+  /**
+   * destroy the keyboard grab manager
+   *
+   * Destroy the keyboard grab manager.
+   */
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
+  /**
+   * grab the keyboard to a surface
+   *
+   * The grab_keyboard request asks for a grab of the keyboard,
+   * forcing the keyboard focus for the given seat upon the given
+   * surface.
+   *
+   * The protocol provides no guarantee that the grab is ever
+   * satisfied, and does not require the compositor to send an error
+   * if the grab cannot ever be satisfied. It is thus possible to
+   * request a keyboard grab that will never be effective.
+   *
+   * The protocol:
+   *
+   * * does not guarantee that the grab itself is applied for a
+   * surface, the grab request may be silently ignored by the
+   * compositor, * does not guarantee that any events are sent to
+   * this client even if the grab is applied to a surface, * does not
+   * guarantee that events sent to this client are exhaustive, a
+   * compositor may filter some events for its own consumption, *
+   * does not guarantee that events sent to this client are
+   * continuous, a compositor may change and reroute keyboard events
+   * while the grab is nominally active.
+   * @param surface surface to report keyboard events to
+   * @param seat the seat for which the keyboard should be grabbed
+   */
+  void (*grab_keyboard)(struct wl_client* client,
+                        struct wl_resource* resource,
+                        uint32_t id,
+                        struct wl_resource* surface,
+                        struct wl_resource* seat);
 };
-
 
 /**
  * @ingroup iface_zwp_xwayland_keyboard_grab_manager_v1
@@ -180,23 +185,21 @@ struct zwp_xwayland_keyboard_grab_manager_v1_interface {
  * @struct zwp_xwayland_keyboard_grab_v1_interface
  */
 struct zwp_xwayland_keyboard_grab_v1_interface {
-	/**
-	 * destroy the grabbed keyboard object
-	 *
-	 * Destroy the grabbed keyboard object. If applicable, the
-	 * compositor will ungrab the keyboard.
-	 */
-	void (*destroy)(struct wl_client *client,
-			struct wl_resource *resource);
+  /**
+   * destroy the grabbed keyboard object
+   *
+   * Destroy the grabbed keyboard object. If applicable, the
+   * compositor will ungrab the keyboard.
+   */
+  void (*destroy)(struct wl_client* client, struct wl_resource* resource);
 };
-
 
 /**
  * @ingroup iface_zwp_xwayland_keyboard_grab_v1
  */
 #define ZWP_XWAYLAND_KEYBOARD_GRAB_V1_DESTROY_SINCE_VERSION 1
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 

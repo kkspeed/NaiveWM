@@ -4,6 +4,9 @@
 #include <cassert>
 #include <deque>
 
+#include "config.h"
+#include "wm/manage/split_exec.h"
+
 namespace naive {
 namespace wm {
 
@@ -16,39 +19,17 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
                                int32_t height,
                                int32_t screen_width_,
                                int32_t screen_height_,
-                               bool horizontal,
+                               int32_t tag,
                                int32_t inset_y) {
-  if (candidates.size() == 0)
-    return;
-
-  if (candidates.size() == 1) {
-    if (candidates.front()->is_maximized())
-      candidates.front()->MoveResize(0, inset_y, screen_width_, screen_height_);
-    else
-      candidates.front()->MoveResize(x, y, width, height);
-    return;
-  }
-
-  ManageWindow* front = candidates.front();
-  candidates.pop_front();
-  if (horizontal) {
+  SplitExec exec(config::kLayouts[tag],
+                 base::geometry::Rect(x, y, width, height), candidates.size());
+  for (int32_t i = 0; i < candidates.size(); i++) {
+    auto* front = candidates[i];
+    auto rect = exec.NextRect(i);
     if (front->is_maximized())
       front->MoveResize(0, inset_y, screen_width_, screen_height_);
     else
-      front->MoveResize(x, y, width / 2, height);
-    ArrangeNonFloatingWindows(candidates, x + width / 2, y, width / 2, height,
-                              screen_width_, screen_height_, !horizontal,
-                              inset_y);
-  } else {
-    if (front->is_maximized())
-      front->MoveResize(0, 0, screen_width_, screen_height_);
-    else
-      front->MoveResize(x, y, width, height / 2);
-    // TODO: screen_width_ and height are not full screen screen width and
-    // height (screen_height_ = height - inset_y)...
-    ArrangeNonFloatingWindows(candidates, x, y + height / 2, width, height / 2,
-                              screen_width_, screen_height_, !horizontal,
-                              inset_y);
+      front->MoveResize(rect.x(), rect.y(), rect.width(), rect.height());
   }
 }
 
@@ -168,7 +149,7 @@ void Workspace::ArrangeWindows(int32_t x,
   }
 
   ArrangeNonFloatingWindows(normal_windows, x, y, width, height, width, height,
-                            true, workspace_inset_y_);
+                            tag_, workspace_inset_y_);
 
   for (auto* window : floating_windows)
     window->window()->Raise();

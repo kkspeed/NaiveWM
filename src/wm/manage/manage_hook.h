@@ -9,9 +9,9 @@
 #include "ui/image_view.h"
 #include "wm/manage/panel.h"
 #include "wm/manage/workspace.h"
-#include "wm/window_manager.h"
 #include "wm/scoped_move_window.h"
 #include "wm/scoped_resize_window.h"
+#include "wm/window_manager.h"
 
 namespace naive {
 

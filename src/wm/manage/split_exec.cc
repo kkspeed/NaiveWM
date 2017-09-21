@@ -10,6 +10,9 @@ namespace wm {
 
 namespace {
 
+const int32_t min_window_height = 30;
+const int32_t min_window_width = 30;
+
 bool IsNumber(char i) {
   return i >= '0' && i < '9';
 }
@@ -22,7 +25,9 @@ SplitExec::SplitExec(const std::string& split_string,
     : split_string_(split_string), workspace_(rect), size_(size) {}
 
 base::geometry::Rect SplitExec::NextRect(int32_t i) {
-  if (index_ >= split_string_.size() || i == size_ - 1) {
+  if (index_ >= split_string_.size() || i == size_ - 1 ||
+      workspace_.width() <= min_window_width ||
+      workspace_.height() <= min_window_height) {
     return workspace_;
   }
   float partition = 0.0f;

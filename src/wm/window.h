@@ -53,6 +53,9 @@ class Window {
   void set_class(std::string clazz) { clazz_ = clazz; }
   void set_appid(std::string app_id) { app_id_ = app_id; }
   void set_popup(bool popup) { is_popup_ = popup; }
+  void set_manage_floating_hint(bool floating) {
+    has_manage_floating_hint_ = floating;
+  }
   void set_visible(bool visible);
 
   void MaybeMakeTopLevel();
@@ -111,6 +114,7 @@ class Window {
 
   bool is_popup() { return is_popup_; }
   bool is_transient() { return is_transient_; }
+  bool has_manage_floating_hint() { return has_manage_floating_hint_; }
   void set_managed(bool managed) { managed_ = managed; }
   void set_to_be_managed(bool tobe) { to_be_managed_ = true; }
   std::vector<Window*>& children() { return children_; }
@@ -165,6 +169,7 @@ class Window {
   }
 
  private:
+  bool has_manage_floating_hint_ = false;
   bool managed_ = false, to_be_managed_ = false;
   bool focused_ = false;
   bool visible_ = true;

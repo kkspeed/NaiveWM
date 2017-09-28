@@ -38,7 +38,8 @@ void ArrangeNonFloatingWindows(std::deque<ManageWindow*>& candidates,
 ManageWindow::ManageWindow(Window* window, WMPrimitives* primitives)
     : window_(window),
       primitives_(primitives),
-      is_floating_(window->is_transient() || window->is_popup()) {}
+      is_floating_(window->has_manage_floating_hint() ||
+                   window->is_transient() || window->is_popup()) {}
 
 Workspace::Workspace(uint32_t tag, uint32_t workspace_inset_y)
     : tag_(tag), workspace_inset_y_(workspace_inset_y) {}

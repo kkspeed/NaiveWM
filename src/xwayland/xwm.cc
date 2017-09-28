@@ -80,7 +80,7 @@ void XWindowManager::CreateManagedWindow(
   shell_surface->set_close_callback(
       [this, window]() { this->KillWindow(window); });
   shell_surface->set_configure_callback([this, window, buffer_scale](
-      int32_t width, int32_t height) {
+                                            int32_t width, int32_t height) {
     this->ConfigureWindow(window, width * buffer_scale, height * buffer_scale);
     return 0;
   });
@@ -165,11 +165,11 @@ bool XWindowManager::AdjustWindowFlags(Window window,
           "0x%lx, window: %p",
           window, shell_surface->window(), transient_for_window,
           parent->window());
-      parent->window()->AddChild(shell_surface->window());
-      return true;
+      shell_surface->window()->set_transient(true);
+      return false;
     }
-    parent->window()->AddChild(shell_surface->window());
-    return true;
+    shell_surface->window()->set_transient(true);
+    return false;
   }
   if ((xa.override_redirect || transient_for_window == root_) &&
       !rect.Empty()) {
@@ -191,12 +191,12 @@ bool XWindowManager::AdjustWindowFlags(Window window,
     TRACE("dialog xwin: 0x%lx, window: %p, treating as popup.", window,
           shell_surface->window())
     shell_surface->window()->set_popup(true);
+    if (window_type == atoms_->net_wm_window_type_dock)
+      shell_surface->window()->override_border(true, false);
     if (!rect.Empty()) {
       shell_surface->SetGeometry(
           rect / shell_surface->window()->surface()->buffer_scale());
     }
-    if (window_type == atoms_->net_wm_window_type_dock)
-      shell_surface->window()->override_border(true, false);
     return false;
   }
   return false;
@@ -233,10 +233,10 @@ int XWindowManager::GetFileDescriptor() {
 void XWindowManager::OnXServerInitialized() {
   x_display_ = XOpenDisplay(kXWaylandDisplay);
   assert(x_display_);
-  TRACE("XDisplay: %p", x_display_);
   atoms_ = std::make_unique<Atoms>(x_display_);
   screen_ = DefaultScreen(x_display_);
   root_ = DefaultRootWindow(x_display_);
+  TRACE("XDisplay: %p, Root: 0x%lx", x_display_, root_);
 
   Atom net_atoms[] = {
       atoms_->net_active_window,
@@ -313,8 +313,8 @@ void XWindowManager::HandleConfigureRequest(XEvent* event) {
 }
 
 void XWindowManager::HandleCreateNotify(XCreateWindowEvent* event) {
-  TRACE("xwin: 0x%lx, (%d, %d), w: %d, h: %d", event->window, event->x,
-        event->y, event->width, event->height);
+  TRACE("xwin: 0x%lx, (%d, %d), w: %d, h: %d, parent: 0x%lx", event->window,
+        event->x, event->y, event->width, event->height, event->parent);
   auto* shell_surface = GetShellSurfaceByWindow(event->window);
   base::geometry::Rect r(event->x, event->y, event->width, event->height);
   if (!shell_surface) {

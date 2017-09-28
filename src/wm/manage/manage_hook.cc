@@ -8,8 +8,8 @@
 #include "base/image_codec.h"
 #include "base/time.h"
 #include "base/utils.h"
-#include "config.h"
 #include "compositor/compositor.h"
+#include "config.h"
 #include "ui/image_view.h"
 #include "ui/text_view.h"
 #include "wayland/display_metrics.h"
@@ -361,6 +361,14 @@ void ManageHook::RegisterKeys() {
       this->primitives_->FocusWindow(current ? current->window() : nullptr);
     });
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Debug keys:
+  (super_ + shift_ + KEY_D).Action([]() {
+    TRACE("============== BEGIN WINDOW HIERARCHY ========================");
+    wm::WindowManager::Get()->DumpWindowHierarchy();
+    TRACE("============== END WINDOW HIERARCHY ========================");
+  });
 }
 
 void ManageHook::AddWindowCallbacks() {

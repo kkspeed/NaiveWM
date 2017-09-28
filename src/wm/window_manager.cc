@@ -372,5 +372,22 @@ void WindowManager::RaiseWindow(Window* window) {
   }
 }
 
+void WindowManager::DumpWindowHierarchy() {
+  for (auto* window : windows_) {
+    std::vector<std::pair<std::string, Window*>> stack;
+    stack.push_back(std::pair<std::string, Window*>(std::string(""), window));
+    while (!stack.empty()) {
+      auto p = stack.back();
+      stack.pop_back();
+      auto* w = p.second;
+      TRACE("%s: %p, %s", p.first.c_str(), w,
+            w->global_bound().ToString().c_str());
+      for (auto* child : w->children())
+        stack.push_back(
+            std::pair<std::string, Window*>(p.first + "    ", child));
+    }
+  }
+}
+
 }  // namespace wm
 }  // namespace naive

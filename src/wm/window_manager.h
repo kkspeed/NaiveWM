@@ -174,6 +174,8 @@ class WindowManager : public event::EventObserver, public WMPrimitives {
   Window* input_panel_top_level() { return input_panel_top_level_; }
   Window* input_panel_overlay() { return input_panel_overlay_; }
 
+  void DumpWindowHierarchy();
+
  private:
   static WindowManager* g_window_manager;
   std::vector<Window*> windows_;
